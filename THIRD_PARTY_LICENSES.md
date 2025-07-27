@@ -1624,7 +1624,7 @@ License: MIT-Modern-Variant
 Copyright: 2006-2015 International Business Machines Corporation,
 Source: [unknown-source](unknown-source)
 
-License text: [third_party_licenses/sky_engine_LICENSE.txt](/third_party_licenses/sky_engine_LICENSE.txt)
+License text: no source
 
 ---
 
@@ -1634,7 +1634,7 @@ License: BSD-3-Clause
 Copyright: unknown-copyright
 Source: [https://flutter.dev](https://flutter.dev)
 
-License text: [third_party_licenses/flutter_LICENSE.txt](/third_party_licenses/flutter_LICENSE.txt)
+License text: no source
 
 ---
 
@@ -1644,7 +1644,7 @@ License: no-file
 Copyright: unknown-copyright
 Source: [unknown-source](unknown-source)
 
-License text: [third_party_licenses/flutter_localizations_LICENSE.txt](/third_party_licenses/flutter_localizations_LICENSE.txt)
+License text: no source
 
 ---
 
@@ -1654,7 +1654,7 @@ License: no-file
 Copyright: unknown-copyright
 Source: [unknown-source](unknown-source)
 
-License text: [third_party_licenses/flutter_test_LICENSE.txt](/third_party_licenses/flutter_test_LICENSE.txt)
+License text: no source
 
 ---
 
@@ -1664,5 +1664,4 @@ License: no-file
 Copyright: unknown-copyright
 Source: [https://flutter.dev](https://flutter.dev)
 
-License text: [third_party_licenses/flutter_web_plugins_LICENSE.txt](/third_party_licenses/flutter_web_plugins_LICENSE.txt)
-
+License text: no source
