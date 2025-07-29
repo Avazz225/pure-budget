@@ -2,11 +2,11 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/helper/remote/i_cloud_connector.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 
 Padding iCloudSelector(
@@ -20,11 +20,8 @@ Padding iCloudSelector(
       connector = ICloudConnector();
       await connector!.init();
 
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        debugPrint("Authentication failed: $e");
-        debugPrint("Stack Trace: $stackTrace");
-      }
+    } catch (e) {
+      Logger().error("Authentication failed: $e", tag: "iCloud");
     }
   }
 
@@ -117,6 +114,7 @@ Padding iCloudSelector(
         }
       }
     } catch (e) {
+      Logger().info("Could not browse folder: $e", tag: "iCloud");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(I18n.translate("error_folderBrowse", placeholders: {"error": e.toString()}))),
       );

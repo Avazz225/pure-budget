@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter/foundation.dart' as mode;
 import 'package:jne_household_app/helper/remote/auth.dart' as storage;
+import 'package:jne_household_app/logger.dart';
 
 
 class EncryptionHelper {
@@ -54,8 +56,31 @@ class EncryptionHelper {
 
       return decryptedBytes;
     } catch (e) {
-      mode.debugPrint("Decryption error: $e");
+      Logger().error("Decryption error: $e", tag: "decrypt");
       throw Exception("Decryption failed: $e");
+    }
+  }
+
+  static Future<bool> encryptFile(File localFile) async {
+    try {
+      final keyBase64 = await loadKey();
+      final key = getKeyFromBase64(keyBase64);
+
+      // Initialisiere Encrypter
+      final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
+      final iv = IV.fromSecureRandom(16); // Initialisierungsvektor generieren
+
+      // Datei lesen und verschlüsseln
+      final fileBytes = await localFile.readAsBytes();
+      final encrypted = encrypter.encryptBytes(fileBytes, iv: iv);
+
+      // Temporäre verschlüsselte Datei erstellen
+      final encryptedFile = File('${localFile.path}.encrypted');
+      await encryptedFile.writeAsBytes([...iv.bytes, ...encrypted.bytes]);
+      return true;
+    } catch (e) {
+      Logger().error("Encryption error: $e", tag: "encrypt");
+      return false;
     }
   }
 }

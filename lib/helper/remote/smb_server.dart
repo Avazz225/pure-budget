@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:jne_household_app/helper/remote/auth.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:smb_connect/smb_connect.dart';
 
 class SMBServer {
@@ -20,9 +21,7 @@ class SMBServer {
         throw Exception("No shared found.");
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Reestablishing db connection: $e");
-      }
+      Logger().info("Reestablishing db connection: $e", tag: "smbServer");
       _smbClient = await init();
     }
     return _smbClient!;

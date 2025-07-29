@@ -18,6 +18,12 @@
 
 ## Changelog
 
+### 2.4.8 (29.07.2025)
+
+- [DESKTOP] fix file locations for MS Store release
+- add msix config
+- improve logging function
+
 ### 2.4.7 bundle 22 (25.07.2025)
 
 - skip db sync when changing ranges

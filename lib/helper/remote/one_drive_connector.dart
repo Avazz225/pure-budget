@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:jne_household_app/helper/remote/auth.dart';
 import 'package:jne_household_app/helper/remote/one_drive_auth_code_server.dart';
 import 'package:jne_household_app/keys.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class OneDriveConnector {
@@ -50,11 +51,8 @@ class OneDriveConnector {
         _accessToken = credentials.accessToken;
         await saveKey(credentials.toJsonString(), "oneDriveAccessTokenJson");
       }
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        debugPrint("Failed to load token: $e");
-        debugPrint(stackTrace.toString());
-      }
+    } catch (e) {
+      Logger().info("Failed to load token: $e", tag: "oneDrive");
 
       final credentials = await flow.run();
       if (kDebugMode) {
@@ -95,7 +93,7 @@ class OneDriveConnector {
 
     final downloadUrl = "https://graph.microsoft.com/v1.0/me/drive/items/$itemId/content";
     final response = await http.get(Uri.parse(downloadUrl), headers: await _authHeaders(false));
-    debugPrint(response.toString());
+
     await localFile.writeAsBytes(response.bodyBytes);
   }
 

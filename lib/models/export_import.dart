@@ -4,6 +4,7 @@ import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/foundation.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/keys.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -80,9 +81,7 @@ class BackupManager {
         await Share.shareXFiles([XFile(filePath)], text: I18n.translate("myBudgetData"));
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Fehler beim Speichern: $e");
-      }
+      Logger().error("Error saving export data: $e", tag: "export");
     }
   }
 
@@ -103,9 +102,7 @@ class BackupManager {
 
       return true;
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Fehler beim Entschlüsseln: $e");
-      }
+      Logger().error("Error decrypting import data: $e", tag: "import");
       return false;
     }
   }

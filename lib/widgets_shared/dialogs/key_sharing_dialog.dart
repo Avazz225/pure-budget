@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -48,6 +49,7 @@ class _KeySharingDialogState extends State<KeySharingDialog> {
       }
       setState(() {});
     } catch (e) {
+      Logger().warning("User authentication failed: $e", tag: "auth");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text( I18n.translate("authFailed", placeholders: {'error': e.toString()}))),
       );

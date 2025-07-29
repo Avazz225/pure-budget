@@ -8,6 +8,7 @@ import 'package:jne_household_app/helper/remote/auth.dart' as auth;
 import 'package:jne_household_app/helper/remote/google_drive_connector.dart';
 import 'package:jne_household_app/helper/remote/one_drive_connector.dart';
 import 'package:jne_household_app/helper/remote/smb_server.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/shared_database/encryption_handler.dart';
 import 'package:jne_household_app/shared_database/network_handler.dart';
 // ignore: unnecessary_import
@@ -63,8 +64,13 @@ class SharedDatabase {
   }
 
   Future<void> initialize() async {
-    final tempDir = await getTemporaryDirectory();
-    tempRemoteDbCopyFile = File('${tempDir.path}/temp_remote_db.sqlite');
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS){
+      final tempDir = await getApplicationSupportDirectory();
+      tempRemoteDbCopyFile = File('${tempDir.path}/temp_remote_db.sqlite');
+    } else {
+      final tempDir = await getTemporaryDirectory();
+      tempRemoteDbCopyFile = File('${tempDir.path}/temp_remote_db.sqlite');
+    }
   }
 
   Future<bool> initSharedDatabase(sharedDbFilePath, isPro, {newConnection = false}) async {
@@ -110,7 +116,7 @@ class SharedDatabase {
         return result[0];
       }
     } catch (e) {
-      debugPrint("Could not reach shared database: $e");
+      Logger().info("Could not reach shared database: $e", tag: "sharedDatabase");
       return false;
     }
   }
@@ -182,7 +188,7 @@ class SharedDatabase {
         return [true, false];
       }
     } catch (e) {
-      debugPrint("Exception in registerDevice: $e");
+      Logger().error("Could not register device: $e", tag: "sharedDatabase");
       throw Exception("Device register failed");
     }
   }
@@ -246,7 +252,7 @@ class SharedDatabase {
 
       return result;
     } catch (e) {
-      debugPrint("Read error: $e");
+      Logger().warning("Read error: $e", tag: "sharedDatabase");
       return [];
     }
   }
@@ -334,7 +340,7 @@ class SharedDatabase {
 
       return [true, (hasPro || ((Platform.isAndroid || Platform.isIOS && isPro)))];
     } catch (e) {
-      debugPrint("Sync error: $e");
+      Logger().debug("Sync error: $e", tag: "sharedDatabase");
       if (e == "lockedOut") {
         return [false, false, true];
       }
@@ -424,7 +430,7 @@ class SharedDatabase {
         }
       });
     } catch (e) {
-      debugPrint("Error during push of changes: $e");
+      Logger().error("Error during push of changes: $e", tag: "sharedDatabase");
       rethrow;
     }
   }
@@ -525,7 +531,7 @@ class SharedDatabase {
       bool hasPro = devices.isNotEmpty;
       return hasPro;
     } catch (e) {
-      debugPrint(e.toString());
+      Logger().error("Could not pull changes: $e", tag: "sharedDatabase");
       return false;
     }
   }

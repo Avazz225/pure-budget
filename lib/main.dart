@@ -4,6 +4,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/screens_desktop/desktop_home_screen.dart';
 import 'package:jne_household_app/screens_shared/introduction.dart';
@@ -17,7 +18,10 @@ import 'package:jne_household_app/services/initialization_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // initialize logger
+  Logger();
 
+  // initialize app
   final initializationData = await InitializationService.initializeApp();
 
   SystemChrome.setPreferredOrientations([
@@ -72,6 +76,7 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
       }
       setState(() {});
     } catch (e) {
+      Logger().warning("User authentication failed: $e", tag: "auth");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text( I18n.translate("authFailed", placeholders: {'error': e.toString()}))),
       );

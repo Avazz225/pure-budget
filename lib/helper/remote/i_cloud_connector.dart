@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:jne_household_app/helper/remote/auth.dart';
 import 'package:jne_household_app/helper/remote/i_cloud_auth_code_server.dart';
 import 'package:jne_household_app/keys.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class ICloudConnector {
@@ -48,11 +49,8 @@ class ICloudConnector {
         _accessToken = credentials.accessToken;
         await saveKey(credentials.toJsonString(), "iCloudAccessTokenJson");
       }
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        debugPrint("Failed to load token: $e");
-        debugPrint(stackTrace.toString());
-      }
+    } catch (e) {
+      Logger().info("Failed to load token: $e", tag: "iCloud");
 
       final credentials = await flow.run();
       if (kDebugMode) debugPrint(credentials.toString());

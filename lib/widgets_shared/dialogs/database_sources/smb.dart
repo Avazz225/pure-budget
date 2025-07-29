@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/helper/remote/smb_server.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:smb_connect/smb_connect.dart';
 
@@ -113,6 +114,7 @@ class smbFolderSelectorState extends State<smbFolderSelector> {
             },
           );
         } catch (e) {
+          Logger().info("Could not browse folder: $e", tag: "smbServer");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(I18n.translate("error_folderBrowse", placeholders: {"error": e.toString()}))),
           );
@@ -121,6 +123,7 @@ class smbFolderSelectorState extends State<smbFolderSelector> {
 
       await browseFolder(initialFolder.isNotEmpty ? initialFolder : "/");
     } catch (e) {
+      Logger().error("Connection failed: $e", tag: "smbServer");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(I18n.translate("error_connection", placeholders: {"type": "SMB Server", "error": e.toString()}))),
       );

@@ -1,31 +1,21 @@
 import 'dart:io';
 
-import 'package:encrypt/encrypt.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jne_household_app/helper/remote/google_drive_connector.dart';
 import 'package:jne_household_app/helper/remote/one_drive_connector.dart';
 import 'package:jne_household_app/helper/remote/smb_server.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/shared_database/encryption_handler.dart';
 
 const String sharedDbName = "/pureBudgetRemoteDatabase.pbdb";
 
 Future<void> uploadFile(String remotePath, File localFile) async {
   try {
-    // Lade den Verschlüsselungsschlüssel
-    final keyBase64 = await EncryptionHelper.loadKey();
-    final key = EncryptionHelper.getKeyFromBase64(keyBase64);
+    if (! await EncryptionHelper.encryptFile(localFile)){
+      throw Exception("Could not encrypt file");
+    }
 
-    // Initialisiere Encrypter
-    final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
-    final iv = IV.fromSecureRandom(16); // Initialisierungsvektor generieren
-
-    // Datei lesen und verschlüsseln
-    final fileBytes = await localFile.readAsBytes();
-    final encrypted = encrypter.encryptBytes(fileBytes, iv: iv);
-
-    // Temporäre verschlüsselte Datei erstellen
     final encryptedFile = File('${localFile.path}.encrypted');
-    await encryptedFile.writeAsBytes([...iv.bytes, ...encrypted.bytes]);
 
     // Tatsächlichen Upload an remotePath durchführen
     if (remotePath.startsWith('gdrive://')) {
@@ -41,9 +31,7 @@ Future<void> uploadFile(String remotePath, File localFile) async {
     // Temporäre verschlüsselte Datei löschen
     await encryptedFile.delete();
   } catch (e) {
-    if (kDebugMode) {
-      debugPrint("Fehler beim Hochladen der Datei: $e");
-    }
+    Logger().error("Error uploading file: $e", tag: "network");
     rethrow;
   }
 }
@@ -52,7 +40,13 @@ Future<void> uploadFile(String remotePath, File localFile) async {
 Future<bool> downloadFile(String remotePath, File localFile) async {
   try {
     // Lade die verschlüsselte Datei
-    final encryptedFile = File('${localFile.path}.encrypted');
+    File encryptedFile;
+    if (kDebugMode) {
+      encryptedFile = File('${localFile.path}_debug.encrypted');
+    } else {
+      encryptedFile = File('${localFile.path}.encrypted');
+    }
+
     if (!await encryptedFile.exists()) {
       await encryptedFile.create(recursive: true);
     }
@@ -93,7 +87,7 @@ Future<bool> downloadFile(String remotePath, File localFile) async {
     await encryptedFile.delete();
     return true;
   } catch (e) {
-    debugPrint("Error during download and decrypt: $e");
+    Logger().error("Error downloading file: $e", tag: "network");
     return false;
   }
 }
@@ -108,7 +102,7 @@ Future<void> uploadToLocal(String remotePath, File encryptedFile) async {
 Future<void> _downloadFromLocal(String remotePath, File encryptedFile) async {
   final nasFile = File(remotePath + sharedDbName);
   if (await nasFile.exists()) {
-    await encryptedFile.writeAsBytes(await nasFile.readAsBytes());
+    await encryptedFile.writeAsString(await nasFile.readAsString());
   } else {
     throw Exception("NAS-Datei nicht gefunden: $remotePath");
   }

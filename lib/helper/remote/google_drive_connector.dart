@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:jne_household_app/helper/post_auth_page.dart';
 import 'package:jne_household_app/helper/remote/auth.dart';
 import 'package:jne_household_app/keys.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 final scopes = [drive.DriveApi.driveScope];
@@ -59,9 +60,8 @@ class GoogleDriveConnector {
           return drive.DriveApi(refreshedClient);
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint("Failed to use saved credentials: $e");
-      debugPrint(stackTrace.toString());
+    } catch (e) {
+      Logger().error("Failed to use saved credentials: $e", tag: "googleDrive");
     }
 
     final authClient = await clientViaUserConsent(clientId, scopes, _promptUserForConsent, customPostAuthPage: customPostAuthPage);
@@ -165,7 +165,7 @@ class GoogleDriveConnector {
     
     // Lade die Datei herunter
     final media = await client.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia);
-    final sink = localFile.openWrite();
+    final sink = localFile.openWrite(encoding: Encoding.getByName("utf-8")!);
 
     try {
       if (media is drive.Media) {

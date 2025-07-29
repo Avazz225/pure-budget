@@ -6,6 +6,7 @@ import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:jne_household_app/models/category.dart';
 // ignore: unnecessary_import
 import 'package:sqflite/sqflite.dart';  // mobile specific
@@ -30,7 +31,8 @@ class DatabaseHelper {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
-      dbPath = Directory.current.path; 
+      final dir = await getApplicationSupportDirectory();
+      dbPath = dir.path;
     } else {
       dbPath = await getDatabasesPath();
     }

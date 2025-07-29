@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/widgets_shared/loading_animation.dart';
 
@@ -80,7 +81,7 @@ class RemoteRegisteredDevicesState extends State<RemoteRegisteredDevices> {
                             });
                           }
                         } catch (e) {
-                          debugPrint(e.toString());
+                          Logger().error("Error blocking device devices: $e", tag: "deviceManagement");
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(e.toString())),
                           );
