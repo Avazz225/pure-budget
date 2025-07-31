@@ -49,3 +49,5 @@ budget.db
 releases/*
 license_input.txt
 license_formatter.py
+
+*.bin
