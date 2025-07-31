@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
@@ -15,6 +14,7 @@ final scopes = [drive.DriveApi.driveScope];
 class GoogleDriveConnector {
   static drive.DriveApi? _driveApi;
   static final GoogleDriveConnector _instance = GoogleDriveConnector._internal();
+  final _logger = Logger();
 
   factory GoogleDriveConnector() => _instance;
 
@@ -46,22 +46,20 @@ class GoogleDriveConnector {
 
         // Wenn Access Token gültig ist
         if (DateTime.now().isBefore(accessToken.expiry)) {
-          if (kDebugMode) {
-            debugPrint("Access Token is still valid.");
-          }
+          _logger.debug("Access Token is still valid.", tag: "googleDrive");
+
           final authClient = authenticatedClient(accessToken, refreshToken, clientId);
           return drive.DriveApi(authClient);
         } else {
-          if (kDebugMode) {
-            debugPrint("Access Token expired, refreshing...");
-          }
+          _logger.debug("Access Token expired, refreshing...", tag: "googleDrive");
+          
           // Access Token erneuern
           final refreshedClient = await refreshAuthToken(clientId, accessToken, refreshToken);
           return drive.DriveApi(refreshedClient);
         }
       }
     } catch (e) {
-      Logger().error("Failed to use saved credentials: $e", tag: "googleDrive");
+      _logger.error("Failed to use saved credentials: $e", tag: "googleDrive");
     }
 
     final authClient = await clientViaUserConsent(clientId, scopes, _promptUserForConsent, customPostAuthPage: customPostAuthPage);
@@ -214,14 +212,14 @@ class GoogleDriveConnector {
 
       final existingFileId = files.first.id!;
       await client.files.update(fileToUpload, existingFileId, uploadMedia: media);
-      debugPrint("Updated shared database file");
+      _logger.debug("Updated shared database file", tag: "googleDrive");
     } else {
       final fileToUpload = drive.File()
         ..name = fileName
         ..parents = [folderId];
 
       await client.files.create(fileToUpload, uploadMedia: media);
-      debugPrint("Created shared database file");
+      _logger.debug("Created shared database file", tag: "googleDrive");
     }
   }
 

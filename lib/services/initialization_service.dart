@@ -14,11 +14,6 @@ class InitializationData {
 
 class InitializationService {
   static Future<InitializationData> initializeApp() async {
-
-    if (kDebugMode) {
-      debugPrint("Running init service");
-    }
-
     // set language
     final defaultLocale = PlatformDispatcher.instance.locale;
     await I18n.load(defaultLocale.toString(), locale: defaultLocale);

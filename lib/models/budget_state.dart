@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/helper/auto_booking.dart';
 import 'package:jne_household_app/helper/remote/auth.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/models/category.dart';
@@ -210,7 +210,6 @@ class BudgetState extends ChangeNotifier {
       if (result[0]) {
         sharedDbConnected = true;
         if (Platform.isWindows || Platform.isLinux || Platform.isMacOS){
-          debugPrint(result.toString());
           await db.updateSettings("isPro", result[1] ? 1 : 0);
           isPro = result[1];
         }
@@ -219,9 +218,7 @@ class BudgetState extends ChangeNotifier {
       } else {
         sharedDbConnected = false;
         if (result[2]) {
-          if (kDebugMode) {
-            debugPrint("Device has been locked out of shared database");
-          }
+          Logger().warning("Device has been locked out of shared database", tag: "sharedDatabase");
         }
       }
       syncInProgress = false;

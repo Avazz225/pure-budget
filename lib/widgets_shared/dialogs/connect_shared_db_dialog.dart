@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/shared_database/encryption_handler.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -101,7 +102,7 @@ Future<bool> keyDialog(BuildContext context) async {
                       child: MobileScanner(
                         onDetect: (barcode) async {
                           final String code = barcode.barcodes.first.displayValue!;
-                          debugPrint(code);
+                          Logger().debug("Scanned: $code", tag: "sharedDatabase");
                           await EncryptionHelper.saveKey(code);
                           Navigator.of(context).pop(true);
                         },

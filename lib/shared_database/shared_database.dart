@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/helper/remote/auth.dart' as auth;
 import 'package:jne_household_app/helper/remote/google_drive_connector.dart';
@@ -38,6 +37,7 @@ class SharedDatabase {
   final DatabaseHelper localDb;
   late final File tempRemoteDbCopyFile;
   final int remoteDbVersion = 3;
+  final _logger = Logger();
   int totalChanges = 0;
 
   SharedDatabase(this.localDb);
@@ -93,9 +93,9 @@ class SharedDatabase {
         // upload database to directory
         
         await uploadFile(sharedDbFilePath, tempRemoteDbCopyFile);
-        if (kDebugMode) {
-          debugPrint("Initialized and uploaded new shared database");
-        }
+
+        _logger.debug("Initialized and uploaded new shared database", tag: "sharedDatabase");
+        
         tempRemoteDbCopyFile.deleteSync();
         return true;
       } else {
@@ -116,7 +116,7 @@ class SharedDatabase {
         return result[0];
       }
     } catch (e) {
-      Logger().info("Could not reach shared database: $e", tag: "sharedDatabase");
+      _logger.info("Could not reach shared database: $e", tag: "sharedDatabase");
       return false;
     }
   }
@@ -137,17 +137,14 @@ class SharedDatabase {
         await auth.saveKey(uuid, "pureBudgetDeviceId");
       }
 
-      if (kDebugMode) {
-        debugPrint("Registering device with id $uuid");
-        debugPrint(metadata);
-      }
-
-
+      _logger.debug("Registering device with id $uuid", tag: "sharedDatabase");
+      _logger.debug(metadata, tag: "sharedDatabase");
+      
       List<Map<String, dynamic>> device = await remoteDatabase.query("registeredDevices", where: "id = ?", whereArgs: [uuid]);
-      if (kDebugMode) debugPrint(device.toString());
+      _logger.debug(device.toString(), tag: "sharedDatabase");
 
       if (device.isEmpty) {
-        if (kDebugMode) debugPrint("-> initial registration");
+        _logger.debug("-> initial registration", tag: "sharedDatabase");
         await remoteDatabase.insert(
         "registeredDevices", 
           {
@@ -166,7 +163,7 @@ class SharedDatabase {
             "blocked": 1
           }];
       } else {
-        if (kDebugMode) debugPrint("-> updating registration");
+        _logger.debug("-> updating device registration", tag: "sharedDatabase");
         Map<String, dynamic> oldMetadata = jsonDecode(device[0]['deviceMetadata']);
 
         if (oldMetadata.containsKey("customname")) {
@@ -188,7 +185,7 @@ class SharedDatabase {
         return [true, false];
       }
     } catch (e) {
-      Logger().error("Could not register device: $e", tag: "sharedDatabase");
+      _logger.error("Could not register device: $e", tag: "sharedDatabase");
       throw Exception("Device register failed");
     }
   }
@@ -252,7 +249,7 @@ class SharedDatabase {
 
       return result;
     } catch (e) {
-      Logger().warning("Read error: $e", tag: "sharedDatabase");
+      _logger.warning("Read error: $e", tag: "sharedDatabase");
       return [];
     }
   }
@@ -331,8 +328,8 @@ class SharedDatabase {
       // upload remote db file to remote path
       if (totalChanges > 0 || changeEncryptKey) {
         await uploadFile(sharedDbFilePath, tempRemoteDbCopyFile);
-      } else if (kDebugMode) {
-        debugPrint("Skipping upload no changes.");
+      } else{
+        _logger.debug("Skipping upload no changes.", tag: "sharedDatabase");
       }
 
       // delete local copy
@@ -340,7 +337,7 @@ class SharedDatabase {
 
       return [true, (hasPro || ((Platform.isAndroid || Platform.isIOS && isPro)))];
     } catch (e) {
-      Logger().debug("Sync error: $e", tag: "sharedDatabase");
+      _logger.debug("Sync error: $e", tag: "sharedDatabase");
       if (e == "lockedOut") {
         return [false, false, true];
       }
@@ -361,9 +358,7 @@ class SharedDatabase {
         'SELECT * FROM editLog WHERE sharedBatchId = -1'
       );
 
-      if (kDebugMode) {
-        debugPrint("Upstream pushing changes, total: ${changes.length}");
-      }
+      _logger.debug("Upstream pushing changes, total: ${changes.length}", tag: "sharedDatabase");
       
       totalChanges += changes.length;
 
@@ -430,7 +425,7 @@ class SharedDatabase {
         }
       });
     } catch (e) {
-      Logger().error("Error during push of changes: $e", tag: "sharedDatabase");
+      _logger.error("Error during push of changes: $e", tag: "sharedDatabase");
       rethrow;
     }
   }
@@ -451,16 +446,13 @@ class SharedDatabase {
         [lastBatchId]
       );
 
-      if (kDebugMode) {
-        debugPrint("Downstream pulling changes, total: ${immutableChanges.length}");
-      }
+      _logger.debug("Downstream pulling changes, total: ${immutableChanges.length}", tag: "sharedDatabase");
+      
 
       if (immutableChanges.isNotEmpty) {
         List<Map<String, dynamic>> changes = _reduceImmutableChanges(immutableChanges);
         
-        if (kDebugMode) {
-          debugPrint("Downstream pulling changes, cleaned: ${changes.length}");
-        }
+        _logger.debug("Downstream pulling changes, cleaned: ${changes.length}", tag: "sharedDatabase");
 
         totalChanges += changes.length;
 
@@ -509,9 +501,7 @@ class SharedDatabase {
             newBatchId = changes.map((e) => e['sharedBatchId'] as int).reduce((a, b) => a > b ? a : b);
           }
 
-          if (kDebugMode) {
-            debugPrint("New last changed batchId is $newBatchId");
-          }
+          _logger.info("New last changed batchId is $newBatchId", tag: "sharedDatabase");
 
           await txn.update(
             'settings',
@@ -531,7 +521,7 @@ class SharedDatabase {
       bool hasPro = devices.isNotEmpty;
       return hasPro;
     } catch (e) {
-      Logger().error("Could not pull changes: $e", tag: "sharedDatabase");
+      _logger.error("Could not pull changes: $e", tag: "sharedDatabase");
       return false;
     }
   }

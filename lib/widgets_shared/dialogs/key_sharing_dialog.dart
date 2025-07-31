@@ -35,7 +35,6 @@ class _KeySharingDialogState extends State<KeySharingDialog> {
 
       final isBiometricAvailable = biometricAvailable || supported;
       if (isBiometricAvailable) {
-        debugPrint("HERE");
         _isAuthenticated = await auth.authenticate(
           localizedReason: I18n.translate("authRequired"),
           options: const AuthenticationOptions(

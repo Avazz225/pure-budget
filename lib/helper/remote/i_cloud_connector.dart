@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:jne_household_app/helper/remote/auth.dart';
 import 'package:jne_household_app/helper/remote/i_cloud_auth_code_server.dart';
@@ -12,6 +11,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 class ICloudConnector {
   static ICloudConnector? _instance;
   static String? _accessToken;
+  final _logger = Logger();
 
   ICloudConnector._internal();
 
@@ -42,18 +42,16 @@ class ICloudConnector {
       if (savedToken != "") {
         _accessToken = await tokenManager.getAccessToken();
 
-        if (kDebugMode) debugPrint("Access token loaded.");
+        _logger.debug("Access token loaded.", tag: "iCloud");
       } else {
         final credentials = await flow.run();
-        if (kDebugMode) debugPrint(credentials.toJsonString());
         _accessToken = credentials.accessToken;
         await saveKey(credentials.toJsonString(), "iCloudAccessTokenJson");
       }
     } catch (e) {
-      Logger().info("Failed to load token: $e", tag: "iCloud");
+      _logger.info("Failed to load token: $e", tag: "iCloud");
 
       final credentials = await flow.run();
-      if (kDebugMode) debugPrint(credentials.toString());
       _accessToken = credentials.accessToken;
       await saveKey(credentials.toJsonString(), "iCloudAccessTokenJson");
     }

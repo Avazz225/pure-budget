@@ -51,7 +51,7 @@ Future<bool> downloadFile(String remotePath, File localFile) async {
       await encryptedFile.create(recursive: true);
     }
 
-    debugPrint(remotePath);
+    Logger().debug(remotePath, tag: "network");
 
     if (remotePath.startsWith("gdrive://")) {
       await GoogleDriveConnector().downloadFile(sharedDbName, encryptedFile);

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:encrypt/encrypt.dart' as encrypt;
-import 'package:flutter/foundation.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/logger.dart';
@@ -17,6 +16,7 @@ class BackupManager {
   static const _fileName = "pureBudget_export.pbstate";
   static const _key = exportImportKey;
   static const _iv = exportImportIv;
+  static final _logger = Logger();
 
   static final _encrypter = encrypt.Encrypter(
     encrypt.AES(
@@ -70,18 +70,18 @@ class BackupManager {
 
       await file.writeAsString(encrypted);
 
-      debugPrint(filePath);
+      _logger.debug(filePath, tag: "export");
       if (Platform.isLinux | Platform.isWindows | Platform.isMacOS) {
         final Uri fileUri = Uri.file(dir.path);
 
         if (!await launchUrl(fileUri)) {
-          debugPrint('Could not open file explorer for $fileUri');
+          _logger.debug('Could not open file explorer for $fileUri', tag: "export");
         }
       } else {
         await Share.shareXFiles([XFile(filePath)], text: I18n.translate("myBudgetData"));
       }
     } catch (e) {
-      Logger().error("Error saving export data: $e", tag: "export");
+      _logger.error("Error saving export data: $e", tag: "export");
     }
   }
 
@@ -102,7 +102,7 @@ class BackupManager {
 
       return true;
     } catch (e) {
-      Logger().error("Error decrypting import data: $e", tag: "import");
+      _logger.error("Error decrypting import data: $e", tag: "import");
       return false;
     }
   }

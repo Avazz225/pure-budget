@@ -19,7 +19,8 @@ import 'package:jne_household_app/services/initialization_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // initialize logger
-  Logger();
+  final logger = Logger();
+  await logger.init(minLevel: (kDebugMode) ? LogLevel.debug : LogLevel.error);
 
   // initialize app
   final initializationData = await InitializationService.initializeApp();

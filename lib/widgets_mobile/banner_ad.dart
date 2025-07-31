@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jne_household_app/keys.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/widgets_mobile/overlay_helper.dart';
 
 class MainBanner extends StatefulWidget {
@@ -30,11 +31,10 @@ class MainBannerState extends State<MainBanner> {
     _consentManager.gatherConsent((consentGatheringError) {
       if (consentGatheringError != null) {
         // Consent not obtained in current session.
-        if (kDebugMode) {
-          debugPrint(
-            "${consentGatheringError.errorCode}: ${consentGatheringError.message}",
-          );
-        }
+        Logger().debug(
+          "${consentGatheringError.errorCode}: ${consentGatheringError.message}",
+          tag: "bannerAd"
+        );
       }
 
       // Check if a privacy options entry point is required.

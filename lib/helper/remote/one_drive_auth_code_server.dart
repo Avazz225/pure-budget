@@ -7,6 +7,7 @@ import 'package:jne_household_app/helper/post_auth_page.dart';
 import 'dart:convert';
 
 import 'package:jne_household_app/helper/remote/auth.dart';
+import 'package:jne_household_app/logger.dart';
 
 class AccessCredentials {
   final String accessToken;
@@ -50,7 +51,6 @@ class AuthorizationCodeGrantServerFlow {
 
       // Prompt user and wait for them to authorize.
       final authUrl = _buildAuthUrl(redirectUri, state);
-      if (kDebugMode) debugPrint(authUrl);
       await userPrompt(authUrl);
 
       // Wait for the server to receive the callback.
@@ -194,6 +194,7 @@ class AuthorizationCodeGrantServerFlow {
 class TokenManager {
   AccessCredentials? _credentials;
   AuthorizationCodeGrantServerFlow flow;
+  final _logger = Logger();
 
   TokenManager(this._credentials, this.flow);
 
@@ -206,9 +207,9 @@ class TokenManager {
     if (_credentials!.expiry.isBefore(now)) {
       _credentials = await flow.refreshAccessToken(_credentials!.refreshToken!);
       await saveKey(_credentials!.toJsonString(), "oneDriveAccessTokenJson");
-      debugPrint("Access Token refrehed");
+      _logger.debug("Access Token refrehed", tag: "oneDrive");
     } else if (kDebugMode) {
-      debugPrint("Access Token still valid until ${_credentials!.expiry.toString()}");
+      _logger.debug("Access Token still valid until ${_credentials!.expiry.toString()}", tag: "oneDrive");
     }
     return _credentials!.accessToken;
   }

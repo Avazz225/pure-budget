@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
-import 'package:flutter/foundation.dart' as mode;
 import 'package:jne_household_app/helper/remote/auth.dart' as storage;
 import 'package:jne_household_app/logger.dart';
 
 
 class EncryptionHelper {
   static const _keyIdentifier = "encryption_key";
+  static final _logger = Logger();
 
   // Generate a new encryption key and save it
   static Future<void> generateKey() async {
@@ -33,9 +33,7 @@ class EncryptionHelper {
 
   // Decrypt a file's bytes
   static Future<List<int>> decryptFile(Uint8List encryptedBytes, Key key) async {
-    if (mode.kDebugMode) {
-      mode.debugPrint(key.bytes.toString());
-    }
+    _logger.debug(key.bytes.toString(), tag: "decrypt");
     
     if (encryptedBytes.length < 16) {
       throw Exception("Invalid encrypted data: Missing IV or data segment");
@@ -56,7 +54,7 @@ class EncryptionHelper {
 
       return decryptedBytes;
     } catch (e) {
-      Logger().error("Decryption error: $e", tag: "decrypt");
+      _logger.error("Decryption error: $e", tag: "decrypt");
       throw Exception("Decryption failed: $e");
     }
   }
@@ -79,7 +77,7 @@ class EncryptionHelper {
       await encryptedFile.writeAsBytes([...iv.bytes, ...encrypted.bytes]);
       return true;
     } catch (e) {
-      Logger().error("Encryption error: $e", tag: "encrypt");
+      _logger.error("Encryption error: $e", tag: "encrypt");
       return false;
     }
   }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:jne_household_app/helper/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // desktop specific
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
+  final _logger = Logger();
 
   factory DatabaseHelper() => _instance;
 
@@ -232,18 +234,18 @@ class DatabaseHelper {
     } else if (type == "update") {
       if ((await db.query("editLog", where: "affectedId = ? and affectedTable = ?", whereArgs: [affectedId, table])).isEmpty) {
         await db.insert("editLog", change);
-        debugPrint("INSERTED UPDATE");
+        _logger.debug("Inserted update into editLog", tag: "database");
       } else {
-        debugPrint("Already have ebtry for this change");
+        _logger.debug("Already have ebtry for this change", tag: "database");
       }
     } else if (type == "delete") {
       List<Map<String, dynamic>> entries = (await db.query("editLog", where: "affectedId = ? and affectedTable = ?", whereArgs: [affectedId, table]));
       if (entries.isEmpty) {
         await db.insert("editLog", change);
-        debugPrint("IBSERTED DELETION");
+        _logger.debug("Inserted deletion into editLog", tag: "database");
       } else {
         await db.delete("editLog", where: "id = ?", whereArgs: [entries.first['id']]);
-        debugPrint("REMOVED INSERT");
+        _logger.debug("Removed insert from editLog", tag: "database");
       }
     }
   }

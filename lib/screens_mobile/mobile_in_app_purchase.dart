@@ -22,6 +22,7 @@ class InAppPurchaseScreen extends StatefulWidget {
 class InAppPurchaseScreenState extends State<InAppPurchaseScreen> {
   final String productId = proVersionProductId;
   final _doDBOnly = false;
+  final _logger = Logger();
   bool _isPro = false;
   bool _loading = true;
   bool _isInitialized = false;
@@ -68,9 +69,7 @@ class InAppPurchaseScreenState extends State<InAppPurchaseScreen> {
           }
         },
         onError: (error) {
-          if (kDebugMode) {
-            debugPrint("Error in purchase stream: $error");
-          }
+          _logger.error("Error in purchase stream: $error", tag: "purchase");
         },
       );
       setState(() {
@@ -86,7 +85,7 @@ class InAppPurchaseScreenState extends State<InAppPurchaseScreen> {
   Future<void> _restorePurchases(BudgetState budgetState) async {
     try {
       if (kDebugMode && _doDBOnly) {
-        debugPrint("INFORMATION: Debug mode! Setting pro to false");
+        _logger.debug("Debug mode! Setting pro to false", tag: "purchase");
         await budgetState.updateIsPro(false);
         setState(() {
           _isPro = false;
@@ -97,7 +96,7 @@ class InAppPurchaseScreenState extends State<InAppPurchaseScreen> {
         await InAppPurchase.instance.restorePurchases();
       }
     } catch (e) {
-      Logger().error("Error restoring purchases: $e", tag: "purchase");
+      _logger.error("Error restoring purchases: $e", tag: "purchase");
     }
   }
 
@@ -122,7 +121,7 @@ class InAppPurchaseScreenState extends State<InAppPurchaseScreen> {
 
   Future<void> _buyProduct(BudgetState budgetState) async {
     if (kDebugMode & _doDBOnly) {
-      debugPrint("INFORMATION: Debug mode! Setting pro to true");
+      _logger.debug("Debug mode! Setting pro to true", tag: "purchase");
       await budgetState.updateIsPro(true);
       setState(() {
         _isPro = true;
@@ -132,9 +131,7 @@ class InAppPurchaseScreenState extends State<InAppPurchaseScreen> {
       final bool requestSent = await InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
 
       if (!requestSent) {
-        if (kDebugMode) {
-          debugPrint("Failed to initiate purchase request.");
-        }
+        _logger.error("Failed to initiate purchase request.", tag: "purchase");
       } else {
         _setupPurchaseStream(budgetState);
       }
@@ -163,15 +160,13 @@ class InAppPurchaseScreenState extends State<InAppPurchaseScreen> {
           }
         }
       },
-      onDone: () => debugPrint("Purchase stream closed."),
-      onError: (error) => debugPrint("Purchase stream error: $error"),
+      onDone: () => _logger.info("Purchase stream closed.", tag: "purchase"),
+      onError: (error) => _logger.error("Purchase stream error: $error", tag: "purchase"),
     );
   }
 
   void _onHandlePending() {
-    if (kDebugMode) {
-      debugPrint("Purchase pending...");
-    }
+    _logger.debug("Purchase pending...", tag: "purchase");
     setState(() {
       _purchasePending = true;
       _loading = false;
@@ -190,9 +185,8 @@ class InAppPurchaseScreenState extends State<InAppPurchaseScreen> {
   }
 
   void _onPurchaseFailed() {
-    if (kDebugMode) {
-      debugPrint("Purchase failed or was cancelled.");
-    }
+    _logger.warning("Purchase failed or was cancelled.", tag: "purchase");
+    
     _purchaseFailed = true;
   }
 

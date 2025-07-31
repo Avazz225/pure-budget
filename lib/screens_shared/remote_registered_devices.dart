@@ -1,7 +1,6 @@
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -31,9 +30,7 @@ class RemoteRegisteredDevicesState extends State<RemoteRegisteredDevices> {
       .map((e) => Map<String, dynamic>.from(e))
       .toList();
 
-    if (kDebugMode) {
-      debugPrint(registeredDevices.toString());
-    }
+    Logger().debug(registeredDevices.toString(), tag: "registeredDevices");
   }
 
   @override
