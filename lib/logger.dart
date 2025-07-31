@@ -6,6 +6,8 @@ enum LogLevel { debug, info, warning, error }
 
 class Logger {
   static final Logger _instance = Logger._internal();
+  final int minTagLen = 16;
+  final int maxLevelLen = 9;
 
   late final LogLevel _minLevel;
   File? _logFile;
@@ -22,7 +24,14 @@ class Logger {
     if (!Platform.isAndroid && !Platform.isIOS && !Platform.isLinux) {
       _isDesktop = true;
       final dir = await getApplicationDocumentsDirectory();
-      final logPath = '${dir.path}/flutter_app_log.txt';
+      final appDir = Directory('${dir.path}/PureBudget');
+      if (!appDir.existsSync()) {
+        appDir.createSync();
+      }
+      final logPath = '${appDir.path}/pure_budget_app_log.txt';
+      if (kDebugMode) {
+        debugPrint(logPath);
+      }
       _logFile = File(logPath);
       await _logFile!.writeAsString(
         '=== Log started on ${DateTime.now().toIso8601String()} ===\n',
@@ -51,9 +60,11 @@ class Logger {
     if (level.index < _minLevel.index) return;
 
     final now = DateTime.now().toIso8601String();
-    final levelStr = level.toString().split('.').last.toUpperCase();
-    final prefix = tag != null ? "[$tag]" : "";
-    final output = "[$now] [$levelStr] $prefix\t$message";
+    String levelStr = "[${level.toString().split('.').last.toUpperCase()}]";
+    levelStr = levelStr + " " * (maxLevelLen - levelStr.length);
+    String prefix = tag != null ? "[$tag]" : "";
+    prefix = prefix + " " * (minTagLen - prefix.length);
+    final output = "[$now] $levelStr $prefix $message";
 
     if (_isDesktop && _logFile != null) {
       _logFile!.writeAsStringSync("$output \n", mode: FileMode.append, flush: true);

@@ -24,6 +24,7 @@ Future<void> main() async {
 
   // initialize app
   final initializationData = await InitializationService.initializeApp();
+  logger.info("Initialization finished", tag: "init");
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
