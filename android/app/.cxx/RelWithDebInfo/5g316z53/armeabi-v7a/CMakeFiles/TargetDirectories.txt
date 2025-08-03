@@ -1,2 +1,0 @@
-E:/Workspaces/VSCode/household-app/jne_household_app/android/app/.cxx/RelWithDebInfo/5g316z53/armeabi-v7a/CMakeFiles/edit_cache.dir
-E:/Workspaces/VSCode/household-app/jne_household_app/android/app/.cxx/RelWithDebInfo/5g316z53/armeabi-v7a/CMakeFiles/rebuild_cache.dir
