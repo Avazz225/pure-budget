@@ -8,6 +8,7 @@ import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/screens_mobile/mobie_scanner_ios.dart';
 import 'package:jne_household_app/shared_database/encryption_handler.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -69,7 +70,7 @@ Future<void> connectSharedDbDialog(BuildContext context, BudgetState budgetState
 Future<bool> keyDialog(BuildContext context) async {
   String keyInput = '';
   bool qrScanActive = false;
-  TextEditingController _controller = TextEditingController();
+  TextEditingController controller = TextEditingController();
 
   String formatInput(String input) {
     // Entferne alle bestehenden Leerzeichen
@@ -112,7 +113,7 @@ Future<bool> keyDialog(BuildContext context) async {
                     Column(
                       children: [
                         TextField(
-                          controller: _controller,
+                          controller: controller,
                           style: const TextStyle(
                             fontSize: 16,
                             height: 1.5,
@@ -123,9 +124,9 @@ Future<bool> keyDialog(BuildContext context) async {
                             final formattedValue = formatInput(rawValue);
 
                             // Verhindert Cursor-Springen
-                            final oldSelection = _controller.selection.baseOffset;
+                            final oldSelection = controller.selection.baseOffset;
                             int offset = (oldSelection == formattedValue.length - 1) ? formattedValue.length.clamp(0, formattedValue.length) : oldSelection;
-                            _controller.value = TextEditingValue(
+                            controller.value = TextEditingValue(
                               text: formattedValue,
                               selection: TextSelection.collapsed(
                                   offset: offset),
@@ -143,9 +144,19 @@ Future<bool> keyDialog(BuildContext context) async {
                         if (Platform.isAndroid || Platform.isIOS || kDebugMode)
                         ElevatedButton.icon(
                           onPressed: () {
-                            setState(() {
-                              qrScanActive = true;
-                            });
+                            if(Platform.isAndroid) {
+                              setState(() {
+                                qrScanActive = true;
+                              });
+                            } else {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => ScannerPage(onCodeScanned: (code) async {
+                                  await EncryptionHelper.saveKey(code);
+                                  Navigator.of(context).pop(true); // zurück zur vorherigen Seite
+                                }),
+                              ));
+                            }
+
                           },
                           icon: const Icon(Icons.qr_code_scanner_rounded),
                           label: Text(I18n.translate("scanQrCode")),

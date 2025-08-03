@@ -135,7 +135,7 @@ class MainBannerState extends State<MainBanner> {
     if (kDebugMode) {
       MobileAds.instance.updateRequestConfiguration(
         RequestConfiguration(
-          testDeviceIds: ["525CB608F91AC3F1FE28085F51467095"], // Deine ID aus dem Log
+          testDeviceIds: ["525CB608F91AC3F1FE28085F51467095", "95040acbb0f58062af700e06b51fe291"], // Deine ID aus dem Log
         ),
       );
     }
@@ -197,5 +197,3 @@ class MainBannerState extends State<MainBanner> {
     super.dispose();
   }
 }
-
-// prod-id android: ca-app-pub-9051906478229407/4391337422
