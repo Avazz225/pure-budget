@@ -4,19 +4,24 @@
 
 ### 3.0.0
 
+- "UrBudget"
+  - dynamic design options for pro version
 - added widgets for home screen [mobile]
   - [Pro-Only] create new expense
   - both versions: Display available or spent per current month (only if app is not locked)
 - support rate payments via recurring spendings
 - allow custom names for registered devices
 
-- fix range calculation (exclude last day)
 
 ### planned (depends on need)
 
 - add connection to iCloud
 
 ## Changelog
+
+### 2.4.10 (03.08.2025)
+
+- fix post close error "e0464645"
 
 ### 2.4.9 (31.07.2025)
 
