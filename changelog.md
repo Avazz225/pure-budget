@@ -12,16 +12,11 @@
 - support rate payments via recurring spendings
 - allow custom names for registered devices
 
-
 ### planned (depends on need)
 
 - add connection to iCloud
 
 ## Changelog
-
-### 2.4.10 (03.08.2025)
-
-- fix post close error "e0464645"
 
 ### 2.4.9 (31.07.2025)
 

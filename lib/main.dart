@@ -52,33 +52,11 @@ class HouseholdBudgetApp extends StatefulWidget {
 class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
   final LocalAuthentication auth = LocalAuthentication();
   bool _isAuthenticated = false;
-  late final AppLifecycleListener _lifecycleListener;
 
   @override
   void initState() {
     super.initState();
-    _lifecycleListener = AppLifecycleListener(
-      onStateChange: (AppLifecycleState state) {
-        Logger().debug('Lifecycle state: $state', tag: "appLifecycle");
-        if (state == AppLifecycleState.detached) {
-          _cleanupBeforeExit();
-        }
-      },
-      onResume: () {
-        Logger().debug('App resumed', tag: "appLifecycle");
-      },
-    );
     _authenticate(widget.lockApp);
-  }
-
-  @override
-  void dispose() {
-    _lifecycleListener.dispose();
-    super.dispose();
-  }
-
-  void _cleanupBeforeExit() {
-    Provider.of<BudgetState>(context).dispose();
   }
 
   Future<void> _authenticate(bool authRequired) async {
