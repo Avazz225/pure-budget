@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
+import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/widgets_shared/background_painter.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +22,7 @@ class InAppPurchaseScreen extends StatefulWidget {
 }
 
 class InAppPurchaseScreenState extends State<InAppPurchaseScreen> {
-  final String productId = proVersionProductId;
+  final String productId = (Platform.isAndroid) ? proVersionProductIdAndroid : proVersionProductIdIos;
   final _doDBOnly = false;
   final _logger = Logger();
   bool _isPro = false;
