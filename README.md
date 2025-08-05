@@ -14,13 +14,12 @@ The file "keys.dart" imported in some packages is not included as it contains se
 **Production Access Pending**:
 
 - Android (Testing phase)
-- Windows
+- IOS
+- MacOS
 
 **Planned**:
 
 - Debian
-- IOS
-- MacOS
 - Ubuntu
 
 ## Data Security
