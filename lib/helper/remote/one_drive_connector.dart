@@ -40,10 +40,12 @@ class OneDriveConnector {
       );
 
       if (savedToken != "") {
+        _logger.debug("Token is present", tag: "oneDrive");
         _accessToken = await tokenManager.getAccessToken();
 
         _logger.debug("Access token loaded.", tag: "oneDrive");
       } else {
+        _logger.debug("No token present", tag: "auth");
         final credentials = await flow.run();
         _accessToken = credentials.accessToken;
         await saveKey(credentials.toJsonString(), "oneDriveAccessTokenJson");

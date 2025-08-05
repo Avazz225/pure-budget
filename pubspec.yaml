@@ -73,9 +73,11 @@ dev_dependencies:
 
 flutter_launcher_icons:
   android: false
-  ios: true
+  macos:
+    generate: true
+  ios: false
   remove_alpha_ios: true
-  image_path: "app_icon_solid.png"
+  image_path: "logo.png"
 
 # The follwing section is specific for generating the msix
 msix_config:
