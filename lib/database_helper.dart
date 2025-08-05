@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:jne_household_app/helper/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
@@ -40,7 +41,7 @@ class DatabaseHelper {
     }
     
     return openDatabase(
-      join(dbPath, 'budget.db'),
+      join(dbPath, (kDebugMode) ? 'debug_budget.db' : 'budget.db'),
       version: 25,
       onCreate: (db, version) {
         db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');

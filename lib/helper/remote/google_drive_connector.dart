@@ -65,7 +65,6 @@ class GoogleDriveConnector {
     final authClient = await clientViaUserConsent(clientId, scopes, _promptUserForConsent, customPostAuthPage: customPostAuthPage);
     await _saveCredentials(authClient.credentials);
     return drive.DriveApi(authClient);
-
   }
 
   Future<void> _saveCredentials(AccessCredentials creds) async {
@@ -171,6 +170,8 @@ class GoogleDriveConnector {
           sink.add(data);
         }
       }
+    } catch (e){
+      logger.error("Download of pbdb file failed: $e", tag: "googleDrive");
     } finally {
       await sink.close();
     }
@@ -197,28 +198,29 @@ class GoogleDriveConnector {
     fileName = fileName.replaceAll("/", "");
     final client = await driveApi;
 
-    final searchResult = await client.files.list(
-      q: "name = '$fileName'",
-      $fields: "files(id, name)",
-    );
-
-    final files = searchResult.files ?? [];
+    String fileId = "";
 
     final media = drive.Media(localFile.openRead(), localFile.lengthSync());
 
-    if (overwrite && files.isNotEmpty) {
+    if (overwrite && fileId != "") {
       final fileToUpload = drive.File()
         ..name = fileName;
 
-      final existingFileId = files.first.id!;
-      await client.files.update(fileToUpload, existingFileId, uploadMedia: media);
+      if ((await client.files.update(fileToUpload, fileId, uploadMedia: media)).id == "") {
+        logger.error("Update of pbdb file failed", tag: "googleDrive");
+      }
       _logger.debug("Updated shared database file", tag: "googleDrive");
     } else {
       final fileToUpload = drive.File()
         ..name = fileName
         ..parents = [folderId];
 
-      await client.files.create(fileToUpload, uploadMedia: media);
+      fileId = (await client.files.create(fileToUpload, uploadMedia: media)).id ?? "";
+      if(fileId == ""){
+        logger.error("Upload of pbdb file failed", tag: "googleDrive");
+      } else {
+        await saveKey(fileId, "googleDriveItemId");
+      }
       _logger.debug("Created shared database file", tag: "googleDrive");
     }
   }
