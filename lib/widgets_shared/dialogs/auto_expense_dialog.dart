@@ -11,14 +11,23 @@ import 'package:provider/provider.dart';
 void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expenseId}) {
     final TextEditingController descriptionController = TextEditingController();
     final TextEditingController amountController = TextEditingController();
+    final TextEditingController rateAmountController = TextEditingController();
+    final TextEditingController firstRateAmountController = TextEditingController();
+    final TextEditingController lastRateAmountController = TextEditingController();
 
     final FocusNode descriptionFocusNode = FocusNode();
     final FocusNode amountFocusNode = FocusNode();
+    final FocusNode rateAmountFocusNode = FocusNode();
+    final FocusNode firstRateAmountFocusNode = FocusNode();
+    final FocusNode lastRateAmountFocusNode = FocusNode();
 
     String principleMode = principleModes[2];
     String bookingPrinciple = availablePrinciples[0];
     String selectedIndex;
     int bookingDay = 1;
+    bool ratePayment = false;
+    bool firstRateDifferent = false;
+    bool lastRateDifferent = false;
 
     final budgetState = Provider.of<BudgetState>(context, listen: false);
 
@@ -31,6 +40,18 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
       bookingDay = existingExpense.bookingDay;
       principleMode = existingExpense.principleMode;
       selectedIndex = existingExpense.accountId.toString();
+      ratePayment = existingExpense.ratePayment;
+      if (ratePayment) {
+        rateAmountController.text = existingExpense.rateCount.toString();
+        if (existingExpense.firstRateAmount != null) {
+          firstRateDifferent = true;
+          firstRateAmountController.text = existingExpense.firstRateAmount.toString();
+        }
+        if (existingExpense.lastRateAmount != null) {
+          lastRateDifferent = true;
+          lastRateAmountController.text = existingExpense.lastRateAmount.toString();
+        }
+      }
     } else {
       selectedIndex = budgetState.bankAccounts.first.id.toString();
     }
@@ -46,6 +67,63 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
               content: SingleChildScrollView(
                 child: Column(
                   children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            I18n.translate("ratePayment"),
+                          )
+                        ),
+                        Switch(
+                          activeColor: Colors.green,
+                          value: ratePayment, 
+                          onChanged: (value) {
+                            setState(() {
+                              ratePayment = value;
+                            });
+                          }
+                        )
+                      ],
+                    ),
+                    if (ratePayment)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            I18n.translate("firstRateDifferent"),
+                          )
+                        ),
+                        Switch(
+                          activeColor: Colors.green,
+                          value: firstRateDifferent, 
+                          onChanged: (value) {
+                            setState(() {
+                              firstRateDifferent = value;
+                            });
+                          }
+                        )
+                      ],
+                    ),
+                    if (ratePayment)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            I18n.translate("lastRateDifferent"),
+                          )
+                        ),
+                        Switch(
+                          activeColor: Colors.green,
+                          value: lastRateDifferent, 
+                          onChanged: (value) {
+                            setState(() {
+                              lastRateDifferent = value;
+                            });
+                          }
+                        )
+                      ],
+                    ),
+                    const Divider(),
                     TextFormField(
                       controller: descriptionController,
                       focusNode: descriptionFocusNode,
@@ -58,11 +136,28 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                         return null;
                       },
                     ),
+                    if (ratePayment)
+                    TextFormField(
+                      controller: rateAmountController,
+                      focusNode: rateAmountFocusNode,
+                      decoration: InputDecoration(labelText: I18n.translate("rateCount")),
+                      textInputAction: (firstRateDifferent || lastRateDifferent) ?  TextInputAction.next : TextInputAction.done,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        DecimalTextInputFormatter(decimalRange: 0),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return I18n.translate("numberRequired");
+                        }
+                        return null;
+                      },
+                    ),
                     TextFormField(
                       controller: amountController,
                       focusNode: amountFocusNode,
-                      decoration: InputDecoration(labelText: I18n.translate("budget")),
-                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(labelText: I18n.translate((ratePayment) ? "rate" : "budget")),
+                      textInputAction: (ratePayment) ?  TextInputAction.next : TextInputAction.done,
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         DecimalTextInputFormatter(decimalRange: 2),
@@ -84,6 +179,61 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                         });
                       },
                     ),
+                    if (ratePayment && firstRateDifferent)
+                    TextFormField(
+                      controller: firstRateAmountController,
+                      focusNode: firstRateAmountFocusNode,
+                      decoration: InputDecoration(labelText: I18n.translate("firstRate")),
+                      textInputAction: lastRateDifferent ?  TextInputAction.next : TextInputAction.done,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        DecimalTextInputFormatter(decimalRange: 2),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return I18n.translate("numberRequired");
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          if (I18n.comma()){
+                            firstRateAmountController.text = value.replaceAll('.', ",");
+                          }
+                          firstRateAmountController.selection = TextSelection.fromPosition(
+                            TextPosition(offset: firstRateAmountController.text.length),
+                          );
+                        });
+                      },
+                    ),
+                    if (ratePayment && lastRateDifferent)
+                    TextFormField(
+                      controller: lastRateAmountController,
+                      focusNode: lastRateAmountFocusNode,
+                      decoration: InputDecoration(labelText: I18n.translate("lastRate")),
+                      textInputAction: TextInputAction.done,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        DecimalTextInputFormatter(decimalRange: 2),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return I18n.translate("numberRequired");
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          if (I18n.comma()){
+                            lastRateAmountController.text = value.replaceAll('.', ",");
+                          }
+                          lastRateAmountController.selection = TextSelection.fromPosition(
+                            TextPosition(offset: lastRateAmountController.text.length),
+                          );
+                        });
+                      },
+                    ),
+                    const Divider(),
                     DropdownButtonFormField<String>(
                       value: principleMode,
                       onChanged: (String? newValue) {
@@ -165,7 +315,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                       onChanged: (String? filter) async {
                         setState(() => selectedIndex = filter!);
                       },
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -181,8 +331,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                     if (principleWithoutDay.contains(bookingPrinciple)){
                       bookingDay = 1;
                     }
-
-                    final newAutoExpense = {
+                    Map<String, dynamic> newAutoExpense = {
                       "categoryId": categoryId,
                       "amount": double.parse(amountController.text.replaceAll(",", ".")),
                       "description": descriptionController.text,
@@ -192,17 +341,32 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                       "receiverAccountId": -1,
                       "moneyFlow": 0,
                     };
-
                     if (budgetState.filterBudget != "*") {
                       selectedIndex = budgetState.filterBudget;
                     }
 
-                    if (expenseId == null) {
-                      budgetState.addAutoExpense(newAutoExpense, selectedIndex);
+                    if (!ratePayment) {
+                      if (expenseId == null) {
+                        budgetState.addAutoExpense(newAutoExpense, selectedIndex);
+                      } else {
+                        budgetState.updateOrDeleteAutoExpense(newAutoExpense, expenseId, selectedIndex);
+                      }
                     } else {
-                      budgetState.updateOrDeleteAutoExpense(newAutoExpense, expenseId, selectedIndex);
-                    }
+                      newAutoExpense['rateCount'] = int.parse(rateAmountController.text);
+                      newAutoExpense['ratePayment'] = 1;
+                      if (firstRateDifferent) {
+                        newAutoExpense['firstRateAmount'] = double.parse(firstRateAmountController.text.replaceAll(",", "."));
+                      }
+                      if (lastRateDifferent) {
+                        newAutoExpense['lastRateAmount'] = double.parse(lastRateAmountController.text.replaceAll(",", "."));
+                      }
 
+                      if (expenseId == null) {
+                        budgetState.addRateAutoExpense(newAutoExpense, selectedIndex);
+                      } else {
+                        budgetState.updateOrDeleteRateAutoExpense(newAutoExpense, expenseId, selectedIndex);
+                      }
+                    }
                     Navigator.of(context).pop();
                   },
                   child: (amountController.text.isNotEmpty) ? Text((double.parse(amountController.text.replaceAll(",", ".")) == 0.0 && expenseId != null) 

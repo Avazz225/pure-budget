@@ -9,12 +9,12 @@ The file "keys.dart" imported in some packages is not included as it contains se
 
 **Productive**:
 
+- [IOS](https://apps.apple.com/us/app/pure-budget/id6749499382)
 - [Windows](https://apps.microsoft.com/store/detail/9N690C2LHXXJ?cid=DevShareMCLPCS)
 
 **Production Access Pending**:
 
 - Android (Testing phase)
-- IOS
 - MacOS
 
 **Planned**:

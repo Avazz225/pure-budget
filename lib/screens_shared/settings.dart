@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
+import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -14,7 +15,10 @@ import 'package:jne_household_app/widgets_shared/settings/bank_account.dart';
 import 'package:jne_household_app/widgets_shared/settings/export_import.dart';
 import 'package:jne_household_app/widgets_shared/settings/language.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 class SettingsScreen extends StatefulWidget {
@@ -130,7 +134,6 @@ class SettingsScreenState extends State<SettingsScreen> {
                         });
                       },
                       activeColor: Colors.green,
-                      inactiveTrackColor: Colors.grey,
                     )
                   ],
                 )
@@ -156,7 +159,6 @@ class SettingsScreenState extends State<SettingsScreen> {
                         });
                       },
                       activeColor: Colors.green,
-                      inactiveTrackColor: Colors.grey,
                     )
                   ],
                 )
@@ -182,7 +184,6 @@ class SettingsScreenState extends State<SettingsScreen> {
                         });
                       },
                       activeColor: Colors.green,
-                      inactiveTrackColor: Colors.grey,
                     )
                   ],
                 )
@@ -231,7 +232,6 @@ class SettingsScreenState extends State<SettingsScreen> {
                         }
                       },
                       activeColor: Colors.green,
-                      inactiveTrackColor: Colors.grey,
                     )
                   ],
                 )
@@ -257,10 +257,50 @@ class SettingsScreenState extends State<SettingsScreen> {
             ),
             if (budgetState.sharedDbUrl == "none")
             const ExportImport(),
+            if (!Platform.isIOS && !Platform.isAndroid)
+            const SizedBox(height: 8,),
+            if (!Platform.isIOS && !Platform.isAndroid)
+            ElevatedButton(
+              style: btnNeutralStyle,
+              onPressed: () async {
+                final dir = await getApplicationDocumentsDirectory();
+                final path = p.join(dir.path, 'PureBudget');
+                if (Platform.isWindows) {
+                  Process.run('explorer', [path]);
+                } else if (Platform.isMacOS) {
+                  Process.run('open', [path]);
+                } else if (Platform.isLinux) {
+                  Process.run('xdg-open', [path]);
+                }
+              },
+              child: Text(I18n.translate("showLogs"))
+            ),
             if (kDebugMode)
-            ElevatedButton(onPressed: () => budgetState.updateIsPro(!budgetState.isPro), child: Text("DEBUG: Toggle pro\nCurrent: ${budgetState.isPro}"))
+            ElevatedButton(onPressed: () => budgetState.updateIsPro(!budgetState.isPro), child: Text("DEBUG: Toggle pro\nCurrent: ${budgetState.isPro}")),
           ]
         )
+      ),
+      bottomNavigationBar: Row(
+        spacing: 8,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(I18n.translate("appVersion", placeholders: {"version": appVersion})),
+          GestureDetector(
+            onTap: () async {
+              const url = privacyNoticeUrl;
+              if (await canLaunchUrl(Uri.parse(url))) {
+                await launchUrl(Uri.parse(url));
+              }
+            },
+            child: Text(
+              I18n.translate("privacyPolicy"),
+              style: const TextStyle(
+                color: Colors.blue,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          )
+        ]
       ),
     );
   }

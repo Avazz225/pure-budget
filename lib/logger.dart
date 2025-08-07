@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 
@@ -24,7 +25,7 @@ class Logger {
     if (!Platform.isAndroid && !Platform.isIOS && !Platform.isLinux) {
       _isDesktop = true;
       final dir = await getApplicationDocumentsDirectory();
-      final appDir = Directory('${dir.path}/PureBudget');
+      final appDir = Directory(join(dir.path, 'PureBudget'));
       if (!appDir.existsSync()) {
         appDir.createSync();
       }

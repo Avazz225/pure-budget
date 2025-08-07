@@ -36,7 +36,7 @@ Future<bool> checkRemoteDbExists(String sharedDbFilePath) async {
 class SharedDatabase {
   final DatabaseHelper localDb;
   late final File tempRemoteDbCopyFile;
-  final int remoteDbVersion = 3;
+  final int remoteDbVersion = 4;
   final _logger = Logger();
   int totalChanges = 0;
 
@@ -46,7 +46,7 @@ class SharedDatabase {
   Future<void> _createTables(Database db) async {
     await db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
     await db.execute('CREATE TABLE categories(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, color TEXT, position INTEGER)');
-    await db.execute('CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY AUTOINCREMENT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER, principleMode TEXT DEFAULT "monthly", receiverAccountId DEFAULT -1, moneyFlow INTEGER DEFAULT 0)');
+    await db.execute('CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY AUTOINCREMENT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER, principleMode TEXT DEFAULT "monthly", receiverAccountId DEFAULT -1, moneyFlow INTEGER DEFAULT 0, ratePayment INTEGER DEFAULT 0, rateCount INTEGER, firstRateAmount REAL, lastRateAmount REAL)');
     await db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none")');
     await db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY AUTOINCREMENT, categoryId INTEGER, accountId INTEGER, budget REAL)');
     await db.execute('CREATE TABLE editLog (id INTEGER PRIMARY KEY AUTOINCREMENT, affectedTable TEXT, affectedId INTEGER, type TEXT, sharedBatchId INTEGER DEFAULT -1)');
@@ -60,6 +60,12 @@ class SharedDatabase {
     if (oldVersion < 3) {
       await db.execute("DROP TABLE IF EXISTS registeredDevices");
       await db.execute('CREATE TABLE registeredDevices (id TEXT PRIMARY KEY, deviceMetadata TEXT, isPro INTEGER DEFAULT 0, blocked INTEGER DEFAULT 0)');
+    }
+    if (oldVersion < 4) {
+      await db.execute('''ALTER TABLE autoexpenses ADD COLUMN ratePayment INTEGER DEFAULT 0''');
+      await db.execute('''ALTER TABLE autoexpenses ADD COLUMN rateCount INTEGER''');
+      await db.execute('''ALTER TABLE autoexpenses ADD COLUMN firstRateAmount REAL''');
+      await db.execute('''ALTER TABLE autoexpenses ADD COLUMN lastRateAmount REAL''');
     }
   }
 
@@ -187,6 +193,35 @@ class SharedDatabase {
     } catch (e) {
       _logger.error("Could not register device: $e", tag: "sharedDatabase");
       throw Exception("Device register failed");
+    }
+  }
+
+  Future<bool> updateRegisteredDeviceMetadata(String sharedDbFilePath, String uuid, Map<String, dynamic> metadata) async {
+    try {
+      // Download existing remote database for upgrade check
+      bool success = await downloadFile(sharedDbFilePath, tempRemoteDbCopyFile);
+      if (!success) {
+        throw Exception("DB download failed.");
+      }
+
+      final remoteDb = await openDatabase(
+        tempRemoteDbCopyFile.absolute.path,
+        readOnly: false,
+        version: remoteDbVersion,
+        onUpgrade: (db, oldVersion, newVersion) async {
+          await _upgradeTables(db, oldVersion, newVersion);
+        }
+      );
+
+      remoteDb.update("registeredDevices", {"deviceMetadata": jsonEncode(metadata)}, where: "id = ?", whereArgs: [uuid]);
+      remoteDb.close();
+  
+      await uploadFile(sharedDbFilePath, tempRemoteDbCopyFile);
+      tempRemoteDbCopyFile.deleteSync();
+      return true;
+    } catch (e) {
+      _logger.info("Could not reach shared database: $e", tag: "sharedDatabase");
+      return false;
     }
   }
 

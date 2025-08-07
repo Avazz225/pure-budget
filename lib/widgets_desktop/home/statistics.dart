@@ -91,7 +91,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           });
                         },
                         activeColor: Colors.green,
-                        inactiveTrackColor: Colors.grey,
                       )
                     ],
                   ),

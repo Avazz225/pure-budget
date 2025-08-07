@@ -42,12 +42,12 @@ class DatabaseHelper {
     
     return openDatabase(
       join(dbPath, (kDebugMode) ? 'debug_budget.db' : 'budget.db'),
-      version: 25,
+      version: 26,
       onCreate: (db, version) {
         db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
         db.execute('CREATE TABLE categories(id INTEGER PRIMARY KEY, name TEXT, color TEXT, position INTEGER)');
         db.execute('CREATE TABLE settings (id INTEGER PRIMARY KEY, currency TEXT, language TEXT DEFAULT "auto", includePlanned INTEGER DEFAULT 0, lastAutoExpenseRun TEXT DEFAULT "none", showAvailableBudget INTEGER DEFAULT 0, isPro INTEGER DEFAULT 0, useBalance INTEGER DEFAULT 0, filterBudget TEXT DEFAULT "*", lastAdFail TEXT DEFAULT "none", lastAdSuccess TEXT DEFAULT "none", lastSavingRun TEXT DEFAULT "none", lastProcessedBatchId INTEGER DEFAULT -1, sharedDbUrl TEXT DEFAULT "none", syncMode TEXT DEFAULT "instant", syncFrequency INTEGER DEFAULT 1, lastSync TEXT DEFAULT "none", lockApp INTEGER DEFAULT 0)');
-        db.execute('CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER, principleMode TEXT DEFAULT "monthly", receiverAccountId DEFAULT -1, moneyFlow INTEGER DEFAULT 0)');
+        db.execute('CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER, principleMode TEXT DEFAULT "monthly", receiverAccountId DEFAULT -1, moneyFlow INTEGER DEFAULT 0, ratePayment INTEGER DEFAULT 0, rateCount INTEGER, firstRateAmount REAL, lastRateAmount REAL)');
         db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none")');
         db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY, categoryId INTEGER, accountId INTEGER, budget REAL)');
         db.execute('INSERT INTO settings (currency) VALUES ("€")');
@@ -217,6 +217,13 @@ class DatabaseHelper {
 
         if (oldVersion < 25) {
           await db.execute('''ALTER TABLE settings ADD COLUMN lockApp INTEGER DEFAULT 0''');
+        }
+
+        if (oldVersion < 26) {
+          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN ratePayment INTEGER DEFAULT 0''');
+          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN rateCount INTEGER''');
+          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN firstRateAmount REAL''');
+          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN lastRateAmount REAL''');
         }
       },
     );
@@ -561,7 +568,11 @@ class DatabaseHelper {
         principleMode: data['principleMode'] as String,
         accountId: data['accountId'] as int,
         receiverAccountId: data['receiverAccountId'] as int,
-        moneyFlow: data['moneyFlow'] == 1
+        moneyFlow: data['moneyFlow'] == 1,
+        ratePayment: data['ratePayment'] == 1,
+        rateCount: data['rateCount'] is num ? (data['rateCount'] as num).toInt() : null,
+        firstRateAmount: data['firstRateAmount'] is num ? (data['firstRateAmount'] as num).toDouble() : null,
+        lastRateAmount: data['lastRateAmount'] is num ? (data['lastRateAmount'] as num).toDouble() : null,
       );
     }).toList();
   }
@@ -581,7 +592,8 @@ class DatabaseHelper {
         principleMode: data['principleMode'] as String,
         accountId: data['accountId'] as int,
         receiverAccountId: data['receiverAccountId'] as int,
-        moneyFlow: data['moneyFlow'] == 1
+        moneyFlow: data['moneyFlow'] == 1,
+        ratePayment: data['ratePayment'] == 1
       );
     }).toList();
   }

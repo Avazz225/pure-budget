@@ -435,6 +435,10 @@ class BudgetState extends ChangeNotifier {
     return await sharedDb.getRegisteredDevices(sharedDbUrl);
   } 
 
+  Future<bool> updateRemoteDeviceMetadata(String uuid, Map<String, dynamic> metadata) async {
+    return await sharedDb.updateRegisteredDeviceMetadata(sharedDbUrl, uuid, metadata);
+  } 
+
   // range
   Future<void> updateRangeSelection(index) async {
     range = index;
@@ -534,6 +538,71 @@ class BudgetState extends ChangeNotifier {
     return moneyFlows.where((mf) => mf.receiverAccountId == accountId).fold(0, (sum, mf) => sum + mf.amount);
   }
 
+  // ratePayments
+  void addRateAutoExpense(Map<String, dynamic> autoExp, accountId) async {
+    autoExp['accountId'] = accountId;
+    autoExp['id'] = await DatabaseHelper().insertAutoExpense(autoExp);
+    final newAutoExpense = AutoExpense(
+      id: autoExp['id'],
+      categoryId: autoExp['categoryId'],
+      amount: autoExp['amount'],
+      description: autoExp['description'],
+      bookingPrinciple: autoExp['bookingPrinciple'],
+      bookingDay: autoExp['bookingDay'],
+      principleMode: autoExp['principleMode'],
+      accountId: int.parse(accountId),
+      moneyFlow: autoExp['moneyFlow'] == 1,
+      receiverAccountId: autoExp['receiverAccountId'],
+      ratePayment: true,
+      rateCount: autoExp['rateCount'],
+      firstRateAmount: autoExp['firstRateAmount'],
+      lastRateAmount: autoExp['lastRateAmount']
+    );
+    // ToDo
+    processCreateRates(newAutoExpense);
+
+    await _loadBudgets();
+    notifyListeners();
+
+    if (sharedDbConnected && !syncInProgress) {
+      syncSharedDb();
+    }
+  }
+
+  void updateOrDeleteRateAutoExpense(Map<String, dynamic> autoExp, id, accountId) async {
+    final newAutoExpense = AutoExpense(
+      id: id,
+      categoryId: autoExp['categoryId'],
+      amount: autoExp['amount'],
+      description: autoExp['description'],
+      bookingPrinciple: autoExp['bookingPrinciple'],
+      bookingDay: autoExp['bookingDay'],
+      principleMode: autoExp['principleMode'],
+      accountId: int.parse(accountId),
+      moneyFlow: autoExp['moneyFlow'] == 1,
+      receiverAccountId: autoExp['receiverAccountId'],
+      ratePayment: true,
+      rateCount: autoExp['rateCount'],
+      firstRateAmount: autoExp['firstRateAmount'],
+      lastRateAmount: autoExp['lastRateAmount']
+    );
+    // ToDo
+    if (autoExp["amount"] == 0.0) {
+      await processDeleteAutoExpenses(newAutoExpense);
+      await DatabaseHelper().deleteAutoExpense(id);
+    } else {
+      await processUpdateRates(newAutoExpense);
+      await DatabaseHelper().updateAutoExpense(autoExp, id);
+    }
+
+    await _loadBudgets();
+    notifyListeners();
+
+    if (sharedDbConnected && !syncInProgress) {
+      syncSharedDb();
+    }
+  }
+
   // autoExpenses
   void addAutoExpense(Map<String, dynamic> autoExp, accountId) async {
     autoExp['accountId'] = accountId;
@@ -548,7 +617,8 @@ class BudgetState extends ChangeNotifier {
       principleMode: autoExp['principleMode'],
       accountId: int.parse(accountId),
       moneyFlow: autoExp['moneyFlow'] == 1,
-      receiverAccountId: autoExp['receiverAccountId']
+      receiverAccountId: autoExp['receiverAccountId'],
+      ratePayment: false
     );
 
     await processAutoExpenses("none", [newAutoExpense], updateSettings: false);
@@ -578,7 +648,8 @@ class BudgetState extends ChangeNotifier {
       principleMode: autoExp['principleMode'],
       accountId: int.parse(accountId),
       moneyFlow: autoExp['moneyFlow'] == 1,
-      receiverAccountId: autoExp['receiverAccountId']
+      receiverAccountId: autoExp['receiverAccountId'],
+      ratePayment: false
     );
 
     int index;

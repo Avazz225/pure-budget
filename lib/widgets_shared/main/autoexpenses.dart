@@ -64,7 +64,7 @@ Widget autoExpenseList(dynamic budgetState) {
         if (budgetState.filterBudget == "*" || expense.accountId.toString() == budgetState.filterBudget) {
           return Card( 
             child: ListTile(
-              title: Text(expense.description),
+              title: Text("${expense.description}${(expense.ratePayment) ? " (${I18n.translate("ratePayment")})" : ""}"),
               subtitle: Text(
                 '${I18n.translate("expenseAmount", placeholders: {"amount": expenseAmount, "currency": budgetState.currency})} - $principle${budgetState.filterBudget == "*" && budgetState.bankAccounts.length > 1 ? "\n${budgetState.bankAccounts.where((exp) => exp.id == expense.accountId).first.name}" : ""}'
               ),

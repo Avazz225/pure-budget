@@ -351,5 +351,17 @@
 
     "authSuccessful": "Anmeldung erfolgreich",
     "authInfo": "{appTitle} hat die Zugangsdaten erfolgreich gesichert.",
-    "authClose": "Dieses Fenster kann jetzt geschlossen werden"
+    "authClose": "Dieses Fenster kann jetzt geschlossen werden",
+
+    "editCustomName": "Gerätenamen bearbeiten",
+    "customName": "Name",
+    "ratePayment": "Ratenzahlung",
+    "rateCount": "Anzahl Raten",
+    "firstRateDifferent": "Erste Rate abweichend",
+    "firstRate": "Erste Rate",
+    "lastRate": "Letzte Rate",
+    "lastRateDifferent": "Letzte Rate abweichend",
+    "rate": "Rate",
+    "appVersion": "App Version: {version}",
+    "showLogs": "Logverzeichnis öffnen"
 }

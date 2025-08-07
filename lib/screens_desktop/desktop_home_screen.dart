@@ -6,6 +6,7 @@ import 'package:jne_household_app/screens_shared/help_screen.dart';
 //import 'package:jne_household_app/widgets_desktop/banner_ad.dart';
 import 'package:jne_household_app/widgets_desktop/home/statistics.dart';
 import 'package:jne_household_app/widgets_shared/background_painter.dart';
+import 'package:jne_household_app/widgets_shared/glass_button.dart';
 import 'package:jne_household_app/widgets_shared/main/autoexpenses.dart';
 import 'package:jne_household_app/widgets_desktop/home/budget_summary.dart';
 import 'package:jne_household_app/screens_shared/settings.dart';
@@ -29,31 +30,25 @@ class HomeScreenState extends State<DesktopHomeScreen> {
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
 
-    ButtonStyle btnStyle = ElevatedButton.styleFrom(
-      foregroundColor: Theme.of(context).textTheme.bodyLarge!.color
-    );
-
     Widget buildNavigationButton(BuildContext context,
         {required IconData icon, required String label, required int index}) {
-      return TextButton.icon(
-        onPressed: () {
+      return glassButton(
+        context,
+        () {
           setState(() {
             tabindex = index;
           });
         },
-        style: btnStyle,
-        icon: Icon(icon, size: 24),
-        label: Text(label),
+        label: label,
+        icon: icon,
       );
     }
 
-    Widget buildActionButton(BuildContext context,
-        {required String label, required VoidCallback onTap}) {
-      return TextButton(
-        onPressed: onTap,
-        style: btnStyle,
-        child: Text(label),
-      );
+    Widget buildActionButton(BuildContext context, {
+      required String label,
+      required VoidCallback onTap,
+    }) {
+      return glassButton(context, onTap, label: label);
     }
 
 
@@ -62,29 +57,41 @@ class HomeScreenState extends State<DesktopHomeScreen> {
         title: Text("${I18n.translate('appTitle')} ${budgetState.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.filterBudget).first.name}" : ""}"),
         actions: [
           if(budgetState.sharedDbUrl != "none" && budgetState.sharedDbConnected && !budgetState.syncInProgress)
-          IconButton(
-            icon: const Icon(Icons.cloud_queue_rounded),
-            onPressed: () => budgetState.syncSharedDb(manual: true),
+          glassButton(
+            context,
+            () {
+              budgetState.syncSharedDb(manual: true);
+            },
+            icon: Icons.cloud_queue_rounded
           ),
           if(budgetState.sharedDbUrl != "none" && !budgetState.sharedDbConnected && !budgetState.syncInProgress)
-          IconButton(
-            icon: const Icon(Icons.cloud_off_rounded),
-            onPressed: () => budgetState.syncSharedDb(manual: true),
+          glassButton(
+            context,
+            () {
+              budgetState.syncSharedDb(manual: true);
+            },
+            icon: Icons.cloud_off_rounded,
           ),
           if(budgetState.sharedDbUrl != "none" && budgetState.syncInProgress)
-          const Icon(Icons.cloud_sync_rounded),
+          glassButton(
+            context,
+            () {},
+            icon: Icons.cloud_sync_rounded
+          ),
           const SizedBox(width: (kDebugMode) ? 40 : 16,)
         ],
       ),
       body: Row(
-        children: [ 
+        children: [
           CustomPaint(
             painter: BackgroundPainter(isDarkMode: Theme.of(context).brightness == Brightness.dark, context: context),
             child:
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [ Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 4,
                   children: [
                     buildNavigationButton(
                       context,
@@ -120,7 +127,8 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                 ),
                 // Action buttons
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 4,
                   children: [
                     buildActionButton(
                       context,

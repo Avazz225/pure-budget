@@ -9,6 +9,10 @@ class AutoExpense {
   int receiverAccountId;
   bool moneyFlow;
   int accountId;
+  bool ratePayment;
+  int? rateCount;
+  double? firstRateAmount;
+  double? lastRateAmount;
 
   AutoExpense({
     required this.id,
@@ -20,6 +24,10 @@ class AutoExpense {
     required this.principleMode,
     required this.accountId,
     required this.moneyFlow,
-    required this.receiverAccountId
+    required this.receiverAccountId,
+    required this.ratePayment,
+    this.rateCount,
+    this.firstRateAmount,
+    this.lastRateAmount
   });
 }

@@ -6,6 +6,7 @@ import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/custom_name_dialog.dart';
 import 'package:jne_household_app/widgets_shared/loading_animation.dart';
 
 class RemoteRegisteredDevices extends StatefulWidget {
@@ -47,7 +48,7 @@ class RemoteRegisteredDevicesState extends State<RemoteRegisteredDevices> {
               itemBuilder: (context, index) {
                 final item = registeredDevices[index];
                 final thisDevice = item['id'] == widget.uuid;
-                final metadata = jsonDecode(item['deviceMetadata']);
+                Map<String, dynamic> metadata = jsonDecode(item['deviceMetadata']);
                 bool blocked = item['blocked'] == 1;
 
                 return Card(
@@ -58,10 +59,23 @@ class RemoteRegisteredDevicesState extends State<RemoteRegisteredDevices> {
                       : BorderSide.none,
                   ),
                   child: ListTile(
-                    title: Text(
-                      metadata.containsKey("customname")
-                        ? "${metadata['customname']}${(thisDevice)?" ${I18n.translate("thisDevice")}":""}"
-                        : "${I18n.translate("device", placeholders: {"os": I18n.translate(metadata['platform'])})}${(thisDevice)?" ${I18n.translate("thisDevice")}":""}",
+                    title: Row(
+                      children: [
+                        Text(
+                          metadata.containsKey("customname")
+                            ? "${metadata['customname']}${(thisDevice)?" ${I18n.translate("thisDevice")}":""}"
+                            : "${I18n.translate("device", placeholders: {"os": I18n.translate(metadata['platform'])})}${(thisDevice)?" ${I18n.translate("thisDevice")}":""}",
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit_rounded),
+                          onPressed: () async {
+                            Map<String, dynamic> result = await showCustomDeviceNameDialog(context: context, budgetState: widget.budgetState, uuid: item["id"], metadata: metadata);
+                            setState(() {
+                              registeredDevices[index]['deviceMetadata'] = jsonEncode(result);
+                            });
+                          },
+                        )
+                      ]
                     ),
                     subtitle: Text(item['id']),
                     trailing: (thisDevice) ? null : ElevatedButton(

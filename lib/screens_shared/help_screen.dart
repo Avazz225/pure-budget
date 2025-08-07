@@ -164,6 +164,28 @@ class _HelpScreenState extends State<HelpScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 8,
+        children: [
+          Text(I18n.translate("appVersion", placeholders: {"version": appVersion})),
+          GestureDetector(
+            onTap: () async {
+              const url = privacyNoticeUrl;
+              if (await canLaunchUrl(Uri.parse(url))) {
+                await launchUrl(Uri.parse(url));
+              }
+            },
+            child: Text(
+              I18n.translate("privacyPolicy"),
+              style: const TextStyle(
+                color: Colors.blue,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          )
+        ]
+      ),
     );
   }
 }

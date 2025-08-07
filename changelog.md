@@ -4,13 +4,12 @@
 
 ### 3.0.0
 
-- "UrBudget"
+- "Ur Budget"
   - dynamic design options for pro version
 - added widgets for home screen [mobile]
   - [Pro-Only] create new expense
   - both versions: Display available or spent per current month (only if app is not locked)
-- support rate payments via recurring spendings
-- allow custom names for registered devices
+- Systray icon with quick actions [windows]
 
 ### planned (depends on need)
 
@@ -18,7 +17,13 @@
 
 ## Changelog
 
-### 2.4.9 (31.07.2025)
+### 2.5.0 bundle 24
+
+- allow custom names for registered devices
+- minor ui changes
+- support rate payments via recurring spendings
+
+### 2.4.9 bundle 23 (31.07.2025)
 
 - add all supported languages to msix
 - improve logging function
