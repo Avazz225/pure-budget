@@ -1,6 +1,8 @@
 // main.dart
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,7 +22,7 @@ import 'package:jne_household_app/services/initialization_service.dart';
 // automatically take screenshots by using --dart-define=SCREENS=t
 
 Future<void> main() async {
-  const bool takeScreenshots = String.fromEnvironment('ENV', defaultValue: 'f') == "t";
+  const bool takeScreenshots = String.fromEnvironment('SCREENS', defaultValue: 'f') == "t";
 
   WidgetsFlutterBinding.ensureInitialized();
   // initialize logger
@@ -35,7 +37,7 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]).then((_) {
-    if (!kDebugMode || !takeScreenshots) {
+    if (!kDebugMode || !takeScreenshots && Platform.isWindows) {
       runApp(
         ChangeNotifierProvider(
           create: (context) => initializationData.budgetState,
