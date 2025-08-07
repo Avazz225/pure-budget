@@ -351,5 +351,17 @@
     
     "authSuccessful": "Autorización exitosa",
     "authInfo": "{appTitle} ha obtenido correctamente las credenciales de acceso.",
-    "authClose": "Esta ventana se puede cerrar ahora"
+    "authClose": "Esta ventana se puede cerrar ahora",
+
+    "editCustomName": "Editar nombre del dispositivo",
+    "customName": "Nombre",
+    "ratePayment": "Pago a plazos",
+    "rateCount": "Número de plazos",
+    "firstRateDifferent": "Primer plazo diferente",
+    "firstRate": "Primer plazo",
+    "lastRate": "Último plazo",
+    "lastRateDifferent": "Último plazo diferente",
+    "rate": "Plazo",
+    "appVersion": "Versión de la app: {version}",
+    "showLogs": "Abrir directorio de registros"
 }

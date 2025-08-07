@@ -351,5 +351,17 @@
 
     "authSuccessful": "Autorizzazione riuscita",
     "authInfo": "{appTitle} ha ottenuto con successo le credenziali di accesso.",
-    "authClose": "Questa finestra può ora essere chiusa"
+    "authClose": "Questa finestra può ora essere chiusa",
+
+    "editCustomName": "Modifica nome dispositivo",
+    "customName": "Nome",
+    "ratePayment": "Pagamento a rate",
+    "rateCount": "Numero di rate",
+    "firstRateDifferent": "Prima rata diversa",
+    "firstRate": "Prima rata",
+    "lastRate": "Ultima rata",
+    "lastRateDifferent": "Ultima rata diversa",
+    "rate": "Rata",
+    "appVersion": "Versione dell'app: {version}",
+    "showLogs": "Apri la cartella log"
 }

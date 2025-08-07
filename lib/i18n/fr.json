@@ -351,5 +351,17 @@
 
     "authSuccessful": "Autorisation réussie",
     "authInfo": "{appTitle} a obtenu avec succès les identifiants d'accès.",
-    "authClose": "Cette fenêtre peut maintenant être fermée"
+    "authClose": "Cette fenêtre peut maintenant être fermée",
+
+    "editCustomName": "Modifier le nom de l’appareil",
+    "customName": "Nom",
+    "ratePayment": "Paiement échelonné",
+    "rateCount": "Nombre de mensualités",
+    "firstRateDifferent": "Première mensualité différente",
+    "firstRate": "Première mensualité",
+    "lastRate": "Dernière mensualité",
+    "lastRateDifferent": "Dernière mensualité différente",
+    "rate": "Mensualité",
+    "appVersion": "Version de l’app : {version}",
+    "showLogs": "Ouvrir le répertoire des logs"
 }

@@ -351,5 +351,17 @@
 
     "authSuccessful": "授权成功",
     "authInfo": "{appTitle} 已成功获取访问凭证。",
-    "authClose": "现在可以关闭此窗口"
+    "authClose": "现在可以关闭此窗口",
+
+    "editCustomName": "编辑设备名称",
+    "customName": "名称",
+    "ratePayment": "分期付款",
+    "rateCount": "期数",
+    "firstRateDifferent": "首期不同",
+    "firstRate": "首期",
+    "lastRate": "最后一期",
+    "lastRateDifferent": "最后一期不同",
+    "rate": "期数付款",
+    "appVersion": "App 版本：{version}",
+    "showLogs": "打开日志目录"
 }

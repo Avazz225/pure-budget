@@ -351,5 +351,17 @@
 
     "authSuccessful": "인증 성공",
     "authInfo": "{appTitle}이(가) 액세스 자격 증명을 성공적으로 받았습니다.",
-    "authClose": "이 창을 닫아도 됩니다"
+    "authClose": "이 창을 닫아도 됩니다",
+
+    "editCustomName": "기기 이름 편집",
+    "customName": "이름",
+    "ratePayment": "할부 결제",
+    "rateCount": "할부 개수",
+    "firstRateDifferent": "첫 할부 금액 다름",
+    "firstRate": "첫 할부",
+    "lastRate": "마지막 할부",
+    "lastRateDifferent": "마지막 할부 금액 다름",
+    "rate": "할부",
+    "appVersion": "앱 버전: {version}",
+    "showLogs": "로그 디렉토리 열기"
 }

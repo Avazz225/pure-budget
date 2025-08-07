@@ -351,5 +351,17 @@
 
     "authSuccessful": "Dírhael úvaer",
     "authInfo": "{appTitle} úvaer hain paded lín úgarth.",
-    "authClose": "I fenn hen pôl edra."
+    "authClose": "I fenn hen pôl edra.",
+
+    "editCustomName": "Athrad eneth gwaith",
+    "customName": "Eneth",
+    "ratePayment": "Adlant reniad",
+    "rateCount": "Nadad adlant",
+    "firstRateDifferent": "Er adlant egorad",
+    "firstRate": "Er adlant",
+    "lastRate": "Dern adlant",
+    "lastRateDifferent": "Dern adlant egorad",
+    "rate": "Riad",
+    "appVersion": "App trîad: {version}",
+    "showLogs": "Pan i mah log"
 }

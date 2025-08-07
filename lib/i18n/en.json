@@ -351,5 +351,17 @@
 
   "authSuccessful": "Authorization successful",
   "authInfo": "{appTitle} has successfully obtained access credentials.",
-  "authClose": "This window can be closed now"
+  "authClose": "This window can be closed now",
+
+  "editCustomName": "Edit device name",
+  "customName": "Name",
+  "ratePayment": "Installment payment",
+  "rateCount": "Number of installments",
+  "firstRateDifferent": "First installment differs",
+  "firstRate": "First installment",
+  "lastRate": "Last installment",
+  "lastRateDifferent": "Last installment differs",
+  "rate": "Installment",
+  "appVersion": "App version: {version}",
+  "showLogs": "Open log directory"
 }

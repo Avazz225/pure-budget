@@ -351,5 +351,17 @@
 
     "authSuccessful": "प्राधिकरण सफल",
     "authInfo": "{appTitle} ने सफलतापूर्वक एक्सेस क्रेडेंशियल प्राप्त कर लिए हैं।",
-    "authClose": "अब इस विंडो को बंद किया जा सकता है"
+    "authClose": "अब इस विंडो को बंद किया जा सकता है",
+
+    "editCustomName": "डिवाइस नाम संपादित करें",
+    "customName": "नाम",
+    "ratePayment": "किस्त भुगतान",
+    "rateCount": "किस्तों की संख्या",
+    "firstRateDifferent": "पहली कीमत अलग",
+    "firstRate": "पहली कीमत",
+    "lastRate": "अंतिम कीमत",
+    "lastRateDifferent": "अंतिम कीमत अलग",
+    "rate": "किस्त",
+    "appVersion": "ऐप संस्करण: {version}",
+    "showLogs": "लॉग निर्देशिका खोलें"
 }

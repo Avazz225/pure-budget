@@ -351,5 +351,17 @@
 
     "authSuccessful": "Autoryzacja zakończona sukcesem",
     "authInfo": "{appTitle} pomyślnie uzyskał dane dostępowe.",
-    "authClose": "To okno można teraz zamknąć"
+    "authClose": "To okno można teraz zamknąć",
+
+    "editCustomName": "Edytuj nazwę urządzenia",
+    "customName": "Nazwa",
+    "ratePayment": "Płatność ratalna",
+    "rateCount": "Liczba rat",
+    "firstRateDifferent": "Pierwsza rata inna",
+    "firstRate": "Pierwsza rata",
+    "lastRate": "Ostatnia rata",
+    "lastRateDifferent": "Ostatnia rata inna",
+    "rate": "Rata",
+    "appVersion": "Wersja aplikacji: {version}",
+    "showLogs": "Otwórz katalog logów"
 }

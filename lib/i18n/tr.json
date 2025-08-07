@@ -351,5 +351,17 @@
 
     "authSuccessful": "Yetkilendirme başarılı",
     "authInfo": "{appTitle}, erişim bilgilerini başarıyla aldı.",
-    "authClose": "Bu pencere şimdi kapatılabilir"
+    "authClose": "Bu pencere şimdi kapatılabilir",
+
+    "editCustomName": "Cihaz adını düzenle",
+    "customName": "İsim",
+    "ratePayment": "Taksitli ödeme",
+    "rateCount": "Taksit sayısı",
+    "firstRateDifferent": "İlk taksit farklı",
+    "firstRate": "İlk taksit",
+    "lastRate": "Son taksit",
+    "lastRateDifferent": "Son taksit farklı",
+    "rate": "Taksit",
+    "appVersion": "Uygulama sürümü: {version}",
+    "showLogs": "Günlük dizinini aç"
 }

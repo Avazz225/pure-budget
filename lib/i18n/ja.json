@@ -351,5 +351,17 @@
 
     "authSuccessful": "認証に成功しました",
     "authInfo": "{appTitle} はアクセス認証情報を正常に取得しました。",
-    "authClose": "このウィンドウは閉じても構いません"
+    "authClose": "このウィンドウは閉じても構いません",
+
+    "editCustomName": "デバイス名を編集",
+    "customName": "名前",
+    "ratePayment": "分割払い",
+    "rateCount": "分割回数",
+    "firstRateDifferent": "最初の回の金額が異なる",
+    "firstRate": "最初の支払額",
+    "lastRate": "最後の支払額",
+    "lastRateDifferent": "最後の回の金額が異なる",
+    "rate": "分割額",
+    "appVersion": "アプリバージョン: {version}",
+    "showLogs": "ログディレクトリを開く"
 }

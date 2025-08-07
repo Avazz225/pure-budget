@@ -351,5 +351,17 @@
 
     "authSuccessful": "Autorização bem-sucedida",
     "authInfo": "{appTitle} obteve com sucesso as credenciais de acesso.",
-    "authClose": "Esta janela pode agora ser fechada"
+    "authClose": "Esta janela pode agora ser fechada",
+
+    "editCustomName": "Editar nome do dispositivo",
+    "customName": "Nome",
+    "ratePayment": "Pagamento em prestações",
+    "rateCount": "Número de prestações",
+    "firstRateDifferent": "Primeira prestação diferente",
+    "firstRate": "Primeira prestação",
+    "lastRate": "Última prestação",
+    "lastRateDifferent": "Última prestação diferente",
+    "rate": "Prestação",
+    "appVersion": "Versão da app: {version}",
+    "showLogs": "Abrir diretório de logs"
 }

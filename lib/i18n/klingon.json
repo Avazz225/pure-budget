@@ -351,5 +351,17 @@
 
     "authSuccessful": "naw' chaw' Qapchu'",
     "authInfo": "{appTitle} chaw' De' Suqchu'.",
-    "authClose": "DaH Qorwagh DaSo'laH"
+    "authClose": "DaH Qorwagh DaSo'laH",
+
+    "editCustomName": "De'wI' pong neH yIghIt",
+    "customName": "pong",
+    "ratePayment": "vIq vIba'",
+    "rateCount": "vIq ghomwI'",
+    "firstRateDifferent": "wa' vIq nej",
+    "firstRate": "wa' vIq",
+    "lastRate": "Qet vIq",
+    "lastRateDifferent": "Qet vIq nej",
+    "rate": "vIq",
+    "appVersion": "app qan: {version}",
+    "showLogs": "log ghol Directory yIghIt"
 }
