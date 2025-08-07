@@ -11,6 +11,7 @@ import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/screens_shared/remote_database.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/debug_import_file_dialog.dart';
 import 'package:jne_household_app/widgets_shared/settings/bank_account.dart';
 import 'package:jne_household_app/widgets_shared/settings/export_import.dart';
 import 'package:jne_household_app/widgets_shared/settings/language.dart';
@@ -277,6 +278,8 @@ class SettingsScreenState extends State<SettingsScreen> {
             ),
             if (kDebugMode)
             ElevatedButton(onPressed: () => budgetState.updateIsPro(!budgetState.isPro), child: Text("DEBUG: Toggle pro\nCurrent: ${budgetState.isPro}")),
+            if (kDebugMode)
+            ElevatedButton(onPressed: () => {showDummyImportDialog(context, budgetState)}, child: const Text("DEBUG: Fast import pbstate lang file"))
           ]
         )
       ),

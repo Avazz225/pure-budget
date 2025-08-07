@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:jne_household_app/helper/brightness.dart';
+import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/expense_dialog.dart';
 import 'package:jne_household_app/widgets_shared/main/expense_list.dart';
@@ -16,7 +20,10 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
 
 
   void showExpensesBottomSheet(BuildContext context, String category, int categoryId, Color color) {
-
+    if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
+      ScreenshotManager().takeScreenshot(name: "expenseSheet");
+    }
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

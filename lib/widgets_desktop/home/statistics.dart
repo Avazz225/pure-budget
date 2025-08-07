@@ -1,8 +1,12 @@
 
 // ignore_for_file: library_private_types_in_public_api
 
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_charts/flutter_charts.dart';
+import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
 import 'package:jne_household_app/helper/statistics.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -89,6 +93,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           setState(() {
                             table = value;
                           });
+                          if (kDebugMode&& !Platform.isAndroid && !Platform.isIOS){
+                            if (state.selectedStatisticIndex == 1 && table) {
+                              ScreenshotManager().takeScreenshot(name: "statisticsTable");
+                            } else if (state.selectedStatisticIndex == 3 && !table) {
+                              ScreenshotManager().takeScreenshot(name: "statisticsGraph");
+                            }
+                          }
                         },
                         activeColor: Colors.green,
                       )
@@ -113,6 +124,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 filter = "";
                 init = true;
               });
+              if (kDebugMode&& !Platform.isAndroid && !Platform.isIOS){
+                if (index == 1 && table) {
+                  ScreenshotManager().takeScreenshot(name: "statisticsTable");
+                } else if (index == 3 && !table) {
+                  ScreenshotManager().takeScreenshot(name: "statisticsGraph");
+                }
+              }
             },
             items: [
               BottomNavigationBarItem(

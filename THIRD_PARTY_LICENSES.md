@@ -1436,6 +1436,18 @@ License text: [third_party_licenses/rxdart_LICENSE.txt](/third_party_licenses/rx
 
 ---
 
+## screenshot
+
+License: MIT
+
+Copyright: 2018 Sachin Ganesh
+
+Source: [https://github.com/SachinGanesh/screenshot](https://github.com/SachinGanesh/screenshot)
+
+License text: [third_party_licenses/screenshot_LICENSE.txt](/third_party_licenses/screenshot_LICENSE.txt)
+
+---
+
 ## share_plus
 
 License: BSD-3-Clause

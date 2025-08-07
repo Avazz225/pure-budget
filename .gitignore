@@ -32,7 +32,10 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
-/dummydata
+/dummydata/images
+/dummydata/__pycache__
+/dummydata/*.json
+/dummydata/*.py
 
 
 # Symbolication related

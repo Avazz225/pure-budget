@@ -4,6 +4,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/screens_desktop/desktop_home_screen.dart';
@@ -16,7 +17,11 @@ import 'package:jne_household_app/screens_mobile/mobile_home_screen.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/services/initialization_service.dart';
 
+// automatically take screenshots by using --dart-define=SCREENS=t
+
 Future<void> main() async {
+  const bool takeScreenshots = String.fromEnvironment('ENV', defaultValue: 'f') == "t";
+
   WidgetsFlutterBinding.ensureInitialized();
   // initialize logger
   final logger = Logger();
@@ -30,12 +35,24 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]).then((_) {
-    runApp(
-      ChangeNotifierProvider(
-        create: (context) => initializationData.budgetState,
-        child: HouseholdBudgetApp(lockApp: initializationData.budgetState.lockApp),
-      ),
-    );
+    if (!kDebugMode || !takeScreenshots) {
+      runApp(
+        ChangeNotifierProvider(
+          create: (context) => initializationData.budgetState,
+          child: HouseholdBudgetApp(lockApp: initializationData.budgetState.lockApp),
+        )
+      );
+    } else {
+      runApp(
+        ScreenshotManager()
+          .wrapWithScreenshot(
+            child: ChangeNotifierProvider(
+            create: (context) => initializationData.budgetState,
+            child: HouseholdBudgetApp(lockApp: initializationData.budgetState.lockApp),
+          ),
+        )
+      );
+    }
   });
 }
 
@@ -95,6 +112,7 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/brightness.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
+import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
 import 'package:jne_household_app/helper/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -10,6 +14,9 @@ import 'package:jne_household_app/widgets_shared/dialogs/move_dialog.dart';
 import 'package:provider/provider.dart';
 
 Widget autoExpenseList(dynamic budgetState) {
+  if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
+    ScreenshotManager().takeScreenshot(name: "autoexpenses");
+  }
 
   List<Widget> buildAutoExpensesForCategory(context, int categoryId) {
     final budgetState = Provider.of<BudgetState>(context);
@@ -90,7 +97,6 @@ Widget autoExpenseList(dynamic budgetState) {
 
     return expenseWidgets;
   }
-
 
   return Expanded(child: 
     ListView.builder(

@@ -85,12 +85,13 @@ class BackupManager {
     }
   }
 
-  static Future<bool> importDataFromFile() async {
-    final result = await FilePicker.platform.pickFiles();
+  static Future<bool> importDataFromFile({String? path}) async {
+    if (path == null) {
+      final result = await FilePicker.platform.pickFiles();
+      if (result == null || result.files.isEmpty) return false;
+      path = result.files.single.path;
+    }
 
-    if (result == null || result.files.isEmpty) return false;
-
-    final path = result.files.single.path;
     if (path == null) return false;
 
     final file = File(path);

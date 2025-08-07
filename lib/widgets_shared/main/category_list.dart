@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/widgets_shared/settings/edit_category.dart';
@@ -16,6 +20,10 @@ Widget categoryList(BudgetState budgetState, Function setState) {
     }
 
   String currentAccount = (budgetState.bankAccounts.length == 1) ? "" : ((budgetState.filterBudget == "*") ? "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == "-1").name})" : "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == budgetState.filterBudget).name})");
+
+  if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
+    ScreenshotManager().takeScreenshot(name: "categoryList");
+  }
 
   return Expanded(
     child: ReorderableListView.builder(

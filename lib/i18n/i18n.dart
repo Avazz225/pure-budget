@@ -66,6 +66,13 @@ class I18n {
     return providedLanguages;
   }
 
+  static List<String> getProvidedRealLangs() {
+    providedLanguages.sort();
+    return providedLanguages
+      .where((lang) => lang != 'elbian' && lang != 'klingon')
+      .toList();
+  }
+
   static String translate(String key, {Map<String, String>? placeholders}) {
     String translation = _localizedStrings[key] ?? key;
 

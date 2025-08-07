@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -78,7 +77,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
             () {},
             icon: Icons.cloud_sync_rounded
           ),
-          const SizedBox(width: (kDebugMode) ? 40 : 16,)
+          const SizedBox(width: 16,)
         ],
       ),
       body: Row(

@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:jne_household_app/widgets_shared/home/budget_dropdown.dart';
 import 'package:jne_household_app/widgets_shared/home/category_list.dart';
@@ -21,6 +25,10 @@ class _BudgetSummaryState extends State<BudgetSummary> {
     final currency = budgetState.currency;
     final List<double> categorySpent = budgetState.categories.map((c) => c.spent).toList();
     final double totalSpent = categorySpent.fold(0.0, (sum, spent) => sum + spent);
+
+    if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
+      ScreenshotManager().takeScreenshot(name: "main");
+    }
 
     return Column(
       children: [
