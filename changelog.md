@@ -17,7 +17,7 @@
 
 ## Changelog
 
-### 2.5.0 bundle 24
+### 2.5.0 bundle 24 (08.08.2025)
 
 - allow custom names for registered devices
 - minor ui changes
