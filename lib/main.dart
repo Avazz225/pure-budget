@@ -49,7 +49,7 @@ Future<void> main() async {
         ScreenshotManager()
           .wrapWithScreenshot(
             child: ChangeNotifierProvider(
-            create: (context) => initializationData.budgetState,
+            create: (context) {initializationData.budgetState;},
             child: HouseholdBudgetApp(lockApp: initializationData.budgetState.lockApp),
           ),
         )
