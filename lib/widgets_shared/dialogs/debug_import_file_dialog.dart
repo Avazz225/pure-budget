@@ -8,6 +8,7 @@ import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/export_import.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:path/path.dart' as p;
 
 void showDummyImportDialog(BuildContext context, BudgetState budgetState) {
@@ -17,7 +18,7 @@ void showDummyImportDialog(BuildContext context, BudgetState budgetState) {
   showDialog(
     context: context,
     builder: (BuildContext dialogContext) {
-      return AlertDialog(
+      return AdaptiveAlertDialog(
         title: const Text('Dummy-Daten importieren'),
         content: SizedBox(
           width: double.maxFinite,

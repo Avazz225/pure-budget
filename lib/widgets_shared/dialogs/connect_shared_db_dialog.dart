@@ -10,6 +10,7 @@ import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/screens_mobile/mobie_scanner_ios.dart';
 import 'package:jne_household_app/shared_database/encryption_handler.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 
@@ -19,7 +20,7 @@ Future<void> connectSharedDbDialog(BuildContext context, BudgetState budgetState
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
+          return AdaptiveAlertDialog(
             title: Text(I18n.translate("connectToSharedDb")),
             content: SingleChildScrollView(
               child: Column(
@@ -41,7 +42,7 @@ Future<void> connectSharedDbDialog(BuildContext context, BudgetState budgetState
                       
                       if (!result) {
                         await showDialog(context: context, builder: (context) {
-                          return AlertDialog(
+                          return AdaptiveAlertDialog(
                             title: Text(I18n.translate("sDbConnectionFail")),
                             content: Text(I18n.translate("sDbConnectionFailedInfo")),
                           );
@@ -89,7 +90,7 @@ Future<bool> keyDialog(BuildContext context) async {
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
+          return AdaptiveAlertDialog(
             title: Text(I18n.translate("keyInputInfo")),
             content: SingleChildScrollView(
               child: Column(

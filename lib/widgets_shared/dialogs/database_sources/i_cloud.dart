@@ -8,6 +8,7 @@ import 'package:jne_household_app/helper/remote/i_cloud_connector.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 
 Padding iCloudSelector(
     BuildContext context, BudgetState budgetState, Function handleFolderSet) {
@@ -47,7 +48,7 @@ Padding iCloudSelector(
         final selected = await showDialog<Map<String, dynamic>>(
           context: context,
           builder: (BuildContext dialogContext) {
-            return AlertDialog(
+            return AdaptiveAlertDialog(
               title: Text(I18n.translate("remote_select")),
               content: SizedBox(
                 width: double.maxFinite,

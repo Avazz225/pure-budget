@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:jne_household_app/helper/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 
 Future <Color> openColorPickerDialog(BuildContext context, Color selectedColor) async {
   Color returnColor = selectedColor;
@@ -12,7 +13,7 @@ Future <Color> openColorPickerDialog(BuildContext context, Color selectedColor) 
       Color tempColor = selectedColor;
       return StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
+          return AdaptiveAlertDialog(
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -37,7 +38,7 @@ Future <Color> openColorPickerDialog(BuildContext context, Color selectedColor) 
                         I18n.translate("appTitle"),
                         style: TextStyle(
                           fontSize: 16,
-                          color: getTextColor(tempColor),
+                          color: getTextColor(tempColor, 0, context),
                         ),
                       ),
                     ),

@@ -4,12 +4,14 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/services/background_jobs.dart';
 
 class InitializationData {
   final BudgetState budgetState;
+  final DesignState designState;
 
-  InitializationData({required this.budgetState});
+  InitializationData({required this.budgetState, required this.designState});
 }
 
 class InitializationService {
@@ -84,9 +86,27 @@ class InitializationService {
       lockApp: settings['lockApp'] == 1
     );
 
+    Map<String, dynamic> designData = await dbHelper.getDesignData();
+
+    final designState = DesignState.initialize(
+      layoutMainVertical: designData["layoutMainVertical"] == 1,
+      categoryMainStyle: designData["categoryMainStyle"] as int,
+      addExpenseStyle: designData["addExpenseStyle"] as int,
+      arcStyle: designData["arcStyle"] as int,
+      arcSegmentsRounded: designData["arcSegmentsRounded"] == 1,
+      arcWidth: designData["arcWidth"] as double,
+      arcPercent: designData["arcPercent"] as double,
+      dialogSolidBackground: designData["dialogSolidBackground"] == 1,
+      appBackgroundSolid: designData["appBackgroundSolid"] == 1,
+      appBackground: designData["appBackground"] as int,
+      customBackgroundPath: designData["customBackgroundPath"] as String,
+      customBackgroundBlur: designData["customBackgroundBlur"] == 1,
+      mainMenuStyle: designData["mainMenuStyle"] as int
+    );
+
     // Initialize date formatting
     await initializeDateFormatting(defaultLocale.toString());
 
-    return InitializationData(budgetState: budgetState);
+    return InitializationData(budgetState: budgetState, designState: designState);
   }
 }

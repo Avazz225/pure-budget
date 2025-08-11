@@ -363,5 +363,25 @@
     "lastRateDifferent": "Letzte Rate abweichend",
     "rate": "Rate",
     "appVersion": "App Version: {version}",
-    "showLogs": "Logverzeichnis öffnen"
+    "showLogs": "Logverzeichnis öffnen",
+
+    "customization": "Anpassung",
+    "variant": "Variante {id}",
+    "mainMenuStyle": "Hauptmenüdesign",
+    "preview": "Vorschau",
+    "showPreview": "Zeige Vorschau",
+    "new": "Neu",
+    "addExpenseStyle": "Ausgabe hinzufügen",
+    "arcStyle": "Ausgabenübersicht",
+    "categoryMainStyle": "Kategorien",
+    "layoutMainVertical": "Startseite vertikal",
+    "arcPercent": "Maximaler Kreiswinkel",
+    "arcWidth": "Kreisbreite",
+    "arcSegmentsRounded": "Segmente abrunden",
+    "percent": "%",
+    "dialogSolidBackground": "Transparente Dialoge",
+    "appBackgroundSolid": "Einfarbiger Hintergrund",
+    "appBackground": "Mehrfarbigen Hintergrund auswählen",
+    "customBackgroundBlur": "Hintergrund verwischen",
+    "customBackgroundPath": "Eigenes Hintergrundbild auswählen"
 }

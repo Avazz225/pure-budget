@@ -5,6 +5,7 @@ import 'package:jne_household_app/helper/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/category.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:provider/provider.dart';
 
 Future<void> showMoveDialog({
@@ -20,7 +21,7 @@ Future<void> showMoveDialog({
       return StatefulBuilder(
         builder: (context, setState) {
           final List<Category> categories = context.read<BudgetState>().rawCategories;
-          return AlertDialog(
+          return AdaptiveAlertDialog(
             title: Text(I18n.translate("moveExpense")),
             actions: [
               TextButton(
@@ -36,7 +37,7 @@ Future<void> showMoveDialog({
                 itemBuilder: (context, index) {
                   Category item = categories[index];
                   bool unassigned = item.name == "__undefined_category_name__";
-                  Color textColor = getTextColor(item.color);
+                  Color textColor = getTextColor(item.color, 0, context);
 
                   if (categoryId != item.id) {
                     return Card(

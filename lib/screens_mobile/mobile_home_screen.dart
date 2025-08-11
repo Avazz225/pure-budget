@@ -2,12 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/models/design_state.dart';
+import 'package:jne_household_app/screens_shared/customization_screen.dart';
 import 'package:jne_household_app/screens_shared/help_screen.dart';
 import 'package:jne_household_app/screens_mobile/mobile_in_app_purchase.dart';
 import 'package:jne_household_app/widgets_mobile/home/statistics.dart';
+import 'package:jne_household_app/widgets_shared/home/budget_summary.dart';
 import 'package:jne_household_app/widgets_shared/main/autoexpenses.dart';
 import 'package:jne_household_app/widgets_mobile/banner_ad.dart';
-import 'package:jne_household_app/widgets_mobile/home/budget_summary.dart';
 import 'package:jne_household_app/screens_shared/settings.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/widgets_shared/main/add_category.dart';
@@ -31,10 +33,13 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
+    final designState = Provider.of<DesignState>(context);
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
       appBar: AppBar(
+        backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
         title: Text("${I18n.translate('appTitle')} ${budgetState.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.filterBudget).first.name}" : ""}"),
         actions: [
           if(budgetState.sharedDbUrl != "none" && budgetState.sharedDbConnected && !budgetState.syncInProgress)
@@ -69,6 +74,12 @@ class HomeScreenState extends State<HomeScreen> {
                     builder: (context) => const InAppPurchaseScreen(),
                   ),
                 );
+              } else if (value == "customization") {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => CustomizationScreen(),
+                  ),
+                );
               }
             },
             itemBuilder: (BuildContext context) => [
@@ -85,6 +96,11 @@ class HomeScreenState extends State<HomeScreen> {
                 value: 'inAppPurchase',
                 child: Text(I18n.translate("upgradeToPro")),
               ),
+              if (getProStatus(budgetState.isPro) || kDebugMode)
+              PopupMenuItem(
+                value: 'customization',
+                child: Text(I18n.translate("customization")),
+              )
             ],
           ),
         ],
@@ -116,26 +132,32 @@ class HomeScreenState extends State<HomeScreen> {
           BottomNavigationBar(
             selectedItemColor: isDarkMode ? Colors.blue[100] : Colors.blue[900],
             unselectedItemColor: isDarkMode ? Colors.purple[50]: Colors.purple[900],
+            backgroundColor: Colors.transparent,
             items: [
               BottomNavigationBarItem(
                 icon: const Icon(Icons.wallet_rounded),
                 label: I18n.translate("bankaccount"),
+                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.line_axis_rounded),
                 label: I18n.translate("statistics"),
+                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.home_rounded),
                 label: I18n.translate("start"),
+                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.category_rounded),
                 label: I18n.translate("categories"),
+                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.autorenew_rounded),
                 label: I18n.translate("fixedCost"),
+                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
               ),
             ],
             currentIndex: tabindex,

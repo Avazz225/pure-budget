@@ -117,7 +117,7 @@ Widget autoExpenseList(dynamic budgetState) {
                 ),
                 child: Text(
                   (category.category != "__undefined_category_name__")? category.category : I18n.translate("unassigned"),
-                  style: TextStyle(color: getTextColor(category.color)),
+                  style: TextStyle(color: getTextColor(category.color, 0, context)),
                 )
               ),
               children: buildAutoExpensesForCategory(context, category.categoryId)

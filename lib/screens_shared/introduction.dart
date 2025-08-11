@@ -6,6 +6,7 @@ import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/export_import.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/main/autoexpenses.dart';
 import 'package:jne_household_app/widgets_shared/background_painter.dart';
 import 'package:jne_household_app/widgets_shared/main/add_category.dart';
@@ -59,7 +60,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
         builder: (context) {
           final TextEditingController currencyController = TextEditingController(text: currency);
 
-          return AlertDialog(
+          return AdaptiveAlertDialog(
             title: Text(I18n.translate("editCurrency")),
             content: SingleChildScrollView(
               child: Column(

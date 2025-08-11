@@ -6,6 +6,7 @@ import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/models/booking_principles.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:provider/provider.dart';
 
 void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expenseId}) {
@@ -39,7 +40,7 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
 
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
+            return AdaptiveAlertDialog(
               title: Text(expenseId == null ? I18n.translate("addMoneyFlow") : I18n.translate("editMoneyFlow")),
               content: SingleChildScrollView(
                 child: Column(

@@ -10,6 +10,7 @@ import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/screens_shared/remote_registered_devices.dart';
 import 'package:jne_household_app/shared_database/encryption_handler.dart';
 import 'package:jne_household_app/shared_database/shared_database.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/connect_shared_db_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/database_sources/google_drive.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/database_sources/i_cloud.dart';
@@ -337,7 +338,7 @@ Future<bool> keyChangeInfo(BuildContext context) async {
 
   await showDialog(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => AdaptiveAlertDialog(
       title: Text(I18n.translate("confirmRotation")),
       content: Text(I18n.translate("rotateInfo", placeholders: {"updateEncryptKey": I18n.translate("updateEncryptKey")})),
       actions: [

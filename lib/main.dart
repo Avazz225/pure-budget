@@ -9,8 +9,11 @@ import 'package:flutter/services.dart';
 import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/screens_desktop/desktop_home_screen.dart';
 import 'package:jne_household_app/screens_shared/introduction.dart';
+import 'package:jne_household_app/widgets_shared/app_background.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -39,8 +42,15 @@ Future<void> main() async {
   ]).then((_) {
     if (!kDebugMode || !takeScreenshots && Platform.isWindows) {
       runApp(
-        ChangeNotifierProvider(
-          create: (context) => initializationData.budgetState,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<BudgetState>.value(
+              value: initializationData.budgetState,
+            ),
+            ChangeNotifierProvider<DesignState>.value(
+              value: initializationData.designState,
+            ),
+          ],
           child: HouseholdBudgetApp(lockApp: initializationData.budgetState.lockApp),
         )
       );
@@ -48,8 +58,15 @@ Future<void> main() async {
       runApp(
         ScreenshotManager()
           .wrapWithScreenshot(
-            child: ChangeNotifierProvider(
-            create: (context) {initializationData.budgetState;},
+            child: MultiProvider(
+            providers: [
+              ChangeNotifierProvider<BudgetState>.value(
+                value: initializationData.budgetState,
+              ),
+              ChangeNotifierProvider<DesignState>.value(
+                value: initializationData.designState,
+              ),
+            ],
             child: HouseholdBudgetApp(lockApp: initializationData.budgetState.lockApp),
           ),
         )
@@ -108,6 +125,7 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
   @override
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
+    final designState = Provider.of<DesignState>(context);
     
     return MaterialApp(
       title: I18n.translate("appTitle"),
@@ -123,12 +141,12 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
       supportedLocales: I18n.getLocales(),
       home: budgetState.isSetupComplete ?
         (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.macOS) ?
-        const DesktopHomeScreen()
+        AppWithOptionalBackground(background: (designState.appBackgroundSolid) ? null : AppBackground(imagePath: designState.customBackgroundPath, gradientOption: designState.appBackground, blur: designState.customBackgroundBlur,), child: const DesktopHomeScreen())
         :
         (_isAuthenticated) ?
-        const HomeScreen() 
+        AppWithOptionalBackground(background: (designState.appBackgroundSolid) ? null : AppBackground(imagePath: designState.customBackgroundPath, gradientOption: designState.appBackground, blur: designState.customBackgroundBlur,), child: const HomeScreen())
         :
-        AlertDialog(
+        AdaptiveAlertDialog(
           title: Text(I18n.translate("authRequired")),
           content: Text(I18n.translate("authTextApp", placeholders: {"appName": I18n.translate("appTitle")})),
           actions: [
@@ -140,6 +158,27 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
         )
         :
         const AppSetupScreen(),
+    );
+  }
+}
+
+class AppWithOptionalBackground extends StatelessWidget {
+  final Widget child;
+  final Widget? background;
+
+  const AppWithOptionalBackground({
+    super.key,
+    required this.child,
+    this.background,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        if (background != null) background!,
+        Positioned.fill(child: child),
+      ],
     );
   }
 }
