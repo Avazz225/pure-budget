@@ -34,6 +34,15 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "29.0.13113456"
 
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -52,23 +61,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
-    }
-
-    flavorDimensions "mode"
-    productFlavors {
-        pro {
-            dimension "mode"
-            resValue "string", "app_name", "PureBudget"
-            resValue "mipmap", "ic_launcher", "@mipmap/pure_budget_pro"
-            signingConfigs {
-                release {
-                    keyAlias keystoreProperties['keyAlias']
-                    keyPassword keystoreProperties['keyPassword']
-                    storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-                    storePassword keystoreProperties['storePassword']
-                }
-            }
-        }
+        resValue "string", "app_name", "Pure Budget"
+        resValue "mipmap", "ic_launcher", "@mipmap/pure_budget_pro"
     }
 
     

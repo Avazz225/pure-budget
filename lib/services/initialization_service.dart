@@ -83,7 +83,8 @@ class InitializationService {
       sharedDbUrl: settings['sharedDbUrl'],
       syncMode: settings['syncMode'],
       syncFrequency: settings['syncFrequency'],
-      lockApp: settings['lockApp'] == 1
+      lockApp: settings['lockApp'] == 1,
+      isDesktopPro: settings['isDesktopPro'] == 1
     );
 
     Map<String, dynamic> designData = await dbHelper.getDesignData();

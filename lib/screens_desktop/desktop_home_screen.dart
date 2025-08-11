@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/helper/desktop_pro_upgrade_manager.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
@@ -148,6 +150,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           );
                         },
                       ),
+                      if (budgetState.isDesktopPro || kDebugMode)
                       buildActionButton(
                         context,
                         label: I18n.translate("customization"),
@@ -158,6 +161,19 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                             ),
                           );
                         },
+                      ),
+                      if (!budgetState.isDesktopPro || kDebugMode)
+                      buildActionButton(
+                        context, 
+                        label: I18n.translate("upgradeToPro"), 
+                        onTap: () async  {
+                          await ProUpgradeManager().ensureProUpgrade(
+                            isProLocally: budgetState.isDesktopPro,
+                            setProStatusLocally: () async {
+                              await budgetState.updateIsDesktopPro(true); 
+                            },
+                          );
+                        } 
                       ),
                       buildActionButton(
                         context,

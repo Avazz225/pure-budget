@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/models/design_state.dart';
+import 'package:provider/provider.dart';
 
 class BudgetLineWidget extends StatefulWidget {
   final double totalBudget;
@@ -55,17 +57,24 @@ class _BudgetLineWidgetState extends State<BudgetLineWidget>
 
   @override
   Widget build(BuildContext context) {
+    final designState = Provider.of<DesignState>(context);
     if (!widget.isVertical){
       return Column(
         children: [
-          Text(
-            I18n.translate("totalSpent", placeholders: {
-              "actual": widget.totalSpent.toStringAsFixed(2),
-              "planned": widget.totalBudget.toStringAsFixed(2),
-              "currency": widget.currency.toString()
-            }),
-            style: Theme.of(context).textTheme.headlineMedium,
-            textAlign: TextAlign.center,
+          Container(
+            decoration: BoxDecoration(
+              color: (designState.customBackgroundPath != "none") ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
+              borderRadius: const BorderRadius.all(Radius.circular(8))
+            ),
+            child: Text(
+              I18n.translate("totalSpent", placeholders: {
+                "actual": widget.totalSpent.toStringAsFixed(2),
+                "planned": widget.totalBudget.toStringAsFixed(2),
+                "currency": widget.currency.toString()
+              }),
+              style: Theme.of(context).textTheme.headlineMedium,
+              textAlign: TextAlign.center,
+            )
           ),
           const SizedBox(height: 16),
           Padding(
@@ -79,7 +88,9 @@ class _BudgetLineWidgetState extends State<BudgetLineWidget>
                     categorySpent: widget.categorySpent,
                     segmentColors: widget.segmentColors,
                     progress: _animation.value,
-                    isVertical: widget.isVertical
+                    isVertical: widget.isVertical,
+                    context: context,
+                    coloredBg: designState.appBackgroundSolid
                   ),
                   size: const Size(double.infinity, 20),
                 );
@@ -102,7 +113,9 @@ class _BudgetLineWidgetState extends State<BudgetLineWidget>
                     categorySpent: widget.categorySpent,
                     segmentColors: widget.segmentColors,
                     progress: _animation.value,
-                    isVertical: widget.isVertical
+                    isVertical: widget.isVertical,
+                    context: context,
+                    coloredBg: designState.appBackgroundSolid
                   ),
                   size: const Size(20, double.infinity),
                 );
@@ -120,29 +133,30 @@ class BudgetLinePainter extends CustomPainter {
   final List<double> categorySpent;
   final List<Color> segmentColors;
   final double progress;
-  final Color baseColor;
   final bool isVertical;
+  final BuildContext context;
+  final bool coloredBg;
 
   BudgetLinePainter({
     required this.totalBudget,
     required this.categorySpent,
     required this.segmentColors,
     this.progress = 1.0,
-    this.baseColor = Colors.grey,
-    required this.isVertical
+    required this.isVertical,
+    required this.context,
+    required this.coloredBg
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final Paint basePaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = baseColor.withOpacity(0.25);
+      ..color = (coloredBg) ? Colors.grey.withValues(alpha: .25) : Theme.of(context).cardColor.withValues(alpha: .5);
 
     final Paint segmentPaint = Paint()
       ..style = PaintingStyle.fill
       ..strokeCap = StrokeCap.round;
 
-    // Basislinie zeichnen mit abgerundeten Ecken
     canvas.drawRRect(
       RRect.fromRectAndCorners(
         Rect.fromLTWH(0, 0, size.width, size.height),
@@ -154,27 +168,25 @@ class BudgetLinePainter extends CustomPainter {
       basePaint,
     );
 
-    // Berechnung der Segmente
     double totalSpent = categorySpent.fold(0, (sum, spent) => sum + spent);
     double base = totalBudget > totalSpent ? totalBudget : totalSpent;
 
     if (!isVertical) {
       double startX = 0;
 
-      // Finde Index des letzten Segments mit Ausgaben > 0
       int lastNonZeroIndex = categorySpent.lastIndexWhere((spent) => spent > 0);
 
       for (int i = 0; i < categorySpent.length; i++) {
         double segmentWidth = (categorySpent[i] / base) * size.width * progress;
-        if (segmentWidth <= 0) continue; // Segment mit 0 Breite überspringen
+        if (segmentWidth <= 0) continue; 
 
         segmentPaint.color = segmentColors[i % segmentColors.length];
         canvas.drawRRect(
           RRect.fromRectAndCorners(
             Rect.fromLTWH(startX, 0, segmentWidth, size.height),
-            topLeft: Radius.circular(i == 0 ? 10 : 0), // Rundung links nur beim ersten Segment
+            topLeft: Radius.circular(i == 0 ? 10 : 0),
             bottomLeft: Radius.circular(i == 0 ? 10 : 0),
-            topRight: Radius.circular(i == lastNonZeroIndex ? 10 : 0), // Rundung rechts nur beim letzten nicht-null Segment
+            topRight: Radius.circular(i == lastNonZeroIndex ? 10 : 0),
             bottomRight: Radius.circular(i == lastNonZeroIndex ? 10 : 0),
           ),
           segmentPaint,

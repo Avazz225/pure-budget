@@ -69,10 +69,16 @@ class _BudgetArcWidgetState extends State<BudgetArcWidget> with SingleTickerProv
       }
       return Column(
         children: [
-          Text(
-            I18n.translate("totalSpent", placeholders: {"actual": widget.totalSpent.toStringAsFixed(2), "planned": widget.totalBudget.toStringAsFixed(2), "currency": widget.currency.toString()}),
-            style: Theme.of(context).textTheme.headlineMedium,
-            textAlign: TextAlign.center,
+          Container(
+            decoration: BoxDecoration(
+              color: (designState.customBackgroundPath != "none") ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
+              borderRadius: const BorderRadius.all(Radius.circular(8))
+            ),
+            child: Text(
+              I18n.translate("totalSpent", placeholders: {"actual": widget.totalSpent.toStringAsFixed(2), "planned": widget.totalBudget.toStringAsFixed(2), "currency": widget.currency.toString()}),
+              style: Theme.of(context).textTheme.headlineMedium,
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -88,7 +94,9 @@ class _BudgetArcWidgetState extends State<BudgetArcWidget> with SingleTickerProv
                     segmentColors: widget.segmentColors,
                     progress: _animation.value,
                     rounded: designState.arcSegmentsRounded,
-                    arcPercent: designState.arcPercent / 100
+                    arcPercent: designState.arcPercent / 100,
+                    context: context,
+                    coloredBg: designState.appBackgroundSolid
                   ),
                 );
               },
@@ -115,7 +123,9 @@ class _BudgetArcWidgetState extends State<BudgetArcWidget> with SingleTickerProv
                     segmentColors: widget.segmentColors,
                     progress: _animation.value,
                     rounded: designState.arcSegmentsRounded,
-                    arcPercent: designState.arcPercent / 100
+                    arcPercent: designState.arcPercent / 100,
+                    context: context,
+                    coloredBg: designState.appBackgroundSolid
                   ),
                 );
               },
@@ -135,6 +145,8 @@ class BudgetArcPainter extends CustomPainter {
   final Color baseColor;
   final bool rounded;
   final double arcPercent;
+  final BuildContext context;
+  final bool coloredBg;
 
   BudgetArcPainter({
     required this.totalBudget,
@@ -144,6 +156,8 @@ class BudgetArcPainter extends CustomPainter {
     this.progress = 1.0,
     this.baseColor = Colors.grey,
     required this.arcPercent,
+    required this.context,
+    required this.coloredBg
   });
 
 @override
@@ -151,7 +165,7 @@ void paint(Canvas canvas, Size size) {
   final shadowPaint = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 20.0
-    ..color = Colors.black.withAlpha(25) // 10% Alpha
+    ..color = (coloredBg)?Colors.black.withAlpha(25) : Theme.of(context).cardColor.withValues(alpha: .5)
     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
   final basePaint = Paint()

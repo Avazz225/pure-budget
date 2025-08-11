@@ -42,10 +42,16 @@ class _BudgetSummaryState extends State<BudgetSummary> {
           selectedIndex: budgetState.range,
         ),
         if (designState.arcStyle == 2 || !designState.layoutMainVertical)
-        Text(
-          I18n.translate("totalSpent", placeholders: {"actual": totalSpent.toStringAsFixed(2), "planned": budgetState.totalBudget.toStringAsFixed(2), "currency": currency.toString()}),
-          style: Theme.of(context).textTheme.headlineMedium,
-          textAlign: TextAlign.center,
+        Container(
+            decoration: BoxDecoration(
+              color: (designState.customBackgroundPath != "none") ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
+              borderRadius: const BorderRadius.all(Radius.circular(8))
+            ),
+            child: Text(
+            I18n.translate("totalSpent", placeholders: {"actual": totalSpent.toStringAsFixed(2), "planned": budgetState.totalBudget.toStringAsFixed(2), "currency": currency.toString()}),
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          )
         ),
         if (designState.layoutMainVertical)
         ...[

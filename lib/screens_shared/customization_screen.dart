@@ -175,7 +175,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              ...[
+              if (isDesktop()) ...[
                 Card(
                   child: Padding(
                     padding: const EdgeInsetsGeometry.all(8),
@@ -409,11 +409,14 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                               )
                             ],
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Wrap(
+                            alignment: WrapAlignment.spaceEvenly,
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               Text(I18n.translate("arcWidth"), style: bigBody),
                               Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Slider(
                                     value: _arcWidth,
@@ -450,11 +453,14 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                               )
                             ],
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Wrap(
+                            alignment: WrapAlignment.spaceEvenly,
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               Text(I18n.translate("arcPercent"), style: bigBody),
                               Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Slider(
                                     value: _arcPercent,
@@ -521,8 +527,10 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                         ),
                         if (!_appBackgroundSolid)
                         ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          Wrap(
+                            alignment: WrapAlignment.spaceEvenly,
+                            spacing: 8,
+                            runSpacing: 8, 
                             children: [
                               button(
                                 context,
