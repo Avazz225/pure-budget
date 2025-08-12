@@ -170,7 +170,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           await ProUpgradeManager().ensureProUpgrade(
                             isProLocally: budgetState.isDesktopPro,
                             setProStatusLocally: () async {
-                              await budgetState.updateIsDesktopPro(true); 
+                              await budgetState.updateIsDesktopPro(false); 
                             },
                           );
                         } 

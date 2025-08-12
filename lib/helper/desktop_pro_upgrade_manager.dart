@@ -1,18 +1,18 @@
 import 'dart:io' show Platform;
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/logger.dart';
+import 'package:pro_upgrade_plugin/pro_upgrade_plugin.dart';
 
 class ProUpgradeManager {
-  static const _windowsChannel = MethodChannel('pro_upgrade_windows');
-  static const _productId = "pro_upgrade";
+  static const _productId = proVersionProductIdDesktop;
+  static const _purchaseUrl = proVersionWindowsPurchaseUrl;
 
   Future<void> ensureProUpgrade({
     required bool isProLocally,
     required Future<void> Function() setProStatusLocally,
   }) async {
-    if (isProLocally) return;
-
     try {
       if (Platform.isMacOS) {
         await _buyOnMac();
@@ -43,12 +43,11 @@ class ProUpgradeManager {
   }
 
   Future<void> _buyOnWindows() async {
-    final result = await _windowsChannel.invokeMethod<bool>(
-      'buyProduct',
-      {"productId": _productId},
+    bool isPro = await ProUpgradePlugin.checkProUpgrade(
+      purchaseUrl: _purchaseUrl, 
+      productId: _productId,
     );
-    if (result != true) {
-      throw Exception("Purchase failed");
-    }
+
+    debugPrint(isPro.toString());
   }
 }
