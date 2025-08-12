@@ -91,7 +91,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
       body: Row(
         children: [
           CustomPaint(
-            painter: (designState.appBackgroundSolid) ? BackgroundPainter(isDarkMode: Theme.of(context).brightness == Brightness.dark, context: context) : SolidColorPainter(Theme.of(context).cardColor.withValues(alpha: .5)),
+            painter: (designState.appBackgroundSolid) ? BackgroundPainter(isDarkMode: Theme.brightnessOf(context) == Brightness.dark, context: context) : SolidColorPainter(Theme.of(context).cardColor.withValues(alpha: .5)),
             child:
               Padding(
                 padding: const EdgeInsetsGeometry.all(4),

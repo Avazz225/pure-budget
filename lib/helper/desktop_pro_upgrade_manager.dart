@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/services.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:jne_household_app/logger.dart';
 
 class ProUpgradeManager {
   static const _windowsChannel = MethodChannel('pro_upgrade_windows');
@@ -12,13 +13,16 @@ class ProUpgradeManager {
   }) async {
     if (isProLocally) return;
 
-    if (Platform.isMacOS) {
-      await _buyOnMac();
-    } else if (Platform.isWindows) {
-      await _buyOnWindows();
+    try {
+      if (Platform.isMacOS) {
+        await _buyOnMac();
+      } else if (Platform.isWindows) {
+        await _buyOnWindows();
+      }
+      await setProStatusLocally();
+    } catch (e) {
+      Logger().error("$e", tag: "desktopUpgrade");
     }
-
-    await setProStatusLocally();
   }
 
   Future<void> _buyOnMac() async {

@@ -47,7 +47,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget build(BuildContext context) {
     final state = Provider.of<BudgetState>(context);
     state.getStatistics(chartModes[state.selectedStatisticIndex]);
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    bool isDarkMode = Theme.brightnessOf(context) == Brightness.dark;
 
     ChartData chartData = getChartData(context, state, chartModes[state.selectedStatisticIndex], filter);
     Map<String, List<Map<String, dynamic>>> tableData = getTableData(state, chartModes[state.selectedStatisticIndex]);

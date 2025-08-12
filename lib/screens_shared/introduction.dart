@@ -96,7 +96,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
       children: [
         Positioned.fill(
           child: CustomPaint(
-            painter: BackgroundPainter(isDarkMode: Theme.of(context).brightness == Brightness.dark, context: context),
+            painter: BackgroundPainter(isDarkMode: Theme.brightnessOf(context) == Brightness.dark, context: context),
           ),
         ),
         IntroductionScreen(

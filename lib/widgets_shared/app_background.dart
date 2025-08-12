@@ -18,12 +18,13 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.brightnessOf(context) == Brightness.dark;
     return Stack(
       fit: StackFit.expand,
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
-            gradient: (gradientOption! < gradients.length) ? gradients[gradientOption!] : null,
+            gradient: (gradientOption! < gradients.length) ? gradients[gradientOption!].withOpacity((isDark) ? .5 : 1) : null,
             image: imagePath != "none"
                 ? DecorationImage(
                     image: FileImage(File(imagePath!)),

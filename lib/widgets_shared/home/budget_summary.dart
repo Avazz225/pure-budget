@@ -40,6 +40,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
           budgetRanges: budgetState.budgetRanges,
           updateRangeSelection: budgetState.updateRangeSelection,
           selectedIndex: budgetState.range,
+          designState: designState,
         ),
         if (designState.arcStyle == 2 || !designState.layoutMainVertical)
         Container(

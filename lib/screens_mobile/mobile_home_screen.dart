@@ -34,7 +34,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
     final designState = Provider.of<DesignState>(context);
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    bool isDarkMode = Theme.brightnessOf(context) == Brightness.dark;
 
     return Scaffold(
       backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,7 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
   }
 
 
-  void showExpensesBottomSheet(BuildContext context, String category, int categoryId, Color color) {
+  void showExpensesBottomSheet(BuildContext context, String category, int categoryId, Color color, DesignState designState) {
     if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
       ScreenshotManager().takeScreenshot(name: "expenseSheet");
     }
@@ -38,22 +39,31 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
         final name = (category != "__undefined_category_name__")? category : I18n.translate("unassigned");
         return FractionallySizedBox(
           heightFactor: 0.75,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: designState.dialogSolidBackground ? 0 : 10,
+                sigmaY: designState.dialogSolidBackground ? 0 : 10,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: .5),
-                  blurRadius: 8,
-                  offset: const Offset(0, -4),
+              child: Container(
+                decoration: BoxDecoration(
+                  color:  Theme.of(context).cardColor.withValues(alpha: (designState.dialogSolidBackground) ? 1 : .6),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                  boxShadow: (designState.dialogSolidBackground) ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: .5),
+                      blurRadius: 8,
+                      offset: const Offset(0, -4),
+                    ),
+                  ] : null,
                 ),
-              ]
-            ),
-            child: ExpenseList(categoryId: categoryId, category: category, currency: currency, state: budgetState, name: name)
-          ),
+                child: ExpenseList(categoryId: categoryId, category: category, currency: currency, state: budgetState, name: name)
+              ),
+            )
+          )
         );
       },
     );
@@ -71,12 +81,16 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
         final allSpent = (!unassigned)
             ? category.spent > category.budget
             : category.spent > budgetState.notAssignedBudget;
-        final Color textColor = ((!unassigned
-                ? (category.spent <= category.budget)
-                : (category.spent <= budgetState.notAssignedBudget))
-            ? getTextColor(
-                category.color.withAlpha((allSpent) ? 51 : 255), designState.categoryMainStyle, context)
-            : Colors.red);
+        final Color textColor =
+                ((!unassigned ? 
+                (category.spent <= category.budget)
+                : 
+                (category.spent <= budgetState.notAssignedBudget))
+                ? 
+                  ((designState.categoryMainStyle == 0) ? getTextColor(category.color.withAlpha((allSpent) ? 51 : 255), designState.categoryMainStyle, context) : Theme.of(context).textTheme.bodyMedium!.color!)
+                  : 
+                  Colors.red
+                );
 
         return listTile(
           budgetState: budgetState,
@@ -93,6 +107,7 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
             category.category,
             category.categoryId,
             category.color,
+            designState
           ),
           onPressed: () => showExpenseDialog(
             context: context,
