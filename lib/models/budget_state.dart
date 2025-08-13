@@ -295,7 +295,7 @@ class BudgetState extends ChangeNotifier {
       firstDate = DateTime.now();
     }
 
-    int maxRange = (!getProStatus(isPro)) ? maxFreeRanges : maxProRanges;
+    int maxRange = (!getProStatus(isPro, isDesktopPro)) ? maxFreeRanges : maxProRanges;
 
     budgetRanges = getMultipleRanges(resetInfo, maxRange, firstDate);
     if (budgetRanges.length - 1 < range){

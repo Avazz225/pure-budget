@@ -247,7 +247,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               child: Language(budgetState: budgetState)
             ),
             const SizedBox(height: 8,),
-            if (getProStatus(budgetState.isPro) || kDebugMode || Platform.isLinux || Platform.isWindows || Platform.isMacOS)
+            if (getProStatus(budgetState.isPro, budgetState.isDesktopPro) || kDebugMode || Platform.isLinux || Platform.isWindows || Platform.isMacOS)
             ElevatedButton(
               style: btnNeutralStyle,
               onPressed: () => Navigator.of(context).push(

@@ -25,7 +25,7 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
 
   var headlineSmall = Theme.of(context).textTheme.headlineSmall!;
   var bodyLarge = Theme.of(context).textTheme.bodyLarge!;
-  var allowMoreAcc = getProStatus(budgetState.isPro) || (maxFreeAccounts > budgetState.bankAccounts.length);
+  var allowMoreAcc = getProStatus(budgetState.isPro, budgetState.isDesktopPro) || (maxFreeAccounts > budgetState.bankAccounts.length);
   final screenWidth = MediaQuery.of(context).size.width;
   int crossAxisCount = (screenWidth / 450).floor();
   if (crossAxisCount == 0) {

@@ -318,7 +318,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
                       style: largeBody,
                       textAlign: TextAlign.center,
                     ),
-                    AddCategory(budgetState: budgetState, pro: getProStatus(budgetState.isPro)),
+                    AddCategory(budgetState: budgetState, pro: getProStatus(budgetState.isPro, budgetState.isDesktopPro)),
                     categoryList(budgetState, setState)
                   ]
                 )

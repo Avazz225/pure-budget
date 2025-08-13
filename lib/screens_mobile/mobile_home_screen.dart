@@ -88,7 +88,7 @@ class HomeScreenState extends State<HomeScreen> {
                 value: 'help',
                 child: Text(I18n.translate("help")),
               ),
-              if (!getProStatus(budgetState.isPro) || kDebugMode)
+              if (!getProStatus(budgetState.isPro, budgetState.isDesktopPro) || kDebugMode)
               PopupMenuItem(
                 value: 'inAppPurchase',
                 child: Row(
@@ -105,7 +105,7 @@ class HomeScreenState extends State<HomeScreen> {
                   ],
                 )
               ),
-              if (getProStatus(budgetState.isPro) || kDebugMode)
+              if (getProStatus(budgetState.isPro, budgetState.isDesktopPro) || kDebugMode)
               PopupMenuItem(
                 value: 'customization',
                 child: Text(I18n.translate("customization")),
@@ -123,7 +123,7 @@ class HomeScreenState extends State<HomeScreen> {
         1 => const StatisticsScreen(),
         3 => Column(
               children: [
-                AddCategory(budgetState: budgetState, pro: getProStatus(budgetState.isPro)),
+                AddCategory(budgetState: budgetState, pro: getProStatus(budgetState.isPro, budgetState.isDesktopPro)),
                 categoryList(budgetState, setState),
               ],
             ),
@@ -180,7 +180,7 @@ class HomeScreenState extends State<HomeScreen> {
               });
             },
           ),
-          if (!getProStatus(budgetState.isPro))
+          if (!getProStatus(budgetState.isPro, budgetState.isDesktopPro))
           const MainBanner()
         ],
       ),
