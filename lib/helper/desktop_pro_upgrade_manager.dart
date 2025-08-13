@@ -1,31 +1,33 @@
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/logger.dart';
-import 'package:pro_upgrade_plugin/pro_upgrade_plugin.dart';
+import 'package:jne_household_app/models/budget_state.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:windows_store/windows_store.dart';
 
 class ProUpgradeManager {
-  static const _productId = proVersionProductIdDesktop;
-  static const _purchaseUrl = proVersionWindowsPurchaseUrl;
+  static final _productId = (Platform.isWindows) ? proVersionProductIdWindows : proVersionProductIdMac;
+  final Logger _logger = Logger();
 
   Future<void> ensureProUpgrade({
     required bool isProLocally,
-    required Future<void> Function() setProStatusLocally,
+    required BudgetState budgetState,
   }) async {
     try {
+      bool result = false;
       if (Platform.isMacOS) {
-        await _buyOnMac();
+        result = await _buyOnMac();
       } else if (Platform.isWindows) {
-        await _buyOnWindows();
+        result = await _buyOnWindows();
       }
-      await setProStatusLocally();
+      await budgetState.updateIsDesktopPro(result);
     } catch (e) {
-      Logger().error("$e", tag: "desktopUpgrade");
+      _logger.error("$e", tag: "desktopUpgrade");
     }
   }
 
-  Future<void> _buyOnMac() async {
+  Future<bool> _buyOnMac() async {
     final available = await InAppPurchase.instance.isAvailable();
     if (!available) throw Exception("App Store not available");
 
@@ -39,15 +41,26 @@ class ProUpgradeManager {
         PurchaseParam(productDetails: products.productDetails.first);
 
     await InAppPurchase.instance
-        .buyNonConsumable(purchaseParam: purchaseParam);
+      .buyNonConsumable(purchaseParam: purchaseParam);
+    return true;
   }
 
-  Future<void> _buyOnWindows() async {
-    bool isPro = await ProUpgradePlugin.checkProUpgrade(
-      purchaseUrl: _purchaseUrl, 
-      productId: _productId,
-    );
+  Future<bool> _buyOnWindows() async {
+    final windowsStorePlugin = WindowsStoreApi();
+    final license = await windowsStorePlugin.getAppLicenseAsync();
 
-    debugPrint(isPro.toString());
+    _logger.debug(license.isActive.toString(), tag: "desktopUpgrade");
+    _logger.debug(license.isTrial.toString(), tag: "desktopUpgrade");
+    _logger.debug(license.skuStoreId.toString(), tag: "desktopUpgrade");
+    _logger.debug(license.trialUniqueId.toString(), tag: "desktopUpgrade");
+    _logger.debug(license.trialTimeRemaining.toString(), tag: "desktopUpgrade");
+    
+    if (license.isTrial){
+      const url = proVersionWindowsPurchaseUrl;
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url));
+      }
+    }
+    return !license.isTrial;
   }
 }

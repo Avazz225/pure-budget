@@ -363,5 +363,25 @@
     "lastRateDifferent": "Dern adlant egorad",
     "rate": "Riad",
     "appVersion": "App trîad: {version}",
-    "showLogs": "Pan i mah log"
+    "showLogs": "Pan i mah log",
+
+    "customization": "Curw",
+    "variant": "Bain {id}",
+    "mainMenuStyle": "Thâl gîn na meth",
+    "preview": "Cened",
+    "showPreview": "Cened thent",
+    "new": "Edain",
+    "addExpenseStyle": "Nath sui cost",
+    "arcStyle": "Cened cost",
+    "categoryMainStyle": "Gweth",
+    "layoutMainVertical": "Bar na raef",
+    "arcPercent": "Angol naeg",
+    "arcWidth": "Lamb naeg",
+    "arcSegmentsRounded": "Thent naeg",
+    "percent": "%",
+    "dialogSolidBackground": "Dîr laeg",
+    "appBackgroundSolid": "Dîr sing",
+    "appBackground": "Gwanath bain",
+    "customBackgroundBlur": "Mîr dîr",
+    "customBackgroundPath": "Gwanath nef"
 }

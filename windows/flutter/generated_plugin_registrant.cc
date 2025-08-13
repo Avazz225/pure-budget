@@ -10,10 +10,10 @@
 #include <flutter_inappwebview_windows/flutter_inappwebview_windows_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <local_auth_windows/local_auth_plugin.h>
-#include <pro_upgrade_plugin/pro_upgrade_plugin_c_api.h>
 #include <share_plus/share_plus_windows_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <window_to_front/window_to_front_plugin.h>
+#include <windows_store/windows_store_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
   DesktopWebviewWindowPluginRegisterWithRegistrar(
@@ -24,12 +24,12 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
   LocalAuthPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("LocalAuthPlugin"));
-  ProUpgradePluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("ProUpgradePluginCApi"));
   SharePlusWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("SharePlusWindowsPluginCApi"));
   UrlLauncherWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
   WindowToFrontPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("WindowToFrontPlugin"));
+  WindowsStorePluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("WindowsStorePluginCApi"));
 }

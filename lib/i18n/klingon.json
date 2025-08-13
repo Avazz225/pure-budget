@@ -363,5 +363,25 @@
     "lastRateDifferent": "Qet vIq nej",
     "rate": "vIq",
     "appVersion": "app qan: {version}",
-    "showLogs": "log ghol Directory yIghIt"
+    "showLogs": "log ghol Directory yIghIt",
+
+    "customization": "nobmey",
+    "variant": "ngoQ {id}",
+    "mainMenuStyle": "Hauptmenü chorgh",
+    "preview": "naw'",
+    "showPreview": "naw' cha'",
+    "new": "chu'",
+    "addExpenseStyle": "Huch lutu'lu'",
+    "arcStyle": "Huch Qav",
+    "categoryMainStyle": "Seghmey",
+    "layoutMainVertical": "juH retlh",
+    "arcPercent": "arc nuH",
+    "arcWidth": "arc joq",
+    "arcSegmentsRounded": "joq chuq",
+    "percent": "%",
+    "dialogSolidBackground": "chovnatlhHommey",
+    "appBackgroundSolid": "HochHom Qav",
+    "appBackground": "QIn tlha' choH",
+    "customBackgroundBlur": "Qav QIb",
+    "customBackgroundPath": "Qav mIllogh wIv"
 }

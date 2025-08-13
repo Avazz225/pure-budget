@@ -2,10 +2,8 @@
 
 ## Roadmap
 
-### 3.0.0
+### 3.1.0
 
-- "Ur Budget"
-  - dynamic design options for pro version
 - added widgets for home screen [mobile]
   - [Pro-Only] create new expense
   - both versions: Display available or spent per current month (only if app is not locked)
@@ -16,6 +14,11 @@
 - add connection to iCloud
 
 ## Changelog
+
+### 3.0.0 bundle 25 (13.08.2025)
+
+- Make "Pure Budget" "Ur Budget"
+  - customization for whole app only for pro version (on Windows non-Trial)
 
 ### 2.5.0 bundle 24 (08.08.2025)
 

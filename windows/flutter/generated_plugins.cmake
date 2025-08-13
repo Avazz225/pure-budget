@@ -7,10 +7,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_inappwebview_windows
   flutter_secure_storage_windows
   local_auth_windows
-  pro_upgrade_plugin
   share_plus
   url_launcher_windows
   window_to_front
+  windows_store
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

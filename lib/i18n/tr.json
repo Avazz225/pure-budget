@@ -363,5 +363,25 @@
     "lastRateDifferent": "Son taksit farklı",
     "rate": "Taksit",
     "appVersion": "Uygulama sürümü: {version}",
-    "showLogs": "Günlük dizinini aç"
+    "showLogs": "Günlük dizinini aç",
+
+    "customization": "Özelleştirme",
+    "variant": "Varyant {id}",
+    "mainMenuStyle": "Ana menü stili",
+    "preview": "Önizleme",
+    "showPreview": "Önizlemeyi göster",
+    "new": "Yeni",
+    "addExpenseStyle": "Gider ekle",
+    "arcStyle": "Gider özeti",
+    "categoryMainStyle": "Kategoriler",
+    "layoutMainVertical": "Dikey ana sayfa",
+    "arcPercent": "Maksimum yay açısı",
+    "arcWidth": "Yay genişliği",
+    "arcSegmentsRounded": "Yuvarlatılmış segmentler",
+    "percent": "%",
+    "dialogSolidBackground": "Şeffaf iletişim kutuları",
+    "appBackgroundSolid": "Düz arka plan",
+    "appBackground": "Çok renkli arka plan seç",
+    "customBackgroundBlur": "Arka planı bulanıklaştır",
+    "customBackgroundPath": "Özel arka plan resmi seç"
 }

@@ -363,5 +363,25 @@
     "lastRateDifferent": "अंतिम कीमत अलग",
     "rate": "किस्त",
     "appVersion": "ऐप संस्करण: {version}",
-    "showLogs": "लॉग निर्देशिका खोलें"
+    "showLogs": "लॉग निर्देशिका खोलें",
+
+    "customization": "अनुकूलन",
+    "variant": "प्रकार {id}",
+    "mainMenuStyle": "मुख्य मेनू शैली",
+    "preview": "पूर्वावलोकन",
+    "showPreview": "पूर्वावलोकन दिखाएं",
+    "new": "नया",
+    "addExpenseStyle": "व्यय जोड़ें",
+    "arcStyle": "व्यय अवलोकन",
+    "categoryMainStyle": "श्रेणियां",
+    "layoutMainVertical": "मुखपृष्ठ ऊर्ध्वाधर",
+    "arcPercent": "अधिकतम आर्क कोण",
+    "arcWidth": "आर्क चौड़ाई",
+    "arcSegmentsRounded": "गोल खंड",
+    "percent": "%",
+    "dialogSolidBackground": "पारदर्शी संवाद",
+    "appBackgroundSolid": "ठोस पृष्ठभूमि",
+    "appBackground": "बहुरंगी पृष्ठभूमि चुनें",
+    "customBackgroundBlur": "पृष्ठभूमि धुंधला करें",
+    "customBackgroundPath": "कस्टम पृष्ठभूमि छवि चुनें"
 }

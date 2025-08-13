@@ -363,5 +363,25 @@
   "lastRateDifferent": "Last installment differs",
   "rate": "Installment",
   "appVersion": "App version: {version}",
-  "showLogs": "Open log directory"
+  "showLogs": "Open log directory",
+
+  "customization": "Customization",
+  "variant": "Variant {id}",
+  "mainMenuStyle": "Main menu style",
+  "preview": "Preview",
+  "showPreview": "Show preview",
+  "new": "New",
+  "addExpenseStyle": "Add expense",
+  "arcStyle": "Expense overview",
+  "categoryMainStyle": "Categories",
+  "layoutMainVertical": "Home vertical",
+  "arcPercent": "Maximum arc angle",
+  "arcWidth": "Arc width",
+  "arcSegmentsRounded": "Round segments",
+  "percent": "%",
+  "dialogSolidBackground": "Transparent dialogs",
+  "appBackgroundSolid": "Solid background",
+  "appBackground": "Select multicolor background",
+  "customBackgroundBlur": "Blur background",
+  "customBackgroundPath": "Select custom background image"
 }

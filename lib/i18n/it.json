@@ -363,5 +363,25 @@
     "lastRateDifferent": "Ultima rata diversa",
     "rate": "Rata",
     "appVersion": "Versione dell'app: {version}",
-    "showLogs": "Apri la cartella log"
+    "showLogs": "Apri la cartella log",
+
+    "customization": "Personalizzazione",
+    "variant": "Variante {id}",
+    "mainMenuStyle": "Stile menu principale",
+    "preview": "Anteprima",
+    "showPreview": "Mostra anteprima",
+    "new": "Nuovo",
+    "addExpenseStyle": "Aggiungi spesa",
+    "arcStyle": "Panoramica spese",
+    "categoryMainStyle": "Categorie",
+    "layoutMainVertical": "Home verticale",
+    "arcPercent": "Angolo massimo dell'arco",
+    "arcWidth": "Larghezza arco",
+    "arcSegmentsRounded": "Segmenti arrotondati",
+    "percent": "%",
+    "dialogSolidBackground": "Finestre di dialogo trasparenti",
+    "appBackgroundSolid": "Sfondo a tinta unita",
+    "appBackground": "Seleziona sfondo multicolore",
+    "customBackgroundBlur": "Sfoca sfondo",
+    "customBackgroundPath": "Seleziona immagine di sfondo personalizzata"
 }

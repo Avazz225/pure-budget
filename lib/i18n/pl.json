@@ -363,5 +363,25 @@
     "lastRateDifferent": "Ostatnia rata inna",
     "rate": "Rata",
     "appVersion": "Wersja aplikacji: {version}",
-    "showLogs": "Otwórz katalog logów"
+    "showLogs": "Otwórz katalog logów",
+
+    "customization": "Dostosowanie",
+    "variant": "Wariant {id}",
+    "mainMenuStyle": "Styl menu głównego",
+    "preview": "Podgląd",
+    "showPreview": "Pokaż podgląd",
+    "new": "Nowy",
+    "addExpenseStyle": "Dodaj wydatek",
+    "arcStyle": "Przegląd wydatków",
+    "categoryMainStyle": "Kategorie",
+    "layoutMainVertical": "Strona główna pionowa",
+    "arcPercent": "Maksymalny kąt łuku",
+    "arcWidth": "Szerokość łuku",
+    "arcSegmentsRounded": "Zaokrąglone segmenty",
+    "percent": "%",
+    "dialogSolidBackground": "Przezroczyste okna dialogowe",
+    "appBackgroundSolid": "Jednolite tło",
+    "appBackground": "Wybierz wielokolorowe tło",
+    "customBackgroundBlur": "Rozmyj tło",
+    "customBackgroundPath": "Wybierz własny obraz tła"
 }
