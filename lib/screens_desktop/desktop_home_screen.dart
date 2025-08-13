@@ -164,7 +164,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           );
                         },
                       ),
-                      /*if (!budgetState.isDesktopPro || kDebugMode)
+                      if (!budgetState.isDesktopPro || kDebugMode)
                       buildActionButton(
                         context, 
                         label: I18n.translate("upgradeToPro"), 
@@ -179,7 +179,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                             budgetState: budgetState,
                           );
                         } 
-                      ),*/
+                      ),
                       buildActionButton(
                         context,
                         label: I18n.translate("settings"),
