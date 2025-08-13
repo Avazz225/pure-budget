@@ -15,6 +15,7 @@ import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/widgets_shared/main/add_category.dart';
 import 'package:jne_household_app/widgets_shared/main/bank_accounts.dart';
 import 'package:jne_household_app/widgets_shared/main/category_list.dart';
+import 'package:jne_household_app/widgets_shared/tri_rhombus_icon.dart';
 import 'package:provider/provider.dart';
 
 
@@ -87,19 +88,31 @@ class HomeScreenState extends State<HomeScreen> {
                 value: 'help',
                 child: Text(I18n.translate("help")),
               ),
-              PopupMenuItem(
-                value: 'settings',
-                child: Text(I18n.translate("settings")),
-              ),
               if (!getProStatus(budgetState.isPro) || kDebugMode)
               PopupMenuItem(
                 value: 'inAppPurchase',
-                child: Text(I18n.translate("upgradeToPro")),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TriRhombusIcon(
+                      gap: -2.5,
+                      size: 20, 
+                      rotation: 90, 
+                      colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.blue, Colors.green, Colors.yellow] : [Colors.pink, Colors.purple, Colors.deepOrange]
+                    ),
+                    const SizedBox(width: 4,),
+                    Text(I18n.translate("upgradeToPro"))
+                  ],
+                )
               ),
               if (getProStatus(budgetState.isPro) || kDebugMode)
               PopupMenuItem(
                 value: 'customization',
                 child: Text(I18n.translate("customization")),
+              ),
+              PopupMenuItem(
+                value: 'settings',
+                child: Text(I18n.translate("settings")),
               )
             ],
           ),

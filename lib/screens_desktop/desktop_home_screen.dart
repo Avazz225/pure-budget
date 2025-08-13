@@ -17,6 +17,7 @@ import 'package:jne_household_app/widgets_shared/main/add_category.dart';
 import 'package:jne_household_app/widgets_shared/main/bank_accounts.dart';
 import 'package:jne_household_app/widgets_shared/main/category_list.dart';
 import 'package:jne_household_app/widgets_shared/solid_color_painter.dart';
+import 'package:jne_household_app/widgets_shared/tri_rhombus_icon.dart';
 import 'package:provider/provider.dart';
 
 class DesktopHomeScreen extends StatefulWidget {
@@ -52,8 +53,9 @@ class HomeScreenState extends State<DesktopHomeScreen> {
     Widget buildActionButton(BuildContext context, {
       required String label,
       required VoidCallback onTap,
+      Widget? customWidget
     }) {
-      return buttonBuilder(context, onTap, label: label);
+      return buttonBuilder(context, onTap, label: label, customWidget: customWidget);
     }
 
 
@@ -157,7 +159,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => CustomizationScreen(),
+                              builder: (context) => const CustomizationScreen(),
                             ),
                           );
                         },
@@ -166,6 +168,11 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                       buildActionButton(
                         context, 
                         label: I18n.translate("upgradeToPro"), 
+                        customWidget: TriRhombusIcon(
+                          gap: -2.5,
+                          size: 20, 
+                          rotation: 90, 
+                          colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.blue, Colors.green, Colors.yellow] : [Colors.pink, Colors.purple, Colors.deepOrange]),
                         onTap: () async  {
                           await ProUpgradeManager().ensureProUpgrade(
                             isProLocally: budgetState.isDesktopPro,

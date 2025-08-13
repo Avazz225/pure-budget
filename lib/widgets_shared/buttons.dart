@@ -7,6 +7,7 @@ Widget glassButton(
   {
     String? label,
     IconData? icon,
+    Widget? customWidget,
 }) {
   return ClipRRect(
     borderRadius: BorderRadius.circular(20),
@@ -26,6 +27,8 @@ Widget glassButton(
             children: [
               if (icon != null)
               Icon(icon, size: 20, color: Theme.of(context).iconTheme.color),
+              if (customWidget != null)
+              customWidget,
               if (icon != null && label != null)
               const SizedBox(width: 8),
               if (label != null)
@@ -49,6 +52,7 @@ Widget flatButton(
   {
     String? label,
     IconData? icon,
+    Widget? customWidget,
   }
 ) {
   return ClipRRect(
@@ -68,6 +72,8 @@ Widget flatButton(
           children: [
             if (icon != null)
               Icon(icon, size: 20, color: Theme.of(context).iconTheme.color),
+            if (customWidget != null)
+              customWidget,
             if (icon != null && label != null)
               const SizedBox(width: 8),
             if (label != null)
