@@ -172,7 +172,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           gap: -2.5,
                           size: 20, 
                           rotation: 90, 
-                          colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.blue, Colors.green, Colors.yellow] : [Colors.pink, Colors.purple, Colors.deepOrange]),
+                          colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.lightGreen, Colors.lightBlue, Colors.yellowAccent] : [Colors.pink, Colors.purple, Colors.deepOrange]),
                         onTap: () async  {
                           await ProUpgradeManager().ensureProUpgrade(
                             isProLocally: budgetState.isDesktopPro,

@@ -78,7 +78,7 @@ class HomeScreenState extends State<HomeScreen> {
               } else if (value == "customization") {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => CustomizationScreen(),
+                    builder: (context) => const CustomizationScreen(),
                   ),
                 );
               }
@@ -98,7 +98,7 @@ class HomeScreenState extends State<HomeScreen> {
                       gap: -2.5,
                       size: 20, 
                       rotation: 90, 
-                      colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.blue, Colors.green, Colors.yellow] : [Colors.pink, Colors.purple, Colors.deepOrange]
+                      colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.lightGreen, Colors.lightBlue, Colors.yellowAccent] : [Colors.pink, Colors.purple, Colors.deepOrange]
                     ),
                     const SizedBox(width: 4,),
                     Text(I18n.translate("upgradeToPro"))
