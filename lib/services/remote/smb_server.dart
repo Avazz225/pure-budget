@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:jne_household_app/helper/remote/auth.dart';
+import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:smb_connect/smb_connect.dart';
 

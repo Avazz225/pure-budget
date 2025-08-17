@@ -20,8 +20,8 @@ const Map<String, double> defaultConversionRates = {
   'KRW': 0.00076 // south korean won
 };
 
-  // Helperfunction: Curency symbol to ISO
-  String normalizeCurrency(String symbolOrCode) {
+// Helperfunction: Curency symbol to ISO
+String normalizeCurrency(String symbolOrCode) {
   switch (symbolOrCode) {
     case '€':
       return 'EUR';

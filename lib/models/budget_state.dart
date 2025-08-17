@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/services/auto_booking.dart';
-import 'package:jne_household_app/helper/remote/auth.dart';
+import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';

@@ -3,10 +3,10 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:jne_household_app/helper/post_auth_page.dart';
 import 'dart:convert';
 
-import 'package:jne_household_app/helper/remote/auth.dart';
+import 'package:jne_household_app/services/remote/auth.dart';
+import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/logger.dart';
 
 class AccessCredentials {
@@ -25,13 +25,13 @@ class AccessCredentials {
   }
 }
 
-
 class AuthorizationCodeGrantServerFlow {
   final String clientId;
   final String clientSecret;
   final List<String> scopes;
   final Function userPrompt;
   final int listenPort;
+  final String? customPostAuthPage;
 
   AuthorizationCodeGrantServerFlow({
     required this.clientId,
@@ -39,14 +39,14 @@ class AuthorizationCodeGrantServerFlow {
     required this.scopes,
     required this.userPrompt,
     this.listenPort = 0,
+    this.customPostAuthPage,
   });
 
   Future<AccessCredentials> run() async {
     final server = await HttpServer.bind('localhost', listenPort);
 
     try {
-      final port = server.port;
-      final redirectUri = 'http://localhost:$port';
+      const redirectUri = iCloudRedirectUri;
       final state = _randomState();
 
       // Prompt user and wait for them to authorize.
@@ -86,15 +86,25 @@ class AuthorizationCodeGrantServerFlow {
           redirectUri,
         );
 
-        
         request.response
           ..statusCode = 200
           ..headers.set('content-type', 'text/html; charset=UTF-8')
           ..write(
-            customPostAuthPage,
+            customPostAuthPage ??
+                '''
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Authorization successful.</title>
+  </head>
+  <body>
+    <h2 style="text-align: center">Application has successfully obtained access credentials</h2>
+    <p style="text-align: center">This window can be closed now.</p>
+  </body>
+</html>''',
           );
         await request.response.close();
-        
 
         return credentials;
       } catch (e) {
@@ -108,7 +118,7 @@ class AuthorizationCodeGrantServerFlow {
   }
 
   Future<AccessCredentials> refreshAccessToken(String refreshToken) async {
-    const tokenUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+    const tokenUrl = "https://appleid.apple.com/auth/token";
 
     final response = await http.post(
       Uri.parse(tokenUrl),
@@ -126,7 +136,7 @@ class AuthorizationCodeGrantServerFlow {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final accessToken = data['access_token'];
-      final newRefreshToken = data['refresh_token'] ?? refreshToken; // Neuer oder alter Refresh Token
+      final newRefreshToken = data['refresh_token'] ?? refreshToken;
       final expiresIn = data['expires_in'];
       final expiry = DateTime.now().add(Duration(seconds: expiresIn));
 
@@ -142,17 +152,16 @@ class AuthorizationCodeGrantServerFlow {
 
   String _buildAuthUrl(String redirectUri, String state) {
     final scopesEncoded = Uri.encodeComponent(scopes.join(' '));
-    return "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+    return "https://appleid.apple.com/auth/authorize"
         "?client_id=$clientId"
         "&response_type=code"
         "&redirect_uri=${Uri.encodeComponent(redirectUri)}"
-        "&response_mode=query"
         "&scope=$scopesEncoded"
         "&state=$state";
   }
 
   Future<AccessCredentials> _exchangeCodeForToken(String code, String redirectUri) async {
-    const tokenUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+    const tokenUrl = "https://appleid.apple.com/auth/token";
     final response = await http.post(
       Uri.parse(tokenUrl),
       headers: {
@@ -191,6 +200,7 @@ class AuthorizationCodeGrantServerFlow {
   }
 }
 
+
 class TokenManager {
   AccessCredentials? _credentials;
   AuthorizationCodeGrantServerFlow flow;
@@ -206,10 +216,11 @@ class TokenManager {
     final now = DateTime.now();
     if (_credentials!.expiry.isBefore(now)) {
       _credentials = await flow.refreshAccessToken(_credentials!.refreshToken!);
-      await saveKey(_credentials!.toJsonString(), "oneDriveAccessTokenJson");
-      _logger.debug("Access Token refrehed", tag: "oneDrive");
+      await saveKey(_credentials!.toJsonString(), "iCloudAccessTokenJson");
+
+      _logger.debug("Access Token refreshed", tag: "iCloud");
     } else if (kDebugMode) {
-      _logger.debug("Access Token still valid until ${_credentials!.expiry.toString()}", tag: "oneDrive");
+      _logger.debug("Access Token still valid until ${_credentials!.expiry.toString()}", tag: "iCloud");
     }
     return _credentials!.accessToken;
   }

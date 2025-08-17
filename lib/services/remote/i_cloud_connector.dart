@@ -2,64 +2,62 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:jne_household_app/helper/remote/auth.dart';
-import 'package:jne_household_app/helper/remote/one_drive_auth_code_server.dart';
+import 'package:jne_household_app/services/remote/auth.dart';
+import 'package:jne_household_app/services/remote/i_cloud_auth_code_server.dart';
 import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-class OneDriveConnector {
-  static OneDriveConnector? _instance;
+class ICloudConnector {
+  static ICloudConnector? _instance;
   static String? _accessToken;
   final _logger = Logger();
 
-  OneDriveConnector._internal();
+  ICloudConnector._internal();
 
-  factory OneDriveConnector() {
-    _instance ??= OneDriveConnector._internal();
+  factory ICloudConnector() {
+    _instance ??= ICloudConnector._internal();
     return _instance!;
   }
 
   Future<void> init() async {
     final flow = AuthorizationCodeGrantServerFlow(
-      clientId: getOneDriveClientId(),
+      clientId: getICloudClientId(),
       clientSecret: "",
-      scopes: ["Files.ReadWrite.All", "User.Read", "offline_access"],
-      userPrompt: _promptUserForConsent
+      scopes: ["readwrite", "offline_access"],
+      userPrompt: _promptUserForConsent,
     );
 
     try {
-      final savedToken = jsonDecode(await loadKey("oneDriveAccessTokenJson"));
+      final savedToken = jsonDecode(await loadKey("iCloudAccessTokenJson"));
       final tokenManager = TokenManager(
         AccessCredentials(
-          accessToken: savedToken['accessToken'], 
-          expiry: DateTime.parse(savedToken['expiry']), 
-          refreshToken: savedToken['refreshToken']
-        ), 
-        flow
+          accessToken: savedToken['accessToken'],
+          expiry: DateTime.parse(savedToken['expiry']),
+          refreshToken: savedToken['refreshToken'],
+        ),
+        flow,
       );
 
       if (savedToken != "") {
-        _logger.debug("Token is present", tag: "oneDrive");
         _accessToken = await tokenManager.getAccessToken();
 
-        _logger.debug("Access token loaded.", tag: "oneDrive");
+        _logger.debug("Access token loaded.", tag: "iCloud");
       } else {
-        _logger.debug("No token present", tag: "auth");
         final credentials = await flow.run();
         _accessToken = credentials.accessToken;
-        await saveKey(credentials.toJsonString(), "oneDriveAccessTokenJson");
+        await saveKey(credentials.toJsonString(), "iCloudAccessTokenJson");
       }
     } catch (e) {
-      _logger.info("Failed to load token: $e", tag: "oneDrive");
+      _logger.info("Failed to load token: $e", tag: "iCloud");
 
       final credentials = await flow.run();
       _accessToken = credentials.accessToken;
-      await saveKey(credentials.toJsonString(), "oneDriveAccessTokenJson");
+      await saveKey(credentials.toJsonString(), "iCloudAccessTokenJson");
     }
   }
 
-  Future<void> _promptUserForConsent(authUrl) async {
+  Future<void> _promptUserForConsent(String authUrl) async {
     if (await canLaunchUrlString(authUrl)) {
       await launchUrlString(authUrl);
     } else {
@@ -69,8 +67,8 @@ class OneDriveConnector {
 
   Future<List<dynamic>> readDirectoryAndFiles(String folderId) async {
     final uri = folderId.isEmpty
-        ? Uri.parse("https://graph.microsoft.com/v1.0/me/drive/root/children")
-        : Uri.parse("https://graph.microsoft.com/v1.0/me/drive/items/$folderId/children");
+        ? Uri.parse("https://icloud.com/api/v1/me/drive/root/children")
+        : Uri.parse("https://icloud.com/api/v1/me/drive/items/$folderId/children");
     final response = await _authenticatedGet(uri);
     return response["value"] as List<dynamic>;
   }
@@ -80,53 +78,37 @@ class OneDriveConnector {
     return allItems.where((item) => item.containsKey("folder")).toList();
   }
 
-  Future<void> downloadFile(String fileName, File localFile, String folderUrl) async {
-    String itemId = await loadKey("oneDriveItemId");
-    if (itemId == "") {
-      await getItemId(folderUrl, fileName);
-      itemId = await loadKey("oneDriveItemId");
-    }
-
-    final downloadUrl = "https://graph.microsoft.com/v1.0/me/drive/items/$itemId/content";
+  Future<void> downloadFile(String fileName, File localFile) async {
+    final itemId = await loadKey("iCloudItemId");
+    final downloadUrl = "https://icloud.com/api/v1/me/drive/items/$itemId/content";
     final response = await http.get(Uri.parse(downloadUrl), headers: await _authHeaders(false));
-
     await localFile.writeAsBytes(response.bodyBytes);
   }
 
   Future<void> uploadFile(String folderId, File localFile, String fileName, {bool overwrite = true}) async {
-    folderId = folderId.replaceFirst("onedrive://", "");
+    folderId = folderId.replaceFirst("icloud://", "");
     fileName = fileName.replaceAll("/", "");
-    
-    final itemId = await loadKey("oneDriveItemId");
-    final uri = (itemId != "") ?
-      Uri.parse("https://graph.microsoft.com/v1.0/me/drive/items/$itemId/content")
-      :
-      Uri.parse("https://graph.microsoft.com/v1.0/me/drive/items/$folderId:/$fileName:/content");
+
+    final itemId = await loadKey("iCloudItemId");
+    final uri = (itemId != "")
+        ? Uri.parse("https://icloud.com/api/v1/me/drive/items/$itemId/content")
+        : Uri.parse("https://icloud.com/api/v1/me/drive/items/$folderId:/$fileName:/content");
 
     http.Response response = await _authenticatedPut(uri, localFile);
     if (itemId == "") {
       String id = jsonDecode(response.body)['id'];
-      await saveKey(id, "oneDriveItemId");
+      await saveKey(id, "iCloudItemId");
     }
   }
 
-  Future<void> getItemId(String folderId, String fileName) async {
-    folderId = folderId.replaceFirst("onedrive://", "");
-    fileName = fileName.replaceFirst("/", "");
-
-    final items = await readDirectoryAndFiles(folderId);
-    for (dynamic item in items) {
-      if (item["name"] == fileName) {
-        await saveKey(item["id"], "oneDriveItemId");
-      }
-    }
-  } 
-
   Future<bool> checkExistence(String folderId, String fileName) async {
-    folderId = folderId.replaceFirst("onedrive://", "");
+    folderId = folderId.replaceFirst("icloud://", "");
     fileName = fileName.replaceFirst("/", "");
     final items = await readDirectoryAndFiles(folderId);
     bool result = items.any((item) => item["name"] == fileName);
+    if (!result) {
+      saveKey("", "iCloudItemId");
+    }
     return result;
   }
 
@@ -147,7 +129,7 @@ class OneDriveConnector {
     return response;
   }
 
-  Future<Map<String, String>> _authHeaders(put) async {
+  Future<Map<String, String>> _authHeaders(bool put) async {
     await init();
     if (_accessToken == null) {
       throw Exception("Access token not available.");
@@ -158,9 +140,8 @@ class OneDriveConnector {
       return {"Authorization": "Bearer $_accessToken"};
     }
   }
-
 }
 
-String getOneDriveClientId() => oneDriveClientId;
-String getOneDriveClientSecret() => oneDriveClientSecret;
-String getOneDriveRedirectUri() => oneDriveRedirectUri;
+String getICloudClientId() => iCloudClientId;
+
+String getICloudRedirectUri() => iCloudRedirectUri;
