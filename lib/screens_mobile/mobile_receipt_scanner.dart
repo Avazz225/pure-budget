@@ -1,102 +1,140 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:camera/camera.dart';
+import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/logger.dart';
+import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/services/receipt_service.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/expense_dialog.dart';
 
 class ReceiptPage extends StatefulWidget {
-  const ReceiptPage({super.key});
+  final String baseCurrency;
+  final BudgetState budgetState;
+  const ReceiptPage({super.key, required this.baseCurrency, required this.budgetState});
 
   @override
   State<ReceiptPage> createState() => _ReceiptPageState();
 }
 
 class _ReceiptPageState extends State<ReceiptPage> {
-  final ReceiptService _service = ReceiptService(baseCurrency: "€");
-  ReceiptData? _data;
+  late final ReceiptService _service;
+  final Logger _logger = Logger();
+  bool available = false;
 
-  final TextEditingController _merchantController = TextEditingController();
-  final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _currencyController = TextEditingController();
+  CameraController? _cameraController;
+  Future<void>? _initializeControllerFuture;
 
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
-    );
+  @override
+  void initState() {
+    super.initState();
+    _service = ReceiptService(baseCurrency: widget.baseCurrency);
+    _initCamera();
+  }
 
-    if (result == null) return;
+  Future<void> _initCamera() async {
+    final cameras = await availableCameras();
 
-    final filePath = result.files.single.path;
-    if (filePath == null) return;
+    _cameraController = CameraController(cameras[0], ResolutionPreset.max);
 
-    ReceiptData data;
-    if (filePath.toLowerCase().endsWith(".pdf")) {
-      data = await _service.extractFromPdf(filePath);
-    } else {
-      data = await _service.extractFromImage(File(filePath));
+    // 👉 Das Future auch speichern
+    _initializeControllerFuture = _cameraController!.initialize();
+
+    try {
+      await _initializeControllerFuture;
+      if (!mounted) return;
+      _logger.debug("Camera init finished", tag: "OCR");
+      setState(() {});
+    } catch (e) {
+      if (e is CameraException) {
+        _logger.debug("Camera error: ${e.code}", tag: "OCR");
+      } else {
+        _logger.debug("Camera init failed: $e", tag: "OCR");
+      }
     }
-
-    _updateControllers(data);
   }
 
-  void _updateControllers(ReceiptData data) {
-    setState(() {
-      _data = data;
-      _merchantController.text = data.merchant;
-      _amountController.text = data.amount;
-      _currencyController.text = data.currency;
-    });
+
+  Future<void> _takePhoto() async {
+    if (_cameraController == null) return;
+
+    try {
+      await _initializeControllerFuture;
+      final image = await _cameraController!.takePicture();
+      final file = File(image.path);
+
+      final data = await _service.extractFromImage(file);
+      await _updateControllers(data);
+    } catch (e) {
+      _logger.error("Error taking photo: $e", tag: "OCR");
+    }
   }
 
-  void _save() {
-    if (_data == null) return;
-
-    final updatedData = ReceiptData(
-      merchant: _merchantController.text,
-      amount: _amountController.text,
-      currency: _currencyController.text,
-      qrLink: _data?.qrLink,
+  Future<void> _updateControllers(ReceiptData data) async {
+    final selectedCat = widget.budgetState.selectedScanCategory;
+    _logger.debug("Read data: amount -> ${data.amount}, selectedCategoryId -> $selectedCat", tag: "OCR");
+    await showExpenseDialog(
+      context: context,
+      accountId: widget.budgetState.filterBudget,
+      bankAccounts: widget.budgetState.bankAccounts,
+      bankAccoutCount: widget.budgetState.bankAccounts.length,
+      defaultVal: data.amount,
+      category: widget.budgetState.rawCategories.where((c) => c.id == selectedCat).first.name,
+      categoryId: selectedCat
     );
+  }
 
-    debugPrint("Saving: ${updatedData.merchant} | ${updatedData.amount} ${updatedData.currency}");
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Beleg gespeichert!")),
-    );
+  Widget _cameraPreviewWidget() {
+    final CameraController? controller = _cameraController;
+
+    if (controller == null || !controller.value.isInitialized) {
+      return Text(
+        I18n.translate("cameraError"),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 24.0,
+          fontWeight: FontWeight.w900,
+        ),
+      );
+    } else {
+      return Listener(
+        child: CameraPreview(
+          controller,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Receipt Scanner")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _data == null
-            ? const Center(child: Text("Datei auswählen, um zu starten"))
-            : Column(
-                children: [
-                  TextField(
-                    controller: _merchantController,
-                    decoration: const InputDecoration(labelText: "Merchant"),
-                  ),
-                  TextField(
-                    controller: _amountController,
-                    decoration: const InputDecoration(labelText: "Amount"),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                  TextField(
-                    controller: _currencyController,
-                    decoration: const InputDecoration(labelText: "Currency"),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(onPressed: _save, child: const Text("Save"))
-                ],
-              ),
+      appBar: AppBar(title: Text(I18n.translate("receiptScanner"))),
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Column(
+              children: [
+                // 📸 Live Kamera Vorschau
+                AspectRatio(
+                  aspectRatio: 3 / 4,
+                  child: _cameraPreviewWidget(),
+                )
+              ],
+            );
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _pickFile,
-        child: const Icon(Icons.upload_file),
+        onPressed: _takePhoto,
+        child: const Icon(Icons.camera_alt_rounded),
       ),
     );
   }

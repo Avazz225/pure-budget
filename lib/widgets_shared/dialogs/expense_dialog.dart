@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/services/text_formatter.dart';
@@ -20,14 +21,21 @@ Future<void> showExpenseDialog({
     Map<String, dynamic>? expense,
     required String accountId, 
     required List<BankAccount> bankAccounts,
-    required int bankAccoutCount
+    required int bankAccoutCount,
+    String? defaultVal
   }) async {
+    Logger().debug("PARAMS:\n\tcategory: $category\n\tcategoryId: $categoryId\n\taccountId: $accountId\n\tdefaultVal: $defaultVal", tag: "EXP_DIALOG");
     final bool isEditing = expense != null;
     final TextEditingController amountController = TextEditingController(
       text: isEditing
           ? (I18n.comma()
               ? expense['amount'].toString().replaceAll(".", ",")
               : expense['amount'].toString())
+          : 
+          (defaultVal != null) ?
+          (I18n.comma()
+              ? defaultVal.replaceAll(".", ",")
+              : defaultVal.toString())
           : '',
     );
 

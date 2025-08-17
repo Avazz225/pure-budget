@@ -44,6 +44,7 @@ class BudgetState extends ChangeNotifier {
   String syncMode;
   int syncFrequency;
   bool lockApp;
+  int selectedScanCategory;
 
   BudgetState._({
     required this.totalBudget,
@@ -73,7 +74,8 @@ class BudgetState extends ChangeNotifier {
     required this.syncMode,
     required this.syncFrequency,
     required this.lockApp,
-    required this.isDesktopPro
+    required this.isDesktopPro,
+    required this.selectedScanCategory
   });
 
   factory BudgetState({
@@ -95,7 +97,8 @@ class BudgetState extends ChangeNotifier {
     required String syncMode,
     required int syncFrequency,
     required bool lockApp,
-    required bool isDesktopPro
+    required bool isDesktopPro,
+    required int selectedScanCategory
   }) {
     return BudgetState._(
       totalBudget: totalBudget,
@@ -125,7 +128,8 @@ class BudgetState extends ChangeNotifier {
       syncMode: syncMode,
       syncFrequency: syncFrequency,
       lockApp: lockApp,
-      isDesktopPro: isDesktopPro
+      isDesktopPro: isDesktopPro,
+      selectedScanCategory: selectedScanCategory
     );
   }
 
@@ -148,7 +152,8 @@ class BudgetState extends ChangeNotifier {
     required String syncMode,
     required int syncFrequency,
     required bool lockApp,
-    required bool isDesktopPro
+    required bool isDesktopPro,
+    required int selectedScanCategory,
   }) async {
     final instance = BudgetState(
       totalBudget: totalBudget,
@@ -169,7 +174,8 @@ class BudgetState extends ChangeNotifier {
       syncMode: syncMode,
       syncFrequency: syncFrequency,
       lockApp: lockApp,
-      isDesktopPro: isDesktopPro
+      isDesktopPro: isDesktopPro,
+      selectedScanCategory: selectedScanCategory
     );
 
     await instance.sharedDb.initialize();

@@ -383,5 +383,9 @@
     "appBackgroundSolid": "Einfarbiger Hintergrund",
     "appBackground": "Mehrfarbigen Hintergrund auswählen",
     "customBackgroundBlur": "Hintergrund verwischen",
-    "customBackgroundPath": "Eigenes Hintergrundbild auswählen"
+    "customBackgroundPath": "Eigenes Hintergrundbild auswählen",
+
+    "savedReceipt": "Beleg gespeichert!",
+    "receiptScanner": "Beleg scannen",
+    "cameraError": "Konnte Vorschau nicht laden."
 }

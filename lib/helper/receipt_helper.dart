@@ -22,7 +22,7 @@ const Map<String, double> defaultConversionRates = {
 
 // Helperfunction: Curency symbol to ISO
 String normalizeCurrency(String symbolOrCode) {
-  switch (symbolOrCode) {
+  switch (symbolOrCode.toUpperCase()) {
     case '€':
       return 'EUR';
     case '\$':
@@ -44,6 +44,6 @@ String normalizeCurrency(String symbolOrCode) {
     case '₩':
       return 'KRW';
     default:
-      return symbolOrCode.toUpperCase(); // fallback to ISO-C´code
+      return symbolOrCode.toUpperCase(); // fallback to ISO-code
   }
 }

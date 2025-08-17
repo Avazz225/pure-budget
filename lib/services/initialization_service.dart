@@ -84,7 +84,8 @@ class InitializationService {
       syncMode: settings['syncMode'],
       syncFrequency: settings['syncFrequency'],
       lockApp: settings['lockApp'] == 1,
-      isDesktopPro: settings['isDesktopPro'] == 1
+      isDesktopPro: settings['isDesktopPro'] == 1,
+      selectedScanCategory: settings['selectedScanCategory']
     );
 
     Map<String, dynamic> designData = await dbHelper.getDesignData();
