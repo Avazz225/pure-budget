@@ -61,3 +61,6 @@ releases/*
 license_input.txt
 license_formatter.py
 /android/app/.cxx/RelWithDebInfo
+
+*.xcf
+_template

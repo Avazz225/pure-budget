@@ -2,6 +2,16 @@
 
 ## Roadmap
 
+### 3.3.0
+
+- report issue button to submit error reports from within the app
+
+### 3.2.0
+
+- scan function to extract info from receipt (including e-receipt, either per in-app scan or pdf selection) and automatically assign sum to predefined bucket
+  - alternative: offer user quick select menu for buckts to assign to
+- >INFO: Integration of mobile payment apps is impossible due to privacy reasons maybe push notificaations could be utilized
+
 ### 3.1.0
 
 - added widgets for home screen [mobile]
