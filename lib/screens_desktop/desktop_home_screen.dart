@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/desktop_pro_upgrade_manager.dart';
+import 'package:jne_household_app/services/desktop_pro_upgrade_manager.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';

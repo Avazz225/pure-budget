@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
-import 'package:jne_household_app/helper/brightness.dart';
+import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:path/path.dart';
 

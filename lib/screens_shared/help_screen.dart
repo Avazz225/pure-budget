@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
+import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/keys.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
