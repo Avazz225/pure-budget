@@ -20,7 +20,7 @@ Widget autoExpenseList(dynamic budgetState) {
 
   List<Widget> buildAutoExpensesForCategory(context, int categoryId) {
     final budgetState = Provider.of<BudgetState>(context);
-    var allowNewAutoExpense = (budgetState.autoExpenses.length < maxAutoExpenses) || getProStatus(budgetState.isPro);
+    var allowNewAutoExpense = (budgetState.autoExpenses.length < maxAutoExpenses) || getProStatus(budgetState.isPro, budgetState.isDesktopPro);
 
     final expenses = budgetState.autoExpenses
       .where((expense) => expense.categoryId == categoryId)
@@ -117,7 +117,7 @@ Widget autoExpenseList(dynamic budgetState) {
                 ),
                 child: Text(
                   (category.category != "__undefined_category_name__")? category.category : I18n.translate("unassigned"),
-                  style: TextStyle(color: getTextColor(category.color)),
+                  style: TextStyle(color: getTextColor(category.color, 0, context)),
                 )
               ),
               children: buildAutoExpensesForCategory(context, category.categoryId)

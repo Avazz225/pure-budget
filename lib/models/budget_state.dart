@@ -33,6 +33,7 @@ class BudgetState extends ChangeNotifier {
   List<Map<String, dynamic>> statistics;
   int selectedStatisticIndex;
   bool isPro;
+  bool isDesktopPro;
   bool isSetupComplete;
   bool useBalance;
   String filterBudget;
@@ -71,7 +72,8 @@ class BudgetState extends ChangeNotifier {
     required this.syncInProgress,
     required this.syncMode,
     required this.syncFrequency,
-    required this.lockApp
+    required this.lockApp,
+    required this.isDesktopPro
   });
 
   factory BudgetState({
@@ -92,7 +94,8 @@ class BudgetState extends ChangeNotifier {
     required String sharedDbUrl,
     required String syncMode,
     required int syncFrequency,
-    required bool lockApp
+    required bool lockApp,
+    required bool isDesktopPro
   }) {
     return BudgetState._(
       totalBudget: totalBudget,
@@ -121,7 +124,8 @@ class BudgetState extends ChangeNotifier {
       syncInProgress: false,
       syncMode: syncMode,
       syncFrequency: syncFrequency,
-      lockApp: lockApp
+      lockApp: lockApp,
+      isDesktopPro: isDesktopPro
     );
   }
 
@@ -143,7 +147,8 @@ class BudgetState extends ChangeNotifier {
     required String sharedDbUrl,
     required String syncMode,
     required int syncFrequency,
-    required bool lockApp
+    required bool lockApp,
+    required bool isDesktopPro
   }) async {
     final instance = BudgetState(
       totalBudget: totalBudget,
@@ -163,7 +168,8 @@ class BudgetState extends ChangeNotifier {
       sharedDbUrl: sharedDbUrl,
       syncMode: syncMode,
       syncFrequency: syncFrequency,
-      lockApp: lockApp
+      lockApp: lockApp,
+      isDesktopPro: isDesktopPro
     );
 
     await instance.sharedDb.initialize();
@@ -289,7 +295,7 @@ class BudgetState extends ChangeNotifier {
       firstDate = DateTime.now();
     }
 
-    int maxRange = (!getProStatus(isPro)) ? maxFreeRanges : maxProRanges;
+    int maxRange = (!getProStatus(isPro, isDesktopPro)) ? maxFreeRanges : maxProRanges;
 
     budgetRanges = getMultipleRanges(resetInfo, maxRange, firstDate);
     if (budgetRanges.length - 1 < range){
@@ -369,6 +375,12 @@ class BudgetState extends ChangeNotifier {
     await DatabaseHelper().updateSettings("isPro", (pro) ? 1 : 0);
     isPro = pro;
     await _loadBudgets();
+    notifyListeners();
+  }
+
+  Future<void> updateIsDesktopPro(bool pro) async {
+    await DatabaseHelper().updateSettings("isDesktopPro", (pro) ? 1 : 0);
+    isDesktopPro = pro;
     notifyListeners();
   }
 

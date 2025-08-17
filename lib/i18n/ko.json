@@ -363,5 +363,25 @@
     "lastRateDifferent": "마지막 할부 금액 다름",
     "rate": "할부",
     "appVersion": "앱 버전: {version}",
-    "showLogs": "로그 디렉토리 열기"
+    "showLogs": "로그 디렉토리 열기",
+
+    "customization": "사용자 설정",
+    "variant": "변형 {id}",
+    "mainMenuStyle": "메인 메뉴 스타일",
+    "preview": "미리보기",
+    "showPreview": "미리보기 표시",
+    "new": "새로 만들기",
+    "addExpenseStyle": "지출 추가",
+    "arcStyle": "지출 개요",
+    "categoryMainStyle": "카테고리",
+    "layoutMainVertical": "홈 세로형",
+    "arcPercent": "최대 호 각도",
+    "arcWidth": "호 너비",
+    "arcSegmentsRounded": "세그먼트 둥글게",
+    "percent": "%",
+    "dialogSolidBackground": "투명 대화 상자",
+    "appBackgroundSolid": "단색 배경",
+    "appBackground": "다색 배경 선택",
+    "customBackgroundBlur": "배경 흐리게",
+    "customBackgroundPath": "사용자 배경 이미지 선택"
 }

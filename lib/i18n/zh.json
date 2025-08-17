@@ -363,5 +363,25 @@
     "lastRateDifferent": "最后一期不同",
     "rate": "期数付款",
     "appVersion": "App 版本：{version}",
-    "showLogs": "打开日志目录"
+    "showLogs": "打开日志目录",
+
+    "customization": "自定义",
+    "variant": "变体 {id}",
+    "mainMenuStyle": "主菜单样式",
+    "preview": "预览",
+    "showPreview": "显示预览",
+    "new": "新建",
+    "addExpenseStyle": "添加支出",
+    "arcStyle": "支出概览",
+    "categoryMainStyle": "类别",
+    "layoutMainVertical": "主页竖屏",
+    "arcPercent": "最大弧度角",
+    "arcWidth": "弧宽",
+    "arcSegmentsRounded": "圆角分段",
+    "percent": "%",
+    "dialogSolidBackground": "透明对话框",
+    "appBackgroundSolid": "纯色背景",
+    "appBackground": "选择多彩背景",
+    "customBackgroundBlur": "背景模糊",
+    "customBackgroundPath": "选择自定义背景图片"
 }

@@ -363,5 +363,25 @@
     "lastRateDifferent": "Dernière mensualité différente",
     "rate": "Mensualité",
     "appVersion": "Version de l’app : {version}",
-    "showLogs": "Ouvrir le répertoire des logs"
+    "showLogs": "Ouvrir le répertoire des logs",
+
+    "customization": "Personnalisation",
+    "variant": "Variante {id}",
+    "mainMenuStyle": "Style du menu principal",
+    "preview": "Aperçu",
+    "showPreview": "Afficher l'aperçu",
+    "new": "Nouveau",
+    "addExpenseStyle": "Ajouter une dépense",
+    "arcStyle": "Aperçu des dépenses",
+    "categoryMainStyle": "Catégories",
+    "layoutMainVertical": "Accueil vertical",
+    "arcPercent": "Angle maximal de l'arc",
+    "arcWidth": "Largeur de l'arc",
+    "arcSegmentsRounded": "Segments arrondis",
+    "percent": "%",
+    "dialogSolidBackground": "Dialogues transparents",
+    "appBackgroundSolid": "Arrière-plan uni",
+    "appBackground": "Sélectionner un arrière-plan multicolore",
+    "customBackgroundBlur": "Flouter l'arrière-plan",
+    "customBackgroundPath": "Sélectionner une image d'arrière-plan personnalisée"
 }

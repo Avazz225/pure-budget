@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/helper/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:path/path.dart';
 
 Widget statisticsTable(Map<String, List<Map<String, dynamic>>> tableData, BuildContext context) {
   final List<String> headers = [I18n.translate("month"), I18n.translate("moneyAmount"), I18n.translate("prevMonth"), I18n.translate("prevYear")];
@@ -39,7 +40,7 @@ Widget groupedTables(List<String> headers, List<String> indexes, Map<String, Lis
           ),
           child: Text(
             (category != "__undefined_category_name__")? category : I18n.translate("unassigned"),
-            style: TextStyle(color: getTextColor(color)),
+            style: TextStyle(color: getTextColor(color, 0, context)),
           ),
         ),
         children: [

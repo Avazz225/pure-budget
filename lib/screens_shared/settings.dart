@@ -11,6 +11,7 @@ import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/screens_shared/remote_database.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/debug_import_file_dialog.dart';
 import 'package:jne_household_app/widgets_shared/settings/bank_account.dart';
 import 'package:jne_household_app/widgets_shared/settings/export_import.dart';
@@ -52,7 +53,7 @@ class SettingsScreenState extends State<SettingsScreen> {
       builder: (context) {
         final TextEditingController currencyController = TextEditingController(text: currency);
 
-        return AlertDialog(
+        return AdaptiveAlertDialog(
           title: Text(I18n.translate("editCurrency")),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -246,7 +247,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               child: Language(budgetState: budgetState)
             ),
             const SizedBox(height: 8,),
-            if (getProStatus(budgetState.isPro) || kDebugMode || Platform.isLinux || Platform.isWindows || Platform.isMacOS)
+            if (getProStatus(budgetState.isPro, budgetState.isDesktopPro) || kDebugMode || Platform.isLinux || Platform.isWindows || Platform.isMacOS)
             ElevatedButton(
               style: btnNeutralStyle,
               onPressed: () => Navigator.of(context).push(

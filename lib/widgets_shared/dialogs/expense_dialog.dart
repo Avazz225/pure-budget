@@ -9,6 +9,7 @@ import 'package:jne_household_app/helper/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:provider/provider.dart';
 
 
@@ -59,7 +60,7 @@ Future<void> showExpenseDialog({
 
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
+            return AdaptiveAlertDialog(
               title: Text(
                 isEditing
                     ? I18n.translate("editExpense")

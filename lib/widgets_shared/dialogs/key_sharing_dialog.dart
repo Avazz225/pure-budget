@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -59,7 +60,7 @@ class _KeySharingDialogState extends State<KeySharingDialog> {
   @override
   Widget build(BuildContext context) {
     if (!_isAuthenticated) {
-      return AlertDialog(
+      return AdaptiveAlertDialog(
         title: Text(I18n.translate("authRequired")),
         content: Text(I18n.translate("authText")),
         actions: [
@@ -74,7 +75,7 @@ class _KeySharingDialogState extends State<KeySharingDialog> {
     // key to base64
     final encodedKey = widget.encryptionKey;
 
-    return AlertDialog(
+    return AdaptiveAlertDialog(
       title: Text(I18n.translate("encryptKey")),
       content: SingleChildScrollView(
         child: Column(

@@ -5,6 +5,7 @@ import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/booking_principles.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/main/datepicker.dart';
 import 'package:provider/provider.dart';
 
@@ -62,7 +63,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
 
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
+            return AdaptiveAlertDialog(
               title: Text(expenseId == null ? I18n.translate("addAutoExpense") : I18n.translate("editExpense")),
               content: SingleChildScrollView(
                 child: Column(

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 
 Future<void> disconnectDialog(BuildContext context, BudgetState budgetState) async {
   await showDialog(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => AdaptiveAlertDialog(
       title: Text(I18n.translate("disconnectDialog")),
       content: Column(
         mainAxisSize: MainAxisSize.min,

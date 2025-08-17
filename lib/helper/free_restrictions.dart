@@ -13,13 +13,12 @@ const String proVersionProductId = "jjs.purebudget.pro";
 // desktop vars
 const desktopIsDefaultPro = false;
 
-bool getProStatus(bool isPro) {
+bool getProStatus(bool isPro, bool desktopIsPro) {
   if (isPro) return true;
 
-  if (!(Platform.isAndroid || Platform.isIOS) && desktopIsDefaultPro) {
+  if (!(Platform.isAndroid || Platform.isIOS) && (desktopIsDefaultPro || desktopIsPro)) {
     return true;
   }
-
   return false;
 }
 

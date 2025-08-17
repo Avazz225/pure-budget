@@ -4,6 +4,7 @@ import 'package:jne_household_app/helper/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/screens_shared/settings.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/color_picker_dialog.dart';
 import 'package:provider/provider.dart';
 
@@ -19,7 +20,7 @@ Future<void> addCategory(context) async {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
+            return AdaptiveAlertDialog(
               title: Text(I18n.translate("newCategory")),
               content: SingleChildScrollView(
                 child: Column(
@@ -75,7 +76,7 @@ Future<void> addCategory(context) async {
                             child: CircleAvatar(
                               radius: 20,
                               backgroundColor: selectedColor,
-                              child: Icon(Icons.color_lens_rounded, color: getTextColor(selectedColor)),
+                              child: Icon(Icons.color_lens_rounded, color: getTextColor(selectedColor, 0, context)),
                             ),
                           )
                         ],

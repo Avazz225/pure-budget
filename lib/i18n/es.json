@@ -363,5 +363,25 @@
     "lastRateDifferent": "Último plazo diferente",
     "rate": "Plazo",
     "appVersion": "Versión de la app: {version}",
-    "showLogs": "Abrir directorio de registros"
+    "showLogs": "Abrir directorio de registros",
+
+    "customization": "Personalización",
+    "variant": "Variante {id}",
+    "mainMenuStyle": "Estilo del menú principal",
+    "preview": "Vista previa",
+    "showPreview": "Mostrar vista previa",
+    "new": "Nuevo",
+    "addExpenseStyle": "Añadir gasto",
+    "arcStyle": "Resumen de gastos",
+    "categoryMainStyle": "Categorías",
+    "layoutMainVertical": "Inicio vertical",
+    "arcPercent": "Ángulo máximo del arco",
+    "arcWidth": "Ancho del arco",
+    "arcSegmentsRounded": "Segmentos redondeados",
+    "percent": "%",
+    "dialogSolidBackground": "Diálogos transparentes",
+    "appBackgroundSolid": "Fondo sólido",
+    "appBackground": "Seleccionar fondo multicolor",
+    "customBackgroundBlur": "Desenfocar fondo",
+    "customBackgroundPath": "Seleccionar imagen de fondo personalizada"
 }

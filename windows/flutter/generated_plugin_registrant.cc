@@ -13,6 +13,7 @@
 #include <share_plus/share_plus_windows_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <window_to_front/window_to_front_plugin.h>
+#include <windows_store/windows_store_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
   DesktopWebviewWindowPluginRegisterWithRegistrar(
@@ -29,4 +30,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
   WindowToFrontPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("WindowToFrontPlugin"));
+  WindowsStorePluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("WindowsStorePluginCApi"));
 }

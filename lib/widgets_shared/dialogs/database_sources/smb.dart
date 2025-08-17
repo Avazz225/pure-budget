@@ -6,6 +6,7 @@ import 'package:jne_household_app/helper/remote/smb_server.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:smb_connect/smb_connect.dart';
 
 class smbFolderSelector extends StatefulWidget {
@@ -60,7 +61,7 @@ class smbFolderSelectorState extends State<smbFolderSelector> {
           showDialog(
             context: context,
             builder: (BuildContext dialogContext) {
-              return AlertDialog(
+              return AdaptiveAlertDialog(
                 title: Text(I18n.translate("remote_select")),
                 content: SizedBox(
                   width: double.maxFinite,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/export_import.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:provider/provider.dart';
 
 class ExportImport extends StatelessWidget {
@@ -14,7 +15,7 @@ class ExportImport extends StatelessWidget {
         final budgetState = Provider.of<BudgetState>(context, listen: false);
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
+            return AdaptiveAlertDialog(
               title: Text(I18n.translate("importData")),
               content: SingleChildScrollView(
                 child: Column(

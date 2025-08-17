@@ -363,5 +363,25 @@
     "lastRateDifferent": "Последний платёж отличается",
     "rate": "Платёж",
     "appVersion": "Версия приложения: {version}",
-    "showLogs": "Открыть каталог логов"
+    "showLogs": "Открыть каталог логов",
+
+    "customization": "Настройка",
+    "variant": "Вариант {id}",
+    "mainMenuStyle": "Стиль главного меню",
+    "preview": "Предпросмотр",
+    "showPreview": "Показать предпросмотр",
+    "new": "Новый",
+    "addExpenseStyle": "Добавить расход",
+    "arcStyle": "Обзор расходов",
+    "categoryMainStyle": "Категории",
+    "layoutMainVertical": "Главная страница вертикально",
+    "arcPercent": "Максимальный угол дуги",
+    "arcWidth": "Ширина дуги",
+    "arcSegmentsRounded": "Скруглённые сегменты",
+    "percent": "%",
+    "dialogSolidBackground": "Прозрачные диалоги",
+    "appBackgroundSolid": "Сплошной фон",
+    "appBackground": "Выбрать многоцветный фон",
+    "customBackgroundBlur": "Размыть фон",
+    "customBackgroundPath": "Выбрать пользовательское фоновое изображение"
 }
