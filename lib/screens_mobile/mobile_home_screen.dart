@@ -67,7 +67,7 @@ class HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.camera_alt_rounded),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState,),
+                builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState,),
               ),
             ),
           ),
@@ -146,9 +146,16 @@ class HomeScreenState extends State<HomeScreen> {
         4 => Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                Text(
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  I18n.translate("autoexpenses")
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: (!designState.appBackgroundSolid) ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    I18n.translate("autoexpenses"),
+                  ),
                 ),
                 autoExpenseList(budgetState)
               ]
@@ -198,7 +205,7 @@ class HomeScreenState extends State<HomeScreen> {
               } else if (index == 2 && (budgetState.isPro || kDebugMode)) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState,),
+                    builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState,),
                   ),
                 );
               }

@@ -387,5 +387,11 @@
 
     "savedReceipt": "Beleg gespeichert!",
     "receiptScanner": "Beleg scannen",
-    "cameraError": "Konnte Vorschau nicht laden."
+    "cameraError": "Konnte Vorschau nicht laden.",
+    "takePhoto": "Foto aufnehmen",
+    "photoInfo": "Doppelt tippen oder {takePhoto} drücken",
+    "helpScanner": "Kann ich auch Belege einscannen?",
+    "helpScannerAns": "Ja, du kannst Belege in der Pro-Version auf Android und IOS einfach fotografieren.\nDer Betrag wird automatisch ausgelesen und der ausgewählten Kategorie hinzugefügt. Du kannst aber auch noch Korrekturen vornehmen, falls etwas nicht funktioniert hat.",
+    "helpScannerLoc": "Wo kann ich den Scanner aufrufen?",
+    "helpScannerLocAns": "Das geht an mehreren Stellen:\n\n- Oben rechts auf dem Kamera Symbol\n- Indem du auf einen Budgettopf drückst und hältst\n- Indem du unten auf \"Übersicht\" klickst\n- Über das Kamera Symbol unten links beim Hinzufügen einer Ausgabe"
 }

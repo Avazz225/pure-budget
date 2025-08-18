@@ -576,8 +576,9 @@ class BudgetState extends ChangeNotifier {
       firstRateAmount: autoExp['firstRateAmount'],
       lastRateAmount: autoExp['lastRateAmount']
     );
-    // ToDo
+
     processCreateRates(newAutoExpense);
+    autoExpenses.add(newAutoExpense);
 
     await _loadBudgets();
     notifyListeners();

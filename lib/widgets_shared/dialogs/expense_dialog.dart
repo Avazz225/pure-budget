@@ -14,7 +14,7 @@ import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.d
 import 'package:provider/provider.dart';
 
 
-Future<void> showExpenseDialog({
+Future<bool> showExpenseDialog({
     required BuildContext context,
     String? category,
     int? categoryId,
@@ -22,7 +22,8 @@ Future<void> showExpenseDialog({
     required String accountId, 
     required List<BankAccount> bankAccounts,
     required int bankAccoutCount,
-    String? defaultVal
+    String? defaultVal,
+    bool allowCamera = false,
   }) async {
     Logger().debug("PARAMS:\n\tcategory: $category\n\tcategoryId: $categoryId\n\taccountId: $accountId\n\tdefaultVal: $defaultVal", tag: "EXP_DIALOG");
     final bool isEditing = expense != null;
@@ -47,6 +48,8 @@ Future<void> showExpenseDialog({
     final FocusNode amountFocusNode = FocusNode();
 
     final String filter = context.read<BudgetState>().filterBudget;
+
+    bool openCamera = false;
 
     DateTime selectedDate = isEditing
         ? DateTime.parse(expense['date'])
@@ -167,6 +170,16 @@ Future<void> showExpenseDialog({
                 )
               ),
               actions: [
+                if ((allowCamera) && (Platform.isAndroid || Platform.isIOS))
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      openCamera=true;
+                    });
+                  },
+                  icon: const Icon(Icons.camera_alt_rounded)
+                ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(I18n.translate("cancel")),
@@ -234,4 +247,5 @@ Future<void> showExpenseDialog({
         );
       },
     );
+    return openCamera;
   }

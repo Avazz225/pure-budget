@@ -1,5 +1,10 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/models/design_state.dart';
+import 'package:jne_household_app/screens_mobile/mobile_receipt_scanner.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
@@ -48,8 +53,8 @@ class _ExpenseListState extends State<ExpenseList> {
 
   @override
   Widget build(BuildContext context) {
-    String filterBudget = context.read<BudgetState>().filterBudget;
-    List<BankAccount> accounts = context.read<BudgetState>().bankAccounts;
+    String filterBudget = widget.state.filterBudget;
+    List<BankAccount> accounts = widget.state.bankAccounts;
 
     return Column(
       children: [
@@ -67,8 +72,24 @@ class _ExpenseListState extends State<ExpenseList> {
                   IconButton(
                     icon: const Icon(Icons.add_rounded),
                     onPressed: () async {
-                      await showExpenseDialog(context: context, category: widget.category, categoryId: widget.categoryId, accountId: widget.state.filterBudget, bankAccounts: widget.state.bankAccounts, bankAccoutCount: widget.state.bankAccounts.length);
-                      _refreshExpenses();
+                      bool res = await  showExpenseDialog(
+                        context: context, 
+                        category: widget.category, 
+                        categoryId: widget.categoryId, 
+                        accountId: widget.state.filterBudget, 
+                        bankAccounts: widget.state.bankAccounts, 
+                        bankAccoutCount: widget.state.bankAccounts.length,
+                        allowCamera: (kDebugMode || widget.state.isPro) && (Platform.isAndroid || Platform.isIOS)
+                      );
+                      if (res) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ReceiptPage(baseCurrency: widget.state.currency, budgetState: widget.state, designState: context.read<DesignState>(), overrideCatId: widget.categoryId, closeAfterSuccess: true),
+                          ),
+                        );
+                      } else {
+                        _refreshExpenses();
+                      }
                     },
                   ),
                   IconButton(

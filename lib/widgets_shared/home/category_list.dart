@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:jne_household_app/screens_mobile/mobile_receipt_scanner.dart';
 import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -109,14 +110,24 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
             category.color,
             designState
           ),
-          onPressed: () => showExpenseDialog(
-            context: context,
-            category: category.category,
-            categoryId: category.categoryId,
-            accountId: budgetState.filterBudget,
-            bankAccounts: budgetState.bankAccounts,
-            bankAccoutCount: budgetState.bankAccounts.length
-          )
+          onPressed: () async {
+            bool res = await showExpenseDialog(
+              context: context,
+              category: category.category,
+              categoryId: category.categoryId,
+              accountId: budgetState.filterBudget,
+              bankAccounts: budgetState.bankAccounts,
+              bankAccoutCount: budgetState.bankAccounts.length,
+              allowCamera: (kDebugMode || budgetState.isPro) && (Platform.isAndroid || Platform.isIOS)
+            );
+            if (res) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),
+                ),
+              );
+            }
+          }
         );
       },
     );
@@ -223,6 +234,15 @@ Widget listTile({required context, required bool allSpent, required bool unassig
                 label: I18n.translate("new")
               ),
               onTap: showExpensesBottomSheet,
+              onLongPress: () {
+                if ((Platform.isAndroid || Platform.isIOS) && (budgetState.isPro || kDebugMode)) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),
+                    ),
+                  );
+                }
+              },
             )
           ]
         )

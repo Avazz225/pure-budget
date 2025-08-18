@@ -87,7 +87,7 @@ class ReceiptService {
 
   // Parsing logic: extract merchant, amount, currency
   ReceiptData _parseText(String text) {
-    _logger.debug(text, tag: "OCR");
+    _logger.debug(text, tag: "scan");
     double foundAmount = 0.0;
     String foundCurrency = baseCurrency;
 
@@ -96,7 +96,7 @@ class ReceiptService {
     double maxAmount = 0.0;
 
     for (final m in matches) {
-      _logger.debug("Match: $m", tag: "OCR");
+      _logger.debug("Match: $m", tag: "scan");
       final amountStr = (m.group(1) ?? "0").replaceAll(',', '.');
       final amount = double.tryParse(amountStr) ?? 0.0;
       if (amount > maxAmount) {
@@ -108,7 +108,7 @@ class ReceiptService {
     foundAmount = maxAmount;
 
     double convertedAmount = _convertToBase(foundAmount, foundCurrency, normalizeCurrency(baseCurrency), conversionToUsd);
-    _logger.debug("Actual amount: $convertedAmount", tag: "OCR");
+    _logger.debug("Actual amount: $convertedAmount", tag: "scan");
     return ReceiptData(
       amount: convertedAmount.toStringAsFixed(2),
       currency: baseCurrency,
@@ -120,8 +120,8 @@ class ReceiptService {
     double rateToUsd = defaultConversionRates[fromCurrency] ?? 1.0;
     double usdAmount = amount * rateToUsd;
     double baseRate;
-    _logger.debug("Extracted amount: $amount", tag: "OCR");
-    _logger.debug("baseCurrency: $baseCurrency - foundCurrency: $fromCurrency", tag: "OCR");
+    _logger.debug("Extracted amount: $amount", tag: "scan");
+    _logger.debug("baseCurrency: $baseCurrency - foundCurrency: $fromCurrency", tag: "scan");
     if (baseCurrency == fromCurrency) {
       return amount;
     }

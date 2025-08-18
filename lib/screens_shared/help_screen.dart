@@ -14,9 +14,10 @@ class HelpScreen extends StatefulWidget {
     "cat_help_general",
     "helpOldRanges",
     "helpBusinessDay",
+    "helpScanner",
+    "helpScannerLoc",
     "helpExport",
     "helpExportSecurity",
-    "helpInternet",
     "helpDataStorage",
 
     "cat_help_expenses",
