@@ -103,7 +103,8 @@ class InitializationService {
       appBackground: designData["appBackground"] as int,
       customBackgroundPath: designData["customBackgroundPath"] as String,
       customBackgroundBlur: designData["customBackgroundBlur"] == 1,
-      mainMenuStyle: designData["mainMenuStyle"] as int
+      mainMenuStyle: designData["mainMenuStyle"] as int,
+      blurIntensity: designData["blurIntensity"] as double,
     );
 
     // Initialize date formatting

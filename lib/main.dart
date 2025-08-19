@@ -141,10 +141,10 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
       supportedLocales: I18n.getLocales(),
       home: budgetState.isSetupComplete ?
         (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.macOS) ?
-        AppWithOptionalBackground(background: (designState.appBackgroundSolid) ? null : AppBackground(imagePath: designState.customBackgroundPath, gradientOption: designState.appBackground, blur: designState.customBackgroundBlur,), child: const DesktopHomeScreen())
+        AppWithOptionalBackground(background: (designState.appBackgroundSolid) ? null : AppBackground(imagePath: designState.customBackgroundPath, gradientOption: designState.appBackground, blur: designState.customBackgroundBlur, blurIntensity: designState.blurIntensity,), child: const DesktopHomeScreen())
         :
         (_isAuthenticated) ?
-        AppWithOptionalBackground(background: (designState.appBackgroundSolid) ? null : AppBackground(imagePath: designState.customBackgroundPath, gradientOption: designState.appBackground, blur: designState.customBackgroundBlur,), child: const HomeScreen())
+        AppWithOptionalBackground(background: (designState.appBackgroundSolid) ? null : AppBackground(imagePath: designState.customBackgroundPath, gradientOption: designState.appBackground, blur: designState.customBackgroundBlur, blurIntensity: designState.blurIntensity,), child: const HomeScreen())
         :
         AdaptiveAlertDialog(
           title: Text(I18n.translate("authRequired")),

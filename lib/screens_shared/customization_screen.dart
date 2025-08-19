@@ -17,7 +17,7 @@ import 'package:provider/provider.dart';
 const int availableMainMenuDesignCount = 2;
 const int availableAddExpenseStyleCount = 2;
 const int availableArcStyleCount = 3;
-const int categoryMainStyleCount = 2;
+const int categoryMainStyleCount = 4;
 
 class CustomizationScreen extends StatefulWidget {
   const CustomizationScreen({super.key});
@@ -41,6 +41,9 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
   late bool _dialogSolidBackground;
   late bool _appBackgroundSolid;
   late bool _customBackgroundBlur;
+  late double _blurIntensity;
+  late String _customBackgroundPath;
+  late int _appBackground;
 
   @override
   void initState() {
@@ -59,6 +62,9 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
     _dialogSolidBackground = designState.dialogSolidBackground;
     _appBackgroundSolid = designState.appBackgroundSolid;
     _customBackgroundBlur = designState.customBackgroundBlur;
+    _blurIntensity = designState.blurIntensity * 100;
+    _customBackgroundPath = designState.customBackgroundPath;
+    _appBackground = designState.appBackground;
   }
 
   bool isDesktop() {
@@ -94,6 +100,9 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
         String? path = result.files.first.path;
         if (path != null) {
           designState.updateCustomBackgroundPath(path);
+          setState(() {
+            _customBackgroundPath = path;
+          });
         }
       } else {
         // User hat abgebrochen
@@ -120,6 +129,10 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                     onTap: () async {
                       await designState.updateCustomBackgroundPath("none");
                       await designState.updateAppBackground(i);
+                      setState(() {
+                        _customBackgroundPath = "none";
+                        _appBackground = i;
+                      });
                       Navigator.of(context).pop();
                     },
                     child: Container(
@@ -245,6 +258,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                         buildVariantDropdown(
                           variantCount: availableMainMenuDesignCount,
                           selectedIndex: _selectedMainMenuVariant,
+                          prefix: "mainMenuStyle",
                           onChanged: (newIndex) {
                             if (newIndex != null) {
                               designState.updateMainMenuStyle(newIndex);
@@ -292,6 +306,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                         buildVariantDropdown(
                           variantCount: availableAddExpenseStyleCount,
                           selectedIndex: _selectedAddExpenseVariant,
+                          prefix: "addExpenseStyle",
                           onChanged: (newIndex) {
                             if (newIndex != null) {
                               designState.updateAddExpenseStyle(newIndex);
@@ -343,8 +358,9 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                       children: [ Text(I18n.translate("categoryMainStyle"), style: smallHeadline),
                         const SizedBox(height: 4),
                         buildVariantDropdown(
-                          variantCount: availableArcStyleCount,
+                          variantCount: categoryMainStyleCount,
                           selectedIndex: _selectedCategoryMainStyle,
+                          prefix: "categoryMainStyle",
                           onChanged: (newIndex) {
                             if (newIndex != null) {
                               designState.updateCategoryMainStyle(newIndex);
@@ -382,6 +398,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                         buildVariantDropdown(
                           variantCount: availableArcStyleCount,
                           selectedIndex: _selectedArcStyle,
+                          prefix: "arcstyle",
                           onChanged: (newIndex) {
                             if (newIndex != null) {
                               designState.updateArcStyle(newIndex);
@@ -560,6 +577,23 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                               )
                             ],
                           ),
+                          if (_customBackgroundBlur)
+                          ...[
+                            Text(I18n.translate("blurIntensity")),
+                            Slider(
+                              value: _blurIntensity,
+                              min: 0,
+                              max: 600,
+                              onChanged: (value) {
+                                setState(() {
+                                  _blurIntensity = value.roundToDouble();
+                                });
+                              },
+                              onChangeEnd: (value) {
+                                designState.updateBlurIntensity((value.roundToDouble() / 100));
+                              },
+                            ),
+                          ],
                           Card(
                             elevation: 50,
                             child: Row(
@@ -572,7 +606,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                                     children: [
                                       Text(I18n.translate("preview"), style: bigBody,),
                                       const SizedBox(height: 8),
-                                      appBackgroundPreview(context, designState)
+                                      appBackgroundPreview(context, _customBackgroundPath, _appBackground, _customBackgroundBlur, _blurIntensity / 100)
                                     ]
                                   )
                                 )
@@ -593,17 +627,18 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
   }
 }
 
-Widget appBackgroundPreview(context, designState) {
+Widget appBackgroundPreview(context, imagePath, appBackground, customBackgroundBlur, blurIntensity) {
   return SizedBox(
     height: MediaQuery.of(context).size.height / 2,
     width: MediaQuery.of(context).size.width / 2,
-    child: AppBackground(imagePath: designState.customBackgroundPath, gradientOption: designState.appBackground, blur: designState.customBackgroundBlur,)
+    child: AppBackground(imagePath: imagePath, gradientOption: appBackground, blur: customBackgroundBlur, blurIntensity: blurIntensity)
   );
 }
 
 Widget buildVariantDropdown({
   required int variantCount,
   required int selectedIndex,
+  required String prefix,
   required ValueChanged<int?> onChanged,
 }) {
   return DropdownButton<int>(
@@ -612,7 +647,7 @@ Widget buildVariantDropdown({
     items: List.generate(variantCount, (index) {
       return DropdownMenuItem<int>(
         value: index,
-        child: Text(I18n.translate("variant", placeholders: {"id": "${index+1}"})),
+        child: Text(I18n.translate("${prefix}_variant_${index+1}")),
       );
     }),
     onChanged: onChanged,

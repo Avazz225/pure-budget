@@ -373,7 +373,7 @@
     "new": "Neu",
     "addExpenseStyle": "Ausgabe hinzufügen",
     "arcStyle": "Ausgabenübersicht",
-    "categoryMainStyle": "Kategorien",
+
     "layoutMainVertical": "Startseite vertikal",
     "arcPercent": "Maximaler Kreiswinkel",
     "arcWidth": "Kreisbreite",
@@ -393,5 +393,18 @@
     "helpScanner": "Kann ich auch Belege einscannen?",
     "helpScannerAns": "Ja, du kannst Belege in der Pro-Version auf Android und IOS einfach fotografieren.\nDer Betrag wird automatisch ausgelesen und der ausgewählten Kategorie hinzugefügt. Du kannst aber auch noch Korrekturen vornehmen, falls etwas nicht funktioniert hat.",
     "helpScannerLoc": "Wo kann ich den Scanner aufrufen?",
-    "helpScannerLocAns": "Das geht an mehreren Stellen:\n\n- Oben rechts auf dem Kamera Symbol\n- Indem du auf einen Budgettopf drückst und hältst\n- Indem du unten auf \"Übersicht\" klickst\n- Über das Kamera Symbol unten links beim Hinzufügen einer Ausgabe"
+    "helpScannerLocAns": "Das geht an mehreren Stellen:\n\n- Oben rechts auf dem Kamera Symbol\n- Indem du auf einen Budgettopf drückst und hältst\n- Indem du unten auf \"Übersicht\" klickst\n- Über das Kamera Symbol unten links beim Hinzufügen einer Ausgabe",
+    "arcstyle_variant_1": "Runder Bogen",
+    "arcstyle_variant_2": "Gerader Balken",
+    "arcstyle_variant_3": "Ohne Visualisierung",
+    "categoryMainStyle_variant_1": "Volle Kachel",
+    "categoryMainStyle_variant_2": "Linie unten",
+    "categoryMainStyle_variant_3": "Linie oben",
+    "categoryMainStyle_variant_4": "Ohne",
+    "addExpenseStyle_variant_1": "Kurz",
+    "addExpenseStyle_variant_2": "Lang",
+    "mainMenuStyle_variant_1": "Glasig",
+    "mainMenuStyle_variant_2": "Transparent",
+    "categoryMainStyle": "Ausgabenstand",
+    "blurIntensity": "Unschärfegrad"
 }

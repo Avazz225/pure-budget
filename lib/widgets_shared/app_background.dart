@@ -8,12 +8,14 @@ class AppBackground extends StatelessWidget {
   final String? imagePath;
   final int? gradientOption;
   final bool blur;
+  final double blurIntensity;
 
   const AppBackground({
     super.key,
     this.imagePath,
     this.gradientOption,
     this.blur = false,
+    this.blurIntensity = 1.0
   });
 
   @override
@@ -36,7 +38,7 @@ class AppBackground extends StatelessWidget {
         if (blur)
         ClipRect(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            filter: ImageFilter.blur(sigmaX: blurIntensity, sigmaY: blurIntensity),
             child: Container(
               color: Colors.transparent,
             ),
