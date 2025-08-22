@@ -132,13 +132,15 @@ class GoogleDriveConnector {
       fileList = await client.files.list(
         q: "mimeType = 'application/vnd.google-apps.folder'",
         $fields: 'files(id, name, ownedByMe, owners)',
-        orderBy: "name"
+        orderBy: "name",
+        includeItemsFromAllDrives: false
       );
     } else {
       fileList = await client.files.list(
         q: "'$folderId' in parents and mimeType = 'application/vnd.google-apps.folder'",
         $fields: 'files(id, name, ownedByMe, owners)',
-        orderBy: "name"
+        orderBy: "name",
+        includeItemsFromAllDrives: false
       );
     }
     final files = fileList.files ?? [];
@@ -198,7 +200,7 @@ class GoogleDriveConnector {
     fileName = fileName.replaceAll("/", "");
     final client = await driveApi;
 
-    String fileId = "";
+    String fileId = await loadKey("googleDriveItemId");
 
     final media = drive.Media(localFile.openRead(), localFile.lengthSync());
 
@@ -206,7 +208,7 @@ class GoogleDriveConnector {
       final fileToUpload = drive.File()
         ..name = fileName;
 
-      if ((await client.files.update(fileToUpload, fileId, uploadMedia: media)).id == "") {
+      if ((await client.files.update(fileToUpload, fileId, uploadMedia: media, keepRevisionForever: false)).id == "") {
         logger.error("Update of pbdb file failed", tag: "googleDrive");
       }
       _logger.debug("Updated shared database file", tag: "googleDrive");

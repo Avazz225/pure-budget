@@ -41,4 +41,14 @@ final List<Gradient> gradients = [
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   ),
+  const LinearGradient(
+    colors: [Color.fromARGB(255, 77, 143, 79), Color.fromARGB(255, 209, 114, 146)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  ),
+  const LinearGradient(
+    colors: [Color.fromARGB(255, 196, 76, 233), Color.fromARGB(255, 58, 255, 212)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  ),
 ];
