@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:window_manager/window_manager.dart';
+import 'package:jne_household_app/services/quick_actions_service.dart';
 import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -14,6 +16,7 @@ import 'package:jne_household_app/screens_desktop/desktop_home_screen.dart';
 import 'package:jne_household_app/screens_shared/introduction.dart';
 import 'package:jne_household_app/widgets_shared/app_background.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/expense_dialog.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -21,8 +24,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:jne_household_app/screens_mobile/mobile_home_screen.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/services/initialization_service.dart';
+import 'package:tray_manager/tray_manager.dart';
 
 // automatically take screenshots by using --dart-define=SCREENS=t
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 
 Future<void> main() async {
   const bool takeScreenshots = String.fromEnvironment('SCREENS', defaultValue: 'f') == "t";
@@ -35,6 +41,49 @@ Future<void> main() async {
   // initialize app
   final initializationData = await InitializationService.initializeApp();
   logger.info("Initialization finished", tag: "init");
+
+  if (initializationData.budgetState.isPro || kDebugMode) {
+    logger.info("Initialize quick actions", tag: "quickActions");
+    final quickActions = QuickActionsService();
+    await quickActions.init(
+      categories: initializationData.budgetState.categories,
+      sharedDbRegistered: initializationData.budgetState.sharedDbUrl != "none",
+      onActionSelected: (action) async {
+        if (action.startsWith("new?")) {
+          final catId = int.tryParse(action.substring(4));
+          logger.debug("New expense for category: $catId", tag: "quickActions");
+          showExpenseDialog(
+            context: navigatorKey.currentContext!,
+            category: initializationData.budgetState.categories.where((c) => c.categoryId == catId).first.category,
+            categoryId: catId,
+            accountId: initializationData.budgetState.filterBudget,
+            bankAccounts: initializationData.budgetState.bankAccounts,
+            bankAccoutCount: initializationData.budgetState.bankAccounts.length,
+            allowCamera: (kDebugMode || initializationData.budgetState.isPro) && (Platform.isAndroid || Platform.isIOS)
+          );
+        } else {
+          switch (action) {
+            case 'sync':
+              logger.debug("Sync to remote", tag: "quickActions");
+              initializationData.budgetState.syncSharedDb(manual: true);
+              break;
+            case 'open_budget':
+              logger.debug("Open app", tag: "quickActions");
+              await windowManager.ensureInitialized();
+              await windowManager.show();
+              await windowManager.focus();
+              break;
+            case 'exit':
+              trayManager.destroy();
+              exit(0);
+            default:
+              logger.warning("Unknown action: $action", tag: "quickActions");
+          }
+        }
+      }
+    );
+    logger.info("Initialization of quick actions finished", tag: "quickActions");
+  }
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -128,6 +177,7 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
     final designState = Provider.of<DesignState>(context);
     
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: I18n.translate("appTitle"),
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),

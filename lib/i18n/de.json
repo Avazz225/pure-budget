@@ -406,5 +406,8 @@
     "mainMenuStyle_variant_1": "Glasig",
     "mainMenuStyle_variant_2": "Transparent",
     "categoryMainStyle": "Ausgabenstand",
-    "blurIntensity": "Unschärfegrad"
+    "blurIntensity": "Unschärfegrad",
+    "synchronize": "Synchronisieren",
+    "open": "Pure Budget öffnen",
+    "exit": "Pure Budget beenden"
 }

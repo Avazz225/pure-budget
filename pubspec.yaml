@@ -68,6 +68,9 @@ dependencies:
   pdf_image_renderer: ^1.0.1
   camera: ^0.11.2
   image: ^4.5.4
+  home_widget: ^0.8.0
+  tray_manager: ^0.5.0
+  window_manager: ^0.5.1
 
 dev_dependencies:
   flutter_test:
@@ -100,6 +103,8 @@ flutter:
 
   assets:
     - lib/i18n/
+    - assets/icons/logo.png
+    - assets/icons/pb_icon.ico
 
   fonts:
     - family: RobotoMono
