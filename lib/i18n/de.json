@@ -409,5 +409,8 @@
     "blurIntensity": "Unschärfegrad",
     "synchronize": "Synchronisieren",
     "open": "Pure Budget öffnen",
-    "exit": "Pure Budget beenden"
+    "exit": "Pure Budget beenden",
+    "spentStr": "ausgegeben",
+    "availableStr": "verfügbar",
+    "from": "von"
 }

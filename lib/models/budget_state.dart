@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:home_widget/home_widget.dart';
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/services/auto_booking.dart';
 import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -184,6 +186,12 @@ class BudgetState extends ChangeNotifier {
       instance.syncSharedDb();
     }
 
+    instance.saveWidgetData("totalBudget", totalBudget);
+    instance.saveWidgetData("currency", currency);
+    instance.saveWidgetData("totalConnector", (showAvailableBudget) ? I18n.translate("availableStr") : I18n.translate("spentStr"));
+    instance.saveWidgetData("totalFrom", I18n.translate("from"));
+    instance.saveWidgetData("language", I18n.language);
+
     await instance._loadRanges();
     await instance._loadBudgets();
     await instance.getStatistics("month_total");
@@ -270,6 +278,7 @@ class BudgetState extends ChangeNotifier {
     await _loadBudgets();
 
     notifyListeners();
+    saveWidgetData("totalBudget", totalBudget);
   }
 
   Future<void> _loadBudgets({int? overrideRange}) async {
@@ -354,6 +363,7 @@ class BudgetState extends ChangeNotifier {
     await DatabaseHelper().updateSettings("currency", cur);
     currency = cur;
     notifyListeners();
+    saveWidgetData("currency", currency);
   }
 
   Future<void> updateResetInfo(Map<String, dynamic> info) async {
@@ -399,6 +409,8 @@ class BudgetState extends ChangeNotifier {
 
     calcNotAssignedBudget();
     notifyListeners();
+
+    saveWidgetData("totalBudget", totalBudget);
   }
 
   Future<void> updateLockApp(bool use) async {
@@ -411,13 +423,18 @@ class BudgetState extends ChangeNotifier {
     await DatabaseHelper().updateSettings("showAvailableBudget", (available) ? 1 : 0);
     showAvailableBudget = available;
     notifyListeners();
+    saveWidgetData("showAvailableBudget", (available) ? "true" : "false");
+    saveWidgetData("totalConnector", (showAvailableBudget) ? I18n.translate("availableStr") : I18n.translate("spentStr"));
   }
 
   Future<void> updateLanguage(String code) async {
     await DatabaseHelper().updateSettings("language", code);
     language = code;
-    I18n.load((code != "auto") ? code : PlatformDispatcher.instance.locale.toString());
+    String langCode = (code != "auto") ? code : PlatformDispatcher.instance.locale.toString();
+    await I18n.load(langCode, saveWidgetData: saveWidgetData);
     notifyListeners();
+    saveWidgetData("totalConnector", (showAvailableBudget) ? I18n.translate("availableStr") : I18n.translate("spentStr"));
+    saveWidgetData("totalFrom", I18n.translate("from"));
   }
 
   Future<bool> updateSharedDbUrl(String url) async {
@@ -506,6 +523,8 @@ class BudgetState extends ChangeNotifier {
     await _loadBudgets();
     notifyListeners();
 
+    saveWidgetData("totalBudget", totalBudget);
+
     if (sharedDbConnected && !syncInProgress) {
       syncSharedDb();
     } 
@@ -546,6 +565,8 @@ class BudgetState extends ChangeNotifier {
     await _loadRanges();
     await _loadBudgets();
     notifyListeners();
+
+    saveWidgetData("totalBudget", totalBudget);
 
     if (sharedDbConnected && !syncInProgress) {
       syncSharedDb();
@@ -943,5 +964,39 @@ class BudgetState extends ChangeNotifier {
 
   Future<bool> changeBlockStatus(int newStatus, String uuid) async {
     return (await sharedDb.changeBlockStatus(sharedDbUrl, newStatus, uuid));
+  }
+
+  void updateTotalSpentWidget(double amount) {
+    if(showAvailableBudget) {
+      //available
+      saveWidgetData("fractionTotalBudget", totalBudget - amount);
+    } else {
+      //spent
+      saveWidgetData("fractionTotalBudget",amount);
+    }
+  }
+
+  Future<void> saveWidgetData(String id, dynamic data) async {
+    if (Platform.isAndroid || Platform.isIOS){
+      if (data is double) {
+        data = I18n.normalizeValueString(data);
+      }
+      if (data is String) {
+        HomeWidget.saveWidgetData<String>(id, data);
+        Logger().debug("Saved widget data '$data' to '$id'", tag: "widgetData");
+      } else if (data is List) {
+        HomeWidget.saveWidgetData<List>(id, data);
+        Logger().debug("Saved widget data '$data' to '$id'", tag: "widgetData");
+      } else {
+        Logger().error("Unknown data type for widget", tag: "widgetData");
+        return;
+      }
+      if (Platform.isAndroid) {
+        await HomeWidget.updateWidget(
+          qualifiedAndroidName:
+            '$androidQualifiedName.glance.TotalBudgetReceiver',
+        );
+      }
+    }
   }
 }

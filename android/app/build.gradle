@@ -49,15 +49,12 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "11" // Ändere dies auf die korrekte Version
+        jvmTarget = "11"
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.jne_solutions.jne_household_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdk = 21
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
@@ -65,6 +62,13 @@ android {
         resValue "mipmap", "ic_launcher", "@mipmap/pure_budget_pro"
     }
 
+    buildFeatures {
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion "1.5.14"
+    }
     
     buildTypes {
         release {
@@ -81,4 +85,11 @@ android {
 
 flutter {
     source = "../.."
+}
+
+
+dependencies {
+    implementation 'androidx.glance:glance-appwidget:1.0.0'
+    implementation "androidx.work:work-runtime-ktx:2.8.1"
+    implementation "androidx.multidex:multidex:2.0.1"
 }

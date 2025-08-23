@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:home_widget/home_widget.dart'; // Mobile Widgets
 import 'package:jne_household_app/i18n/i18n.dart';
+import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/category_budget.dart';
 import 'package:tray_manager/tray_manager.dart'; // Desktop Tray
@@ -33,7 +34,7 @@ class QuickActionsService with TrayListener {
   }
 
   Future<void> _initMobile() async {
-    HomeWidget.setAppGroupId('com.jne_solutions.jne_household_app'); // for iOS
+    HomeWidget.setAppGroupId(iosAppGroupId); // for iOS
     HomeWidget.registerInteractivityCallback(_backgroundCallback);
 
     final launchDetails = await HomeWidget.getWidgetData<String>('action');

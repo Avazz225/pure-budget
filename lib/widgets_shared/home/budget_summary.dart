@@ -30,6 +30,8 @@ class _BudgetSummaryState extends State<BudgetSummary> {
     final List<double> categorySpent = budgetState.categories.map((c) => c.spent).toList();
     final double totalSpent = categorySpent.fold(0.0, (sum, spent) => sum + spent);
 
+    budgetState.updateTotalSpentWidget(totalSpent);
+
     if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
       ScreenshotManager().takeScreenshot(name: "main");
     }
