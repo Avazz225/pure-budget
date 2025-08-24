@@ -376,7 +376,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                           context: context,
                           unassigned: budgetState.categories.first.category == "__unassigned__",
                           category: budgetState.categories.first,
-                          textColor: getTextColor(budgetState.categories.first.color, designState.categoryMainStyle, context),
+                          textColor: getTextColor(budgetState.categories.first.color, designState.categoryMainStyle, context: context),
                           currency: budgetState.currency,
                           buttonBuilder: button,
                           allSpent: false,

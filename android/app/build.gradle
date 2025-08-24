@@ -92,4 +92,13 @@ dependencies {
     implementation 'androidx.glance:glance-appwidget:1.0.0'
     implementation "androidx.work:work-runtime-ktx:2.8.1"
     implementation "androidx.multidex:multidex:2.0.1"
+    implementation "com.google.code.gson:gson:2.10.1"
+    // Core ML Kit Text Recognition
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+
+    // Optionale Sprachmodule
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-japanese:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-chinese:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-korean:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-devanagari:16.0.1")
 }

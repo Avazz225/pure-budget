@@ -37,7 +37,7 @@ Future<void> showMoveDialog({
                 itemBuilder: (context, index) {
                   Category item = categories[index];
                   bool unassigned = item.name == "__undefined_category_name__";
-                  Color textColor = getTextColor(item.color, 0, context);
+                  Color textColor = getTextColor(item.color, 0, context: context);
 
                   if (categoryId != item.id) {
                     return Card(

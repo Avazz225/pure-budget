@@ -78,7 +78,7 @@ void editCategory(context, Category category, bool assigned, Function setState, 
                             child: CircleAvatar(
                               radius: 20,
                               backgroundColor: selectedColor,
-                              child: Icon(Icons.color_lens_rounded, color: getTextColor(selectedColor, 0, context)),
+                              child: Icon(Icons.color_lens_rounded, color: getTextColor(selectedColor, 0, context: context)),
                             ),
                           )
                         ],

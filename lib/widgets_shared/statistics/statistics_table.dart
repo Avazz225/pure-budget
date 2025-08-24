@@ -40,7 +40,7 @@ Widget groupedTables(List<String> headers, List<String> indexes, Map<String, Lis
           ),
           child: Text(
             (category != "__undefined_category_name__")? category : I18n.translate("unassigned"),
-            style: TextStyle(color: getTextColor(color, 0, context)),
+            style: TextStyle(color: getTextColor(color, 0, context: context)),
           ),
         ),
         children: [

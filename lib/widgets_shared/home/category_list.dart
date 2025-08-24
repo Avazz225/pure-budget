@@ -88,7 +88,7 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
                 : 
                 (category.spent <= budgetState.notAssignedBudget))
                 ? 
-                  ((designState.categoryMainStyle == 0) ? getTextColor(category.color.withAlpha((allSpent) ? 51 : 255), designState.categoryMainStyle, context) : Theme.of(context).textTheme.bodyMedium!.color!)
+                  ((designState.categoryMainStyle == 0) ? getTextColor(category.color.withAlpha((allSpent) ? 51 : 255), designState.categoryMainStyle, context: context) : Theme.of(context).textTheme.bodyMedium!.color!)
                   : 
                   Colors.red
                 );

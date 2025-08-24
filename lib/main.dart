@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jne_household_app/services/uri_handler.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jne_household_app/services/quick_actions_service.dart';
 import 'package:jne_household_app/services/debug_screenshot_manager.dart';
@@ -42,48 +43,48 @@ Future<void> main() async {
   final initializationData = await InitializationService.initializeApp();
   logger.info("Initialization finished", tag: "init");
 
-  if (initializationData.budgetState.isPro || kDebugMode) {
-    logger.info("Initialize quick actions", tag: "quickActions");
-    final quickActions = QuickActionsService();
-    await quickActions.init(
-      categories: initializationData.budgetState.categories,
-      sharedDbRegistered: initializationData.budgetState.sharedDbUrl != "none",
-      onActionSelected: (action) async {
-        if (action.startsWith("new?")) {
-          final catId = int.tryParse(action.substring(4));
-          logger.debug("New expense for category: $catId", tag: "quickActions");
-          showExpenseDialog(
-            context: navigatorKey.currentContext!,
-            category: initializationData.budgetState.categories.where((c) => c.categoryId == catId).first.category,
-            categoryId: catId,
-            accountId: initializationData.budgetState.filterBudget,
-            bankAccounts: initializationData.budgetState.bankAccounts,
-            bankAccoutCount: initializationData.budgetState.bankAccounts.length,
-            allowCamera: (kDebugMode || initializationData.budgetState.isPro) && (Platform.isAndroid || Platform.isIOS)
-          );
-        } else {
-          switch (action) {
-            case 'sync':
-              logger.debug("Sync to remote", tag: "quickActions");
-              initializationData.budgetState.syncSharedDb(manual: true);
-              break;
-            case 'open_budget':
-              logger.debug("Open app", tag: "quickActions");
-              await windowManager.ensureInitialized();
-              await windowManager.show();
-              await windowManager.focus();
-              break;
-            case 'exit':
-              trayManager.destroy();
-              exit(0);
-            default:
-              logger.warning("Unknown action: $action", tag: "quickActions");
-          }
+  logger.info("Initialize quick actions", tag: "quickActions");
+  final quickActions = QuickActionsService();
+  await quickActions.init(
+    categories: initializationData.budgetState.categories,
+    sharedDbRegistered: initializationData.budgetState.sharedDbUrl != "none",
+    onActionSelected: (action) async {
+      if (action.startsWith("new?")) {
+        final catId = int.tryParse(action.substring(4));
+        logger.debug("New expense for category: $catId", tag: "quickActions");
+        showExpenseDialog(
+          context: navigatorKey.currentContext!,
+          category: initializationData.budgetState.categories.where((c) => c.categoryId == catId).first.category,
+          categoryId: catId,
+          accountId: initializationData.budgetState.filterBudget,
+          bankAccounts: initializationData.budgetState.bankAccounts,
+          bankAccoutCount: initializationData.budgetState.bankAccounts.length,
+          allowCamera: (kDebugMode || initializationData.budgetState.isPro) && (Platform.isAndroid || Platform.isIOS)
+        );
+      } else {
+        switch (action) {
+          case 'sync':
+            logger.debug("Sync to remote", tag: "quickActions");
+            initializationData.budgetState.syncSharedDb(manual: true);
+            break;
+          case 'open_budget':
+            logger.debug("Open app", tag: "quickActions");
+            await windowManager.ensureInitialized();
+            await windowManager.show();
+            await windowManager.focus();
+            break;
+          case 'exit':
+            trayManager.destroy();
+            exit(0);
+          default:
+            logger.warning("Unknown action: $action", tag: "quickActions");
         }
       }
-    );
-    logger.info("Initialization of quick actions finished", tag: "quickActions");
-  }
+    }
+  );
+  logger.info("Initialization of quick actions finished", tag: "quickActions");
+  
+  UriHandler().setupListener(initializationData.budgetState, initializationData.designState);
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

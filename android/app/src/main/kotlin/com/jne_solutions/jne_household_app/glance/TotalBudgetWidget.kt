@@ -3,8 +3,6 @@ package com.jne_solutions.jne_household_app.glance
 import HomeWidgetGlanceState
 import HomeWidgetGlanceStateDefinition
 import android.content.Context
-import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp

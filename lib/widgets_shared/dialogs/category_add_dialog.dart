@@ -76,7 +76,7 @@ Future<void> addCategory(context) async {
                             child: CircleAvatar(
                               radius: 20,
                               backgroundColor: selectedColor,
-                              child: Icon(Icons.color_lens_rounded, color: getTextColor(selectedColor, 0, context)),
+                              child: Icon(Icons.color_lens_rounded, color: getTextColor(selectedColor, 0, context: context)),
                             ),
                           )
                         ],

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
@@ -297,6 +298,11 @@ class BudgetState extends ChangeNotifier {
     }).toList());
 
     calcNotAssignedBudget();
+
+    if (Platform.isAndroid || Platform.isIOS) {
+      List<Map<String, dynamic>> categoryWidgetList = categories.map((c) => c.toWidgetData(notAssignedBudget)).toList();
+      saveWidgetData("categoryList", jsonEncode(categoryWidgetList));
+    }
   }
 
   Future<void> _loadRanges() async {
@@ -746,6 +752,11 @@ class BudgetState extends ChangeNotifier {
       syncSharedDb();
     }
 
+    if (Platform.isAndroid || Platform.isIOS) {
+      List<Map<String, dynamic>> categoryWidgetList = categories.map((c) => c.toWidgetData(notAssignedBudget)).toList();
+      saveWidgetData("categoryList", jsonEncode(categoryWidgetList));
+    }
+
     return id;
   }
 
@@ -756,12 +767,21 @@ class BudgetState extends ChangeNotifier {
       categories[index] = newCategory;
       notifyListeners();
     }
+    if (Platform.isAndroid || Platform.isIOS) {
+      List<Map<String, dynamic>> categoryWidgetList = categories.map((c) => c.toWidgetData(notAssignedBudget)).toList();
+      saveWidgetData("categoryList", jsonEncode(categoryWidgetList));
+    }
   }
 
   void sortCategories(){
     categories.sort((a, b) {
       return b.position.compareTo(a.position);
     });
+
+    if (Platform.isAndroid || Platform.isIOS) {
+      List<Map<String, dynamic>> categoryWidgetList = categories.map((c) => c.toWidgetData(notAssignedBudget)).toList();
+      saveWidgetData("categoryList", jsonEncode(categoryWidgetList));
+    }
   }
 
   // raw categories
@@ -797,6 +817,11 @@ class BudgetState extends ChangeNotifier {
     if (sharedDbConnected && !syncInProgress) {
       syncSharedDb();
     } 
+
+    if (Platform.isAndroid || Platform.isIOS) {
+      List<Map<String, dynamic>> categoryWidgetList = categories.map((c) => c.toWidgetData(notAssignedBudget)).toList();
+      saveWidgetData("categoryList", jsonEncode(categoryWidgetList));
+    }
   }
 
   Future<void> saveCategoryOrder() async {
@@ -995,6 +1020,11 @@ class BudgetState extends ChangeNotifier {
         await HomeWidget.updateWidget(
           qualifiedAndroidName:
             '$androidQualifiedName.glance.TotalBudgetReceiver',
+        );
+
+        await HomeWidget.updateWidget(
+          qualifiedAndroidName:
+            '$androidQualifiedName.glance.CategoriesReceiver',
         );
       }
     }

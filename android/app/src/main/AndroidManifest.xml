@@ -42,6 +42,20 @@
                     android:resource="@xml/total_budget" />
         </receiver>
 
+        <receiver 
+            android:name=".glance.CategoriesReceiver"
+            android:exported="true"
+            android:widgetCategory="home_screen"
+        >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/categories" />
+        </receiver>
+
+
         <!-- Don't delete the meta-data below.
             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

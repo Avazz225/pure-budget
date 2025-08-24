@@ -38,7 +38,7 @@ Future <Color> openColorPickerDialog(BuildContext context, Color selectedColor) 
                         I18n.translate("appTitle"),
                         style: TextStyle(
                           fontSize: 16,
-                          color: getTextColor(tempColor, 0, context),
+                          color: getTextColor(tempColor, 0, context: context),
                         ),
                       ),
                     ),
