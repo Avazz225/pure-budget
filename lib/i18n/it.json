@@ -412,5 +412,7 @@
     "exit": "Chiudi Pure Budget",
     "spentStr": "speso",
     "availableStr": "disponibile",
-    "from": "da"
+    "from": "da",
+
+    "or": "oppure"
 }

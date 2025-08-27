@@ -25,12 +25,14 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.actionStartActivity
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import android.net.Uri
+
+import android.appwidget.AppWidgetManager
+import androidx.glance.appwidget.GlanceAppWidgetManager
 
 import com.jne_solutions.jne_household_app.MainActivity
 import com.jne_solutions.jne_household_app.R
+import com.jne_solutions.jne_household_app.parseJsonList
 
 data class Category(
   val id: Int,
@@ -53,29 +55,62 @@ class CategoriesWidget : GlanceAppWidget() {
   override val stateDefinition = HomeWidgetGlanceStateDefinition()
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
-    provideContent { GlanceContent(context, currentState()) }
+    provideContent {
+      val appWidgetManager = AppWidgetManager.getInstance(context)
+      val glanceAppWidgetManager = GlanceAppWidgetManager(context)
+      val appWidgetId = glanceAppWidgetManager.getAppWidgetId(id)
+      val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+      val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+
+      val maxItems = calculateMaxItems(minHeight)
+
+      GlanceContent(
+          context = context,
+          currentState = currentState(),
+          maxItems = maxItems
+      )
+    }
+  }
+
+  private fun calculateMaxItems(widgetHeightDp: Int, itemHeightDp: Int = 56, spacingDp: Int = 4): Int {
+    return ((widgetHeightDp + spacingDp).toFloat() / (itemHeightDp + spacingDp)).toInt().coerceAtLeast(1)
   }
 
   @Composable
-  private fun GlanceContent(context: Context, currentState: HomeWidgetGlanceState) {
+  private fun GlanceContent(context: Context, currentState: HomeWidgetGlanceState, maxItems: Int) {
     val data = currentState.preferences
 
     val currency = data.getString("currency", "")!!
     val language = data.getString("language", "")!!
     val totalConnector = data.getString("totalConnector", "")!!
     val totalFrom = data.getString("totalFrom", "")!!
-    val gson = Gson()
     val json = data.getString("categoryList", "[]")!!
-    val type = object : TypeToken<List<Category>>() {}.type
-    val categories: List<Category> = gson.fromJson(json, type)
+    val categories: List<Category>  = parseJsonList(json) {
+      Category(
+          id = it["id"] as Int,
+          name = it["name"] as String,
+          total = it["total"] as String,
+          fraction = it["fraction"] as String,
+          colorR = it["colorR"] as Int,
+          colorG = it["colorG"] as Int,
+          colorB = it["colorB"] as Int,
+          colorA = it["colorA"] as Int,
+          textColorR = it["textColorR"] as Int,
+          textColorG = it["textColorG"] as Int,
+          textColorB = it["textColorB"] as Int,
+          textColorA = it["textColorA"] as Int
+      )
+    }
 
     val langCode = language.take(2)
+
+    val visibleCategories = categories.take(maxItems)
 
     Column(
       modifier = GlanceModifier
           .background(ColorProvider(R.color.widget_bg))
     ) {
-      categories.forEach { category ->
+      visibleCategories.forEachIndexed { index, category ->
         val formattedAmount = if (langCode in listOf("de", "fr", "es", "it", "pt")) {
           "${category.total} $currency"
         } else {
@@ -148,7 +183,9 @@ class CategoriesWidget : GlanceAppWidget() {
             )
           )
         }
-        Box(modifier = GlanceModifier.height(4.dp)) {}
+        if (index < visibleCategories.lastIndex) {
+          Box(modifier = GlanceModifier.height(4.dp)) {}
+        }
         
       }
     }

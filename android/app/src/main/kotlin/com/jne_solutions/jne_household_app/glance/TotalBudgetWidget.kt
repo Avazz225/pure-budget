@@ -52,6 +52,10 @@ class TotalBudgetWidget : GlanceAppWidget() {
     val totalConnector = data.getString("totalConnector", "")!!
     val totalFrom = data.getString("totalFrom", "")!!
     val fractionTotalBudget = data.getString("fractionTotalBudget", "")!!
+    val opacity = data.getInt("backgroundOpacity", 255)
+    val baseColorInt = context.getColor(R.color.widget_bg) // Int aus Ressourcen
+    val baseColor = Color(baseColorInt)
+    val backgroundColor = baseColor.copy(alpha = opacity / 255f)
 
     val langCode = language.take(2)
 
@@ -69,7 +73,7 @@ class TotalBudgetWidget : GlanceAppWidget() {
 
     Box(
       modifier = GlanceModifier
-      .background(ColorProvider(R.color.widget_bg))
+      .background(ColorProvider(backgroundColor))
       .padding(16.dp)
       .clickable(
         onClick = actionStartActivity<MainActivity>(context))) {

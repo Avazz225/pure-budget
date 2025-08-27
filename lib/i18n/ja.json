@@ -412,5 +412,7 @@
     "exit": "Pure Budgetを終了",
     "spentStr": "使用済み",
     "availableStr": "利用可能",
-    "from": "から"
+    "from": "から",
+
+    "or": "または"
 }

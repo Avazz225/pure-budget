@@ -412,5 +412,7 @@
     "exit": "Pure Budget बंद करें",
     "spentStr": "खर्च किया",
     "availableStr": "उपलब्ध",
-    "from": "से"
+    "from": "से",
+
+    "or": "या"
 }

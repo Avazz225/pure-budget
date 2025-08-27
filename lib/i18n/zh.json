@@ -412,5 +412,7 @@
     "exit": "退出 Pure Budget",
     "spentStr": "已支出",
     "availableStr": "可用",
-    "from": "来自"
+    "from": "来自",
+
+    "or": "或者"
 }

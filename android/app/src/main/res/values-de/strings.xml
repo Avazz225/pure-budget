@@ -1,0 +1,6 @@
+<resources>
+    <string name="budget">Gesamtbudget</string>
+    <string name="cats">Budgets nach Kategorien</string>
+    <string name="widget_budget_desc">Zeige dein ganzes Monatsbudget</string>
+    <string name="widget_cat_desc">Sieh alle Kategorien</string>
+</resources>

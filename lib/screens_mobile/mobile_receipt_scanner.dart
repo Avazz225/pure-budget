@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -151,6 +152,24 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         Text(
                           style: Theme.of(context).textTheme.bodyLarge,
                           I18n.translate("photoInfo", placeholders: {"takePhoto": I18n.translate("takePhoto")})
+                        ),
+                        Text(
+                          I18n.translate("or")
+                        ),
+                        buttonBuilder(
+                          context,
+                          () async {
+                            final result = await FilePicker.platform.pickFiles(
+                              type: FileType.custom,
+                              allowedExtensions: ['pdf'],
+                            );
+                            if (result != null && result.files.single.path != null) {
+                              final path = result.files.single.path!;
+                              final data = await _service.extractFromPdf(path);
+                              await _updateControllers(data);
+                            }
+                          },
+                          label: I18n.translate("pickFile")
                         )
                       ],
                     )

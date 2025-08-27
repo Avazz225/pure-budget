@@ -2,7 +2,10 @@
     android:initialLayout="@layout/glance_default_loading_layout"
     android:minWidth="210dp"
     android:minHeight="40dp"
+    android:targetCellWidth="3"
+    android:targetCellHeight="1"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0"
+    android:description="@string/widget_budget_desc"
     android:widgetCategory="home_screen">
 </appwidget-provider>

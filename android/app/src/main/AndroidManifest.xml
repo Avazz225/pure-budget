@@ -31,6 +31,7 @@
         
         <receiver 
             android:name=".glance.TotalBudgetReceiver"
+            android:label="@string/budget"
             android:exported="true"
             android:widgetCategory="home_screen"
         >
@@ -44,6 +45,7 @@
 
         <receiver 
             android:name=".glance.CategoriesReceiver"
+            android:label="@string/cats"
             android:exported="true"
             android:widgetCategory="home_screen"
         >

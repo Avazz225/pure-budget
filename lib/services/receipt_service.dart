@@ -44,28 +44,30 @@ class ReceiptService {
     final StringBuffer buffer = StringBuffer();
 
     int pageCount = await  pdfDoc.getPageCount();
+    _logger.debug("Processing pdf $path with $pageCount pages", tag: "scan");
 
-    for (int i = 1; i <= pageCount; i++) {
+    for (int i = 0; i < pageCount; i++) {
+      _logger.debug("Opening pdf page $i", tag: "scan");
       await pdfDoc.openPage(pageIndex: i);
       final size = await pdfDoc.getPageSize(pageIndex: 0);
       // Render PDF-page as image
       final pageImage = await pdfDoc.renderPage(
-          pageIndex: i,
-          x: 0,
-          y: 0,
-          width: size.width,
-          height: size.height,
-          scale: 1,
-          background: Colors.white,
-        );
+        pageIndex: i,
+        x: 0,
+        y: 0,
+        scale: 1,
+        background: Colors.white,
+      );
 
+      final imgFile = await _saveTempImage(pageImage!, size.width, size.height);
       // close the page again
-      await pdfDoc.closePage(pageIndex: 0);
+      _logger.debug("Closing pdf page $i", tag: "scan");
+      await pdfDoc.closePage(pageIndex: i);
 
-      final imgFile = await _saveTempImage(pageImage, size.width, size.height);
       final inputImage = InputImage.fromFile(imgFile);
-      final recognisedText = await _textRecognizer.processImage(inputImage);
+      final RecognizedText recognisedText = await _textRecognizer.processImage(inputImage);
       buffer.writeln(recognisedText.text);
+
     }
 
     await pdfDoc.close();
@@ -73,12 +75,26 @@ class ReceiptService {
   }
 
   // Save PDF page as temporary image for OCR
-  Future<File> _saveTempImage(Uint8List? uint8list, int width, int height) async {
+  Future<File> _saveTempImage(Uint8List uint8list, int width, int height) async {
+    _logger.debug("Image height: $height - Image width: $width", tag: "scan");
+    _logger.debug("Expected bytes: ${width * height * 4}, got: ${uint8list.length}", tag: "scan");
     final dir = await getTemporaryDirectory();
     final file =
         File('${dir.path}/pdf_page_${DateTime.now().millisecondsSinceEpoch}.png');
-
-    final image = img.Image.fromBytes(width: width, height: height, bytes: uint8list!.buffer);
+    img.Image image;
+    try {
+        image = img.Image.fromBytes(
+        width: width, 
+        height: height, 
+        bytes: uint8list.buffer, 
+        order: img.ChannelOrder.rgba,
+        bytesOffset: uint8list.offsetInBytes
+      );
+    } catch (e) {
+      image = img.decodeImage(uint8list)!;
+    }
+    
+    _logger.debug("Created image object", tag: "scan");
     final pngBytes = img.encodePng(image);
 
     await file.writeAsBytes(pngBytes);

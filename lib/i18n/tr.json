@@ -412,5 +412,7 @@
     "exit": "Pure Budget kapat",
     "spentStr": "harcandı",
     "availableStr": "mevcut",
-    "from": "-den"
+    "from": "-den",
+
+    "or": "veya"
 }

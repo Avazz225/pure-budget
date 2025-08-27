@@ -412,5 +412,7 @@
     "exit": "Zamknij Pure Budget",
     "spentStr": "wydane",
     "availableStr": "dostępne",
-    "from": "z"
+    "from": "z",
+
+    "or": "albo"
 }

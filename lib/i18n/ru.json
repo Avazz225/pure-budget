@@ -412,5 +412,7 @@
     "exit": "Закрыть Pure Budget",
     "spentStr": "потрачено",
     "availableStr": "доступно",
-    "from": "из"
+    "from": "из",
+
+    "or": "или"
 }

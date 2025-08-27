@@ -412,5 +412,7 @@
     "exit": "Salir de Pure Budget",
     "spentStr": "gastado",
     "availableStr": "disponible",
-    "from": "de"
+    "from": "de",
+
+    "or": "o"
 }

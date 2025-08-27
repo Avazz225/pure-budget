@@ -412,5 +412,7 @@
     "exit": "Pure Budget beenden",
     "spentStr": "ausgegeben",
     "availableStr": "verfügbar",
-    "from": "von"
+    "from": "von",
+
+    "or": "oder"
 }

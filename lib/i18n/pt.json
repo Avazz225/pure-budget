@@ -412,5 +412,7 @@
     "exit": "Fechar Pure Budget",
     "spentStr": "gasto",
     "availableStr": "disponível",
-    "from": "de"
+    "from": "de",
+
+    "or": "ou"
 }

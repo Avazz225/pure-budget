@@ -412,5 +412,7 @@
     "exit": "Pure Budget 종료",
     "spentStr": "사용됨",
     "availableStr": "사용 가능",
-    "from": "에서"
+    "from": "에서",
+
+    "or": "또는"
 }
