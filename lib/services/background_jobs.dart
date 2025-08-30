@@ -1,5 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
-import 'package:jne_household_app/helper/auto_booking.dart';
+import 'package:jne_household_app/services/auto_booking.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/models/reset_principles.dart';

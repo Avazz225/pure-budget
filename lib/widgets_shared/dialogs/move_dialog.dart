@@ -1,7 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/brightness.dart';
+import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/category.dart';
@@ -37,7 +37,7 @@ Future<void> showMoveDialog({
                 itemBuilder: (context, index) {
                   Category item = categories[index];
                   bool unassigned = item.name == "__undefined_category_name__";
-                  Color textColor = getTextColor(item.color, 0, context);
+                  Color textColor = getTextColor(item.color, 0, context: context);
 
                   if (categoryId != item.id) {
                     return Card(

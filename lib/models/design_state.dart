@@ -15,21 +15,23 @@ class DesignState extends ChangeNotifier {
   String customBackgroundPath;
   bool customBackgroundBlur; // only if customBackground is used
   int mainMenuStyle; // button style for main menu
+  double blurIntensity;
 
   DesignState._({
-    required this.layoutMainVertical, //Done
-    required this.categoryMainStyle, //Done
-    required this.addExpenseStyle,  //Done
-    required this.arcStyle,  //Done
-    required this.arcPercent, // Done
-    required this.arcWidth,  // Done
-    required this.arcSegmentsRounded, // Done
-    required this.dialogSolidBackground, // Done
+    required this.layoutMainVertical,
+    required this.categoryMainStyle,
+    required this.addExpenseStyle, 
+    required this.arcStyle, 
+    required this.arcPercent,
+    required this.arcWidth, 
+    required this.arcSegmentsRounded,
+    required this.dialogSolidBackground,
     required this.appBackgroundSolid,
     required this.appBackground,
     required this.customBackgroundBlur,
     required this.customBackgroundPath,
-    required this.mainMenuStyle  //Done
+    required this.mainMenuStyle,
+    required this.blurIntensity
   });
 
   factory DesignState({
@@ -45,7 +47,8 @@ class DesignState extends ChangeNotifier {
     required int appBackground,
     required bool customBackgroundBlur,
     required String customBackgroundPath,
-    required int mainMenuStyle
+    required int mainMenuStyle,
+    required double blurIntensity
   }) {
     return DesignState._(
       layoutMainVertical: layoutMainVertical,
@@ -60,7 +63,8 @@ class DesignState extends ChangeNotifier {
       appBackgroundSolid: appBackgroundSolid,
       customBackgroundBlur: customBackgroundBlur,
       customBackgroundPath: customBackgroundPath,
-      mainMenuStyle: mainMenuStyle
+      mainMenuStyle: mainMenuStyle,
+      blurIntensity: blurIntensity
     );
   }
 
@@ -77,7 +81,8 @@ class DesignState extends ChangeNotifier {
     required int appBackground,
     required bool customBackgroundBlur,
     required String customBackgroundPath,
-    required int mainMenuStyle
+    required int mainMenuStyle,
+    required double blurIntensity
   }) {
     final instance = DesignState(
       layoutMainVertical: layoutMainVertical,
@@ -92,7 +97,8 @@ class DesignState extends ChangeNotifier {
       appBackgroundSolid: appBackgroundSolid,
       customBackgroundBlur: customBackgroundBlur,
       customBackgroundPath: customBackgroundPath,
-      mainMenuStyle: mainMenuStyle
+      mainMenuStyle: mainMenuStyle,
+      blurIntensity: blurIntensity
     );
 
     return instance;
@@ -173,6 +179,12 @@ class DesignState extends ChangeNotifier {
   Future<void> updateAppBackground(int index) async {
     appBackground = index;
     await DatabaseHelper().updateDesign("appBackground", index);
+    notifyListeners();
+  }
+
+  Future<void> updateBlurIntensity(double blur) async {
+    blurIntensity = blur;
+    await DatabaseHelper().updateDesign("blurIntensity", blur);
     notifyListeners();
   }
 }

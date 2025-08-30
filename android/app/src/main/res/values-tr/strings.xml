@@ -1,0 +1,6 @@
+<resources>
+    <string name="budget">Toplam Bütçe</string>
+    <string name="cats">Kategori Bazında Bütçeler</string>
+    <string name="widget_budget_desc">Tüm aylık bütçenizi göster</string>
+    <string name="widget_cat_desc">Tüm kategorileri gör</string>
+</resources>

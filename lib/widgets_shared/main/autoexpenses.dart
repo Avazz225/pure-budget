@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/brightness.dart';
+import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
-import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
-import 'package:jne_household_app/helper/format_date.dart';
+import 'package:jne_household_app/services/debug_screenshot_manager.dart';
+import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
@@ -117,7 +117,7 @@ Widget autoExpenseList(dynamic budgetState) {
                 ),
                 child: Text(
                   (category.category != "__undefined_category_name__")? category.category : I18n.translate("unassigned"),
-                  style: TextStyle(color: getTextColor(category.color, 0, context)),
+                  style: TextStyle(color: getTextColor(category.color, 0, context: context)),
                 )
               ),
               children: buildAutoExpensesForCategory(context, category.categoryId)

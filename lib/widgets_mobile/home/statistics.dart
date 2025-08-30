@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_charts/flutter_charts.dart';
-import 'package:jne_household_app/helper/statistics.dart';
+import 'package:jne_household_app/services/statistics.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
@@ -103,6 +103,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
           if ((state.selectedStatisticIndex == 2 || state.selectedStatisticIndex == 0) || !table)
           ExpansionTile(
+            backgroundColor: (!designState.appBackgroundSolid) ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
             title: Text(
               I18n.translate("legend"),
               style: Theme.of(context).textTheme.bodyLarge,

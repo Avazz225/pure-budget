@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
+import 'package:jne_household_app/screens_mobile/mobile_receipt_scanner.dart';
 import 'package:jne_household_app/screens_shared/customization_screen.dart';
 import 'package:jne_household_app/screens_shared/help_screen.dart';
 import 'package:jne_household_app/screens_mobile/mobile_in_app_purchase.dart';
@@ -43,18 +44,33 @@ class HomeScreenState extends State<HomeScreen> {
         backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
         title: Text("${I18n.translate('appTitle')} ${budgetState.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.filterBudget).first.name}" : ""}"),
         actions: [
-          if(budgetState.sharedDbUrl != "none" && budgetState.sharedDbConnected && !budgetState.syncInProgress)
+          if(budgetState.sharedDbUrl != "none")
+          ...[
+            if (!budgetState.syncInProgress)
+            ...[
+              if (budgetState.sharedDbConnected)
+              IconButton(
+                icon: const Icon(Icons.cloud_queue_rounded),
+                onPressed: () => budgetState.syncSharedDb(manual: true),
+              )
+              else
+              IconButton(
+                icon: const Icon(Icons.cloud_off_rounded),
+                onPressed: () => budgetState.syncSharedDb(manual: true),
+              )
+            ]
+            else
+            const Icon(Icons.cloud_sync_rounded),
+          ], 
+          if (budgetState.isPro || kDebugMode)
           IconButton(
-            icon: const Icon(Icons.cloud_queue_rounded),
-            onPressed: () => budgetState.syncSharedDb(manual: true),
+            icon: const Icon(Icons.camera_alt_rounded),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState,),
+              ),
+            ),
           ),
-          if(budgetState.sharedDbUrl != "none" && !budgetState.sharedDbConnected && !budgetState.syncInProgress)
-          IconButton(
-            icon: const Icon(Icons.cloud_off_rounded),
-            onPressed: () => budgetState.syncSharedDb(manual: true),
-          ),
-          if(budgetState.sharedDbUrl != "none" && budgetState.syncInProgress)
-          const Icon(Icons.cloud_sync_rounded),
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'settings') {
@@ -130,9 +146,16 @@ class HomeScreenState extends State<HomeScreen> {
         4 => Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                Text(
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  I18n.translate("autoexpenses")
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: (!designState.appBackgroundSolid) ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    I18n.translate("autoexpenses"),
+                  ),
                 ),
                 autoExpenseList(budgetState)
               ]
@@ -175,9 +198,17 @@ class HomeScreenState extends State<HomeScreen> {
             ],
             currentIndex: tabindex,
             onTap: (index) {
-              setState(() {
-                tabindex = index;
-              });
+              if (index != tabindex) {
+                setState(() {
+                  tabindex = index;
+                });
+              } else if (index == 2 && (budgetState.isPro || kDebugMode)) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState,),
+                  ),
+                );
+              }
             },
           ),
           if (!getProStatus(budgetState.isPro, budgetState.isDesktopPro))

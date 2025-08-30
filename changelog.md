@@ -2,18 +2,40 @@
 
 ## Roadmap
 
-### 3.1.0
+### 3.2.0
 
-- added widgets for home screen [mobile]
-  - [Pro-Only] create new expense
-  - both versions: Display available or spent per current month (only if app is not locked)
-- Systray icon with quick actions [windows]
+- report issue button to submit error reports from within the app
+- custom background gardients
+
+```txt
+Developer Info:
+Integration of mobile payment apps is impossible due to privacy reasons maybe push notificaations could be utilized
+```
 
 ### planned (depends on need)
 
 - add connection to iCloud
 
 ## Changelog
+
+### 3.1.2 bundle 29 (27.08.2025)
+
+- fix categories widget
+
+### 3.1.1 bundle 28 (26.08.2025)
+
+- fix list widget
+- add widget names
+- allow picking pdf files in scanner
+
+### 3.1.0 bundle 27 (24.08.2025)
+
+- scan function to extract info from receiptand automatically assign sum to bucket
+- fix google drive sync
+- added widgets for home screen [mobile]
+  - [Pro-Only] create new expense
+  - both versions: Display available or spent per current month (only if app is not locked)
+- Systray icon with quick actions [windows]
 
 ### 3.0.0 bundle 25 (13.08.2025)
 

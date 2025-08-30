@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
-import 'package:jne_household_app/helper/remote/auth.dart' as storage;
+import 'package:jne_household_app/services/remote/auth.dart' as storage;
 import 'package:jne_household_app/logger.dart';
 
 

@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
-import 'package:jne_household_app/helper/debug_screenshot_manager.dart';
-import 'package:jne_household_app/helper/format_date.dart';
-import 'package:jne_household_app/helper/text_formatter.dart';
+import 'package:jne_household_app/logger.dart';
+import 'package:jne_household_app/services/debug_screenshot_manager.dart';
+import 'package:jne_household_app/services/format_date.dart';
+import 'package:jne_household_app/services/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -13,21 +14,29 @@ import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.d
 import 'package:provider/provider.dart';
 
 
-Future<void> showExpenseDialog({
+Future<bool> showExpenseDialog({
     required BuildContext context,
     String? category,
     int? categoryId,
     Map<String, dynamic>? expense,
     required String accountId, 
     required List<BankAccount> bankAccounts,
-    required int bankAccoutCount
+    required int bankAccoutCount,
+    String? defaultVal,
+    bool allowCamera = false,
   }) async {
+    Logger().debug("PARAMS:\n\tcategory: $category\n\tcategoryId: $categoryId\n\taccountId: $accountId\n\tdefaultVal: $defaultVal", tag: "EXP_DIALOG");
     final bool isEditing = expense != null;
     final TextEditingController amountController = TextEditingController(
       text: isEditing
           ? (I18n.comma()
               ? expense['amount'].toString().replaceAll(".", ",")
               : expense['amount'].toString())
+          : 
+          (defaultVal != null) ?
+          (I18n.comma()
+              ? defaultVal.replaceAll(".", ",")
+              : defaultVal.toString())
           : '',
     );
 
@@ -39,6 +48,8 @@ Future<void> showExpenseDialog({
     final FocusNode amountFocusNode = FocusNode();
 
     final String filter = context.read<BudgetState>().filterBudget;
+
+    bool openCamera = false;
 
     DateTime selectedDate = isEditing
         ? DateTime.parse(expense['date'])
@@ -159,6 +170,16 @@ Future<void> showExpenseDialog({
                 )
               ),
               actions: [
+                if ((allowCamera) && (Platform.isAndroid || Platform.isIOS))
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      openCamera=true;
+                    });
+                  },
+                  icon: const Icon(Icons.camera_alt_rounded)
+                ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(I18n.translate("cancel")),
@@ -226,4 +247,5 @@ Future<void> showExpenseDialog({
         );
       },
     );
+    return openCamera;
   }

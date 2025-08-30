@@ -3,10 +3,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:jne_household_app/database_helper.dart';
-import 'package:jne_household_app/helper/remote/auth.dart' as auth;
-import 'package:jne_household_app/helper/remote/google_drive_connector.dart';
-import 'package:jne_household_app/helper/remote/one_drive_connector.dart';
-import 'package:jne_household_app/helper/remote/smb_server.dart';
+import 'package:jne_household_app/services/remote/auth.dart' as auth;
+import 'package:jne_household_app/services/remote/google_drive_connector.dart';
+import 'package:jne_household_app/services/remote/one_drive_connector.dart';
+import 'package:jne_household_app/services/remote/smb_server.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/shared_database/encryption_handler.dart';
 import 'package:jne_household_app/shared_database/network_handler.dart';
