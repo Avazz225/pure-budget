@@ -1,0 +1,6 @@
+<resources>
+    <string name="budget">总预算</string>
+    <string name="cats">按类别的预算</string>
+    <string name="widget_budget_desc">显示您的整个月预算</string>
+    <string name="widget_cat_desc">查看所有类别</string>
+</resources>

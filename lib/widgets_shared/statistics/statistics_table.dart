@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
-import 'package:jne_household_app/helper/brightness.dart';
+import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:path/path.dart';
 
@@ -40,7 +40,7 @@ Widget groupedTables(List<String> headers, List<String> indexes, Map<String, Lis
           ),
           child: Text(
             (category != "__undefined_category_name__")? category : I18n.translate("unassigned"),
-            style: TextStyle(color: getTextColor(color, 0, context)),
+            style: TextStyle(color: getTextColor(color, 0, context: context)),
           ),
         ),
         children: [

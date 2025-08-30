@@ -2,28 +2,40 @@
 
 ## Roadmap
 
-### 3.3.0
-
-- report issue button to submit error reports from within the app
-
 ### 3.2.0
 
-- scan function to extract info from receipt (including e-receipt, either per in-app scan or pdf selection) and automatically assign sum to predefined bucket
-  - alternative: offer user quick select menu for buckts to assign to
-- >INFO: Integration of mobile payment apps is impossible due to privacy reasons maybe push notificaations could be utilized
+- report issue button to submit error reports from within the app
+- custom background gardients
 
-### 3.1.0
-
-- added widgets for home screen [mobile]
-  - [Pro-Only] create new expense
-  - both versions: Display available or spent per current month (only if app is not locked)
-- Systray icon with quick actions [windows]
+```txt
+Developer Info:
+Integration of mobile payment apps is impossible due to privacy reasons maybe push notificaations could be utilized
+```
 
 ### planned (depends on need)
 
 - add connection to iCloud
 
 ## Changelog
+
+### 3.1.2 bundle 29 (27.08.2025)
+
+- fix categories widget
+
+### 3.1.1 bundle 28 (26.08.2025)
+
+- fix list widget
+- add widget names
+- allow picking pdf files in scanner
+
+### 3.1.0 bundle 27 (24.08.2025)
+
+- scan function to extract info from receiptand automatically assign sum to bucket
+- fix google drive sync
+- added widgets for home screen [mobile]
+  - [Pro-Only] create new expense
+  - both versions: Display available or spent per current month (only if app is not locked)
+- Systray icon with quick actions [windows]
 
 ### 3.0.0 bundle 25 (13.08.2025)
 

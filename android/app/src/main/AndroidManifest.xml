@@ -28,6 +28,36 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        
+        <receiver 
+            android:name=".glance.TotalBudgetReceiver"
+            android:label="@string/budget"
+            android:exported="true"
+            android:widgetCategory="home_screen"
+        >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/total_budget" />
+        </receiver>
+
+        <receiver 
+            android:name=".glance.CategoriesReceiver"
+            android:label="@string/cats"
+            android:exported="true"
+            android:widgetCategory="home_screen"
+        >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/categories" />
+        </receiver>
+
+
         <!-- Don't delete the meta-data below.
             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
@@ -39,6 +69,7 @@
             android:value="ca-app-pub-9051906478229407~5309499556"
         />
     </application>
+
     <!-- Required to query activities that can process text, see:
         https://developer.android.com/training/package-visibility and
         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.

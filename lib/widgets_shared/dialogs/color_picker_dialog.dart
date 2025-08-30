@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:jne_household_app/helper/brightness.dart';
+import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 
@@ -38,7 +38,7 @@ Future <Color> openColorPickerDialog(BuildContext context, Color selectedColor) 
                         I18n.translate("appTitle"),
                         style: TextStyle(
                           fontSize: 16,
-                          color: getTextColor(tempColor, 0, context),
+                          color: getTextColor(tempColor, 0, context: context),
                         ),
                       ),
                     ),

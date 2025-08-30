@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
-import 'package:jne_household_app/helper/remote/auth.dart';
+import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/screens_shared/remote_registered_devices.dart';

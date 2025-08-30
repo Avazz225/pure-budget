@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 3.0.4+26
+version: 3.1.2+29
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
@@ -64,6 +64,13 @@ dependencies:
   loading_animation_widget: ^1.3.0
   screenshot: ^3.0.0
   windows_store: ^1.0.0
+  google_mlkit_text_recognition: ^0.15.0
+  pdf_image_renderer: ^1.0.1
+  camera: ^0.11.2
+  image: ^4.5.4
+  home_widget: ^0.8.0
+  tray_manager: ^0.5.0
+  window_manager: ^0.5.1
 
 dev_dependencies:
   flutter_test:
@@ -81,7 +88,7 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   image_path: "logo.png"
 
-# The follwing section is specific for generating the msix
+# The following section is specific for generating the msix
 msix_config:
   display_name: Pure Budget
   publisher_display_name: J2 Soft
@@ -96,6 +103,8 @@ flutter:
 
   assets:
     - lib/i18n/
+    - assets/icons/logo.png
+    - assets/icons/pb_icon.ico
 
   fonts:
     - family: RobotoMono

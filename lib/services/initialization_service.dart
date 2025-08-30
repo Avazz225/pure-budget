@@ -18,6 +18,7 @@ class InitializationService {
   static Future<InitializationData> initializeApp() async {
     // set language
     final defaultLocale = PlatformDispatcher.instance.locale;
+
     await I18n.load(defaultLocale.toString(), locale: defaultLocale);
 
     // create database connector
@@ -56,11 +57,6 @@ class InitializationService {
       resetInfo = {"principle": bankAccounts.where((acc) => acc.id == int.tryParse(filter)).first.budgetResetPrinciple, "day": bankAccounts.where((acc) => acc.id == int.tryParse(filter)).first.budgetResetDay};
     }
 
-    // Load language settings (if set manually)
-    if (settings['language'] != "auto") {
-      await I18n.load(settings['language']);
-    }
-
     // determine whether app has been set up
     bool isSetupComplete = (bankAccounts[0].balance != 0.00 || settings['currency'] != "€" || bankAccounts[0].income != 0.00 || categories.length != 1);
 
@@ -84,8 +80,14 @@ class InitializationService {
       syncMode: settings['syncMode'],
       syncFrequency: settings['syncFrequency'],
       lockApp: settings['lockApp'] == 1,
-      isDesktopPro: settings['isDesktopPro'] == 1
+      isDesktopPro: settings['isDesktopPro'] == 1,
+      selectedScanCategory: settings['selectedScanCategory']
     );
+
+    // Load language settings (if set manually)
+    if (settings['language'] != "auto") {
+      await I18n.load(settings['language'], saveWidgetData: budgetState.saveWidgetData);
+    }
 
     Map<String, dynamic> designData = await dbHelper.getDesignData();
 
@@ -102,7 +104,8 @@ class InitializationService {
       appBackground: designData["appBackground"] as int,
       customBackgroundPath: designData["customBackgroundPath"] as String,
       customBackgroundBlur: designData["customBackgroundBlur"] == 1,
-      mainMenuStyle: designData["mainMenuStyle"] as int
+      mainMenuStyle: designData["mainMenuStyle"] as int,
+      blurIntensity: designData["blurIntensity"] as double,
     );
 
     // Initialize date formatting

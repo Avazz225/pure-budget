@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/brightness.dart';
+import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/category.dart';
@@ -78,7 +78,7 @@ void editCategory(context, Category category, bool assigned, Function setState, 
                             child: CircleAvatar(
                               radius: 20,
                               backgroundColor: selectedColor,
-                              child: Icon(Icons.color_lens_rounded, color: getTextColor(selectedColor, 0, context)),
+                              child: Icon(Icons.color_lens_rounded, color: getTextColor(selectedColor, 0, context: context)),
                             ),
                           )
                         ],

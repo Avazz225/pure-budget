@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:jne_household_app/helper/remote/google_drive_connector.dart';
-import 'package:jne_household_app/helper/remote/one_drive_connector.dart';
-import 'package:jne_household_app/helper/remote/smb_server.dart';
+import 'package:jne_household_app/services/remote/google_drive_connector.dart';
+import 'package:jne_household_app/services/remote/one_drive_connector.dart';
+import 'package:jne_household_app/services/remote/smb_server.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/shared_database/encryption_handler.dart';
 

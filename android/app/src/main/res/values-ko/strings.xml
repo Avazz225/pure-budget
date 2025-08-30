@@ -1,0 +1,6 @@
+<resources>
+    <string name="budget">총예산</string>
+    <string name="cats">카테고리별 예산</string>
+    <string name="widget_budget_desc">전체 월 예산 보기</string>
+    <string name="widget_cat_desc">모든 카테고리 보기</string>
+</resources>

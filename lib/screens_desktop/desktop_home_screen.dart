@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/desktop_pro_upgrade_manager.dart';
+import 'package:jne_household_app/services/desktop_pro_upgrade_manager.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
@@ -225,9 +225,16 @@ class HomeScreenState extends State<DesktopHomeScreen> {
               4 => Column(
                     mainAxisSize: MainAxisSize.max,
                     children: [
-                      Text(
-                        style: Theme.of(context).textTheme.headlineSmall,
-                        I18n.translate("autoexpenses"),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: (!designState.appBackgroundSolid) ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          style: Theme.of(context).textTheme.headlineSmall,
+                          I18n.translate("autoexpenses"),
+                        ),
                       ),
                       autoExpenseList(budgetState),
                     ],

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/widgets.dart';
 
@@ -40,7 +41,7 @@ class I18n {
     "tr"
   ];
 
-  static Future<void> load(String languageCode, {Locale ?locale}) async {
+  static Future<void> load(String languageCode, {Locale ?locale, Function? saveWidgetData}) async {
     if (locale != null) {
       defaultLocale = locale;
     }
@@ -55,6 +56,9 @@ class I18n {
     String jsonString = await rootBundle.loadString('lib/i18n/$language.json');
     Map<String, dynamic> jsonMap = json.decode(jsonString);
     _localizedStrings = jsonMap.map((key, value) => MapEntry(key, value.toString()));
+    if ((Platform.isIOS || Platform.isAndroid) && saveWidgetData != null) {
+      saveWidgetData("language", language);
+    }
   }
 
   static bool comma() {
@@ -100,5 +104,14 @@ class I18n {
     }
 
     return localeList;
+  }
+
+  static String normalizeValueString(double data) {
+    String value = data.toStringAsFixed(2);
+    if (commaAsSeparator) {
+      return value.replaceAll(".", ",");
+    } else {
+      return value;
+    }
   }
 }
