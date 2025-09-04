@@ -34,8 +34,8 @@ class QuickActionsService with TrayListener {
   }
 
   Future<void> _initMobile() async {
-    HomeWidget.setAppGroupId(iosAppGroupId); // for iOS
-    HomeWidget.registerInteractivityCallback(_backgroundCallback);
+    await HomeWidget.setAppGroupId(iosAppGroupId); // for iOS
+    await HomeWidget.registerInteractivityCallback(_backgroundCallback);
 
     final launchDetails = await HomeWidget.getWidgetData<String>('action');
     if (launchDetails != null && _onActionSelected != null) {
