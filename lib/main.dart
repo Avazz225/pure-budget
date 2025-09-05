@@ -32,7 +32,12 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 
 Future<void> main() async {
+  final quickActions = QuickActionsService();
   const bool takeScreenshots = String.fromEnvironment('SCREENS', defaultValue: 'f') == "t";
+
+  if (Platform.isIOS) {
+    quickActions.initIOS();
+  }
 
   WidgetsFlutterBinding.ensureInitialized();
   // initialize logger
@@ -44,7 +49,6 @@ Future<void> main() async {
   logger.info("Initialization finished", tag: "init");
 
   logger.info("Initialize quick actions", tag: "quickActions");
-  final quickActions = QuickActionsService();
   await quickActions.init(
     categories: initializationData.budgetState.categories,
     sharedDbRegistered: initializationData.budgetState.sharedDbUrl != "none",
@@ -59,7 +63,7 @@ Future<void> main() async {
           accountId: initializationData.budgetState.filterBudget,
           bankAccounts: initializationData.budgetState.bankAccounts,
           bankAccoutCount: initializationData.budgetState.bankAccounts.length,
-          allowCamera: (kDebugMode || initializationData.budgetState.isPro) && (Platform.isAndroid || Platform.isIOS)
+          allowCamera: initializationData.budgetState.proStatusIsSet(mobileOnly: true)
         );
       } else {
         switch (action) {

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:home_widget/home_widget.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/keys.dart';
@@ -316,7 +317,7 @@ class BudgetState extends ChangeNotifier {
       firstDate = DateTime.now();
     }
 
-    int maxRange = (!getProStatus(isPro, isDesktopPro)) ? maxFreeRanges : maxProRanges;
+    int maxRange = (proStatusIsSet(simplePro: true, inverted: true)) ? maxFreeRanges : maxProRanges;
 
     budgetRanges = getMultipleRanges(resetInfo, maxRange, firstDate);
     if (budgetRanges.length - 1 < range){
@@ -1028,5 +1029,45 @@ class BudgetState extends ChangeNotifier {
         );
       }
     }
+  }
+
+  bool proStatusIsSet({bool desktop=false, bool mobileOnly=false, bool simplePro = false, bool inverted = false, bool ignoreDebugMode = false}) {
+    bool result;
+    if (!ignoreDebugMode) {
+      if (kDebugMode && mobileOnly) {
+        result = true && (Platform.isAndroid || Platform.isIOS);
+        Logger().debug("Pro status returned $result; DEBUGMODE - MOBILE", tag: "proStatus");
+        return result;
+      } else if (kDebugMode) {
+        result = true;
+        Logger().debug("Pro status returned $result; DEBUGMODE", tag: "proStatus");
+        return result;
+      }
+    }
+
+    if (simplePro && !(Platform.isAndroid || Platform.isIOS)) {
+      result = (desktopIsDefaultPro || isDesktopPro);
+      Logger().debug("Pro status returned $result; SIMPLE - DESKTOP", tag: "proStatus");
+      return result;
+    }
+
+    if (desktop) {
+      result = (desktopIsDefaultPro || isDesktopPro);
+      Logger().debug("Pro status returned $result; DESKTOP ONLY", tag: "proStatus");
+    } else if (mobileOnly && inverted) {
+      result = !isPro && (Platform.isAndroid || Platform.isIOS);
+      Logger().debug("Pro status returned $result; MOBILE ONLY - INVERTED", tag: "proStatus");
+    } else if (mobileOnly) {
+      result = isPro && (Platform.isAndroid || Platform.isIOS);
+      Logger().debug("Pro status returned $result; MOBILE ONLY", tag: "proStatus");
+    } else if (inverted) {
+      result = !isPro;
+      Logger().debug("Pro status returned $result; INVERTED", tag: "proStatus");
+    } else {
+      result = isPro;
+      Logger().debug("Pro status returned $result; DEFAULT", tag: "proStatus");
+    }
+
+    return result;
   }
 }

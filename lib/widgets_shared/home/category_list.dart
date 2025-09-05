@@ -118,7 +118,7 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
               accountId: budgetState.filterBudget,
               bankAccounts: budgetState.bankAccounts,
               bankAccoutCount: budgetState.bankAccounts.length,
-              allowCamera: (kDebugMode || budgetState.isPro) && (Platform.isAndroid || Platform.isIOS)
+              allowCamera: budgetState.proStatusIsSet(mobileOnly: true)
             );
             if (res) {
               Navigator.of(context).push(
@@ -238,7 +238,7 @@ Widget listTile({required context, required bool allSpent, required bool unassig
               ),
               onTap: showExpensesBottomSheet,
               onLongPress: () {
-                if ((Platform.isAndroid || Platform.isIOS) && (budgetState.isPro || kDebugMode)) {
+                if (budgetState.proStatusIsSet(mobileOnly: true)) {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),

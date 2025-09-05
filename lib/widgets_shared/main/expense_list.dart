@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/models/design_state.dart';
@@ -79,7 +76,7 @@ class _ExpenseListState extends State<ExpenseList> {
                         accountId: widget.state.filterBudget, 
                         bankAccounts: widget.state.bankAccounts, 
                         bankAccoutCount: widget.state.bankAccounts.length,
-                        allowCamera: (kDebugMode || widget.state.isPro) && (Platform.isAndroid || Platform.isIOS)
+                        allowCamera: widget.state.proStatusIsSet(mobileOnly: true)
                       );
                       if (res) {
                         Navigator.of(context).push(

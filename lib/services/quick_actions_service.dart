@@ -16,6 +16,11 @@ class QuickActionsService with TrayListener {
 
   void Function(String action)? _onActionSelected;
 
+  Future<void> initIOS() async {
+    await HomeWidget.setAppGroupId(iosAppGroupId);
+    _logger.debug("Initialized IOS App Group ID", tag: "quickActions");
+  }
+
   Future<void> init({
     required void Function(String action) onActionSelected,
     required List<CategoryBudget> categories,
@@ -34,7 +39,6 @@ class QuickActionsService with TrayListener {
   }
 
   Future<void> _initMobile() async {
-    HomeWidget.setAppGroupId(iosAppGroupId); // for iOS
     HomeWidget.registerInteractivityCallback(_backgroundCallback);
 
     final launchDetails = await HomeWidget.getWidgetData<String>('action');
