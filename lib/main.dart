@@ -32,17 +32,17 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 
 Future<void> main() async {
-  final quickActions = QuickActionsService();
-  const bool takeScreenshots = String.fromEnvironment('SCREENS', defaultValue: 'f') == "t";
-
-  if (Platform.isIOS) {
-    quickActions.initIOS();
-  }
-
   WidgetsFlutterBinding.ensureInitialized();
+
   // initialize logger
   final logger = Logger();
   await logger.init(minLevel: (kDebugMode) ? LogLevel.debug : LogLevel.error);
+  const bool takeScreenshots = String.fromEnvironment('SCREENS', defaultValue: 'f') == "t";
+
+  final quickActions = QuickActionsService();
+  if (Platform.isIOS) {
+    await quickActions.initIOS();
+  }
 
   // initialize app
   final initializationData = await InitializationService.initializeApp();
