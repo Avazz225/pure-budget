@@ -1,0 +1,11 @@
+//
+//  Localizable.strings
+//  Runner
+//
+//  Created by Jan Jeschinski on 07.09.25.
+//
+
+"WIDGET_TOTAL_BUDGET_TITLE" = "कुल बजट";
+"WIDGET_TOTAL_BUDGET_DESCRIPTION" = "आपका कुल घरेलू बजट दिखाता है।";
+"WIDGET_CATEGORIES_TITLE" = "श्रेणियाँ";
+"WIDGET_CATEGORIES_DESCRIPTION" = "प्रत्येक श्रेणी के लिए आपका बजट दिखाता है।";

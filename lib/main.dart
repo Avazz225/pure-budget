@@ -53,6 +53,7 @@ Future<void> main() async {
     categories: initializationData.budgetState.categories,
     sharedDbRegistered: initializationData.budgetState.sharedDbUrl != "none",
     onActionSelected: (action) async {
+      logger.debug("Action called: $action", tag: "quickActions");
       if (action.startsWith("new?")) {
         final catId = int.tryParse(action.substring(4));
         logger.debug("New expense for category: $catId", tag: "quickActions");

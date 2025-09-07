@@ -1,0 +1,11 @@
+//
+//  Localizable.strings
+//  Runner
+//
+//  Created by Jan Jeschinski on 07.09.25.
+//
+
+"WIDGET_TOTAL_BUDGET_TITLE" = "Budżet całkowity";
+"WIDGET_TOTAL_BUDGET_DESCRIPTION" = "Pokazuje Twój całkowity budżet domowy.";
+"WIDGET_CATEGORIES_TITLE" = "Kategorie";
+"WIDGET_CATEGORIES_DESCRIPTION" = "Pokazuje Twój budżet według kategorii.";

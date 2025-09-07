@@ -1027,6 +1027,14 @@ class BudgetState extends ChangeNotifier {
           qualifiedAndroidName:
             '$androidQualifiedName.glance.CategoriesReceiver',
         );
+      } else {
+        await HomeWidget.updateWidget(
+          iOSName: 'TotalBudgetWidget'
+        );
+
+        await HomeWidget.updateWidget(
+          iOSName: 'CategoriesWidget'
+        );
       }
     }
   }

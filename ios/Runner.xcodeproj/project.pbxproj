@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,6 +18,7 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		B0C0BF5C2E69F596002E122A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0C0BF5B2E69F596002E122A /* WidgetKit.framework */; };
 		B0C0BF5E2E69F596002E122A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0C0BF5D2E69F596002E122A /* SwiftUI.framework */; };
+		B0EE37472E6C19DD0049E7B0 /* PureBudgetWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0C0BF5A2E69F595002E122A /* PureBudgetWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,7 +29,14 @@
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
 		};
-		B0C0BF6D2E69F598002E122A /* PBXContainerItemProxy */ = {
+		B0EE373B2E6C15AB0049E7B0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B0C0BF592E69F595002E122A;
+			remoteInfo = PureBudgetWidgetsExtension;
+		};
+		B0EE37482E6C19DD0049E7B0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
 			proxyType = 1;
@@ -48,12 +56,13 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B0C0BF702E69F598002E122A /* Embed Foundation Extensions */ = {
+		B0EE374A2E6C19DD0049E7B0 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				B0EE37472E6C19DD0049E7B0 /* PureBudgetWidgetsExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -82,32 +91,7 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AD9D49EADA98DF45D3F38769 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
-		B00AE0412E3FC3C800D3D713 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/Main.strings"; sourceTree = "<group>"; };
-		B00AE0422E3FC3C800D3D713 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
-		B00AE0432E3FC3EE00D3D713 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE0442E3FC3EF00D3D713 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		B00AE0452E3FC40C00D3D713 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE0462E3FC40C00D3D713 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		B00AE0472E3FC42E00D3D713 /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE0482E3FC43000D3D713 /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		B00AE0492E3FC43A00D3D713 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE04A2E3FC43A00D3D713 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		B00AE04B2E3FC44700D3D713 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE04C2E3FC44700D3D713 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		B00AE04D2E3FC45100D3D713 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE04E2E3FC45100D3D713 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		B00AE04F2E3FC45B00D3D713 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE0502E3FC45B00D3D713 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		B00AE0512E3FC46300D3D713 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Main.strings"; sourceTree = "<group>"; };
-		B00AE0522E3FC46300D3D713 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
-		B00AE0532E3FC46900D3D713 /* pt-PT */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-PT"; path = "pt-PT.lproj/Main.strings"; sourceTree = "<group>"; };
-		B00AE0542E3FC46900D3D713 /* pt-PT */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-PT"; path = "pt-PT.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
-		B00AE0552E3FC47400D3D713 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE0562E3FC47400D3D713 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		B00AE0572E3FC47E00D3D713 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE0582E3FC47E00D3D713 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		B00AE0592E3FC48700D3D713 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/Main.strings; sourceTree = "<group>"; };
-		B00AE05A2E3FC48800D3D713 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
+		B0B028052E6D657900D24F28 /* PureBudgetWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PureBudgetWidgetsExtension.entitlements; sourceTree = "<group>"; };
 		B0C0BF5A2E69F595002E122A /* PureBudgetWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PureBudgetWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0C0BF5B2E69F596002E122A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		B0C0BF5D2E69F596002E122A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -117,7 +101,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		B0C0BF742E69F598002E122A /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		B0C0BF742E69F598002E122A /* Exceptions for "PureBudgetWidgets" folder in "PureBudgetWidgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -127,7 +111,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		B0C0BF5F2E69F596002E122A /* PureBudgetWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (B0C0BF742E69F598002E122A /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PureBudgetWidgets; sourceTree = "<group>"; };
+		B0C0BF5F2E69F596002E122A /* PureBudgetWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B0C0BF742E69F598002E122A /* Exceptions for "PureBudgetWidgets" folder in "PureBudgetWidgetsExtension" target */,
+			);
+			path = PureBudgetWidgets;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -205,6 +196,7 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
+				B0B028052E6D657900D24F28 /* PureBudgetWidgetsExtension.entitlements */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				B0C0BF5F2E69F596002E122A /* PureBudgetWidgets */,
@@ -272,16 +264,17 @@
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
+				B0EE374A2E6C19DD0049E7B0 /* Embed Foundation Extensions */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				EE508A0CBD12A55661129F65 /* [CP] Embed Pods Frameworks */,
 				EDAF7708FB0EEF916858E4A0 /* [CP] Copy Pods Resources */,
-				B0C0BF702E69F598002E122A /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				B0C0BF6E2E69F598002E122A /* PBXTargetDependency */,
+				B0EE373C2E6C15AB0049E7B0 /* PBXTargetDependency */,
+				B0EE37492E6C19DD0049E7B0 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
@@ -304,8 +297,6 @@
 				B0C0BF5F2E69F596002E122A /* PureBudgetWidgets */,
 			);
 			name = PureBudgetWidgetsExtension;
-			packageProductDependencies = (
-			);
 			productName = PureBudgetWidgetsExtension;
 			productReference = B0C0BF5A2E69F595002E122A /* PureBudgetWidgetsExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -335,7 +326,6 @@
 				};
 			};
 			buildConfigurationList = 97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */;
-			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -356,6 +346,7 @@
 				tr,
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -548,10 +539,15 @@
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
 		};
-		B0C0BF6E2E69F598002E122A /* PBXTargetDependency */ = {
+		B0EE373C2E6C15AB0049E7B0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = B0C0BF592E69F595002E122A /* PureBudgetWidgetsExtension */;
-			targetProxy = B0C0BF6D2E69F598002E122A /* PBXContainerItemProxy */;
+			targetProxy = B0EE373B2E6C15AB0049E7B0 /* PBXContainerItemProxy */;
+		};
+		B0EE37492E6C19DD0049E7B0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B0C0BF592E69F595002E122A /* PureBudgetWidgetsExtension */;
+			targetProxy = B0EE37482E6C19DD0049E7B0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -560,19 +556,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				97C146FB1CF9000F007C117D /* Base */,
-				B00AE0412E3FC3C800D3D713 /* zh-HK */,
-				B00AE0432E3FC3EE00D3D713 /* fr */,
-				B00AE0452E3FC40C00D3D713 /* de */,
-				B00AE0472E3FC42E00D3D713 /* hi */,
-				B00AE0492E3FC43A00D3D713 /* it */,
-				B00AE04B2E3FC44700D3D713 /* ja */,
-				B00AE04D2E3FC45100D3D713 /* ko */,
-				B00AE04F2E3FC45B00D3D713 /* pl */,
-				B00AE0512E3FC46300D3D713 /* pt-BR */,
-				B00AE0532E3FC46900D3D713 /* pt-PT */,
-				B00AE0552E3FC47400D3D713 /* ru */,
-				B00AE0572E3FC47E00D3D713 /* es */,
-				B00AE0592E3FC48700D3D713 /* tr */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -581,19 +564,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				97C147001CF9000F007C117D /* Base */,
-				B00AE0422E3FC3C800D3D713 /* zh-HK */,
-				B00AE0442E3FC3EF00D3D713 /* fr */,
-				B00AE0462E3FC40C00D3D713 /* de */,
-				B00AE0482E3FC43000D3D713 /* hi */,
-				B00AE04A2E3FC43A00D3D713 /* it */,
-				B00AE04C2E3FC44700D3D713 /* ja */,
-				B00AE04E2E3FC45100D3D713 /* ko */,
-				B00AE0502E3FC45B00D3D713 /* pl */,
-				B00AE0522E3FC46300D3D713 /* pt-BR */,
-				B00AE0542E3FC46900D3D713 /* pt-PT */,
-				B00AE0562E3FC47400D3D713 /* ru */,
-				B00AE0582E3FC47E00D3D713 /* es */,
-				B00AE05A2E3FC48800D3D713 /* tr */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -922,6 +892,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = PureBudgetWidgetsExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FRVNJVQ74U;
@@ -964,6 +935,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = PureBudgetWidgetsExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FRVNJVQ74U;
@@ -1003,6 +975,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = PureBudgetWidgetsExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FRVNJVQ74U;

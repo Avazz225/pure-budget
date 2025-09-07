@@ -19,12 +19,20 @@ struct TotalBudgetProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (TotalBudgetEntry) -> Void) {
-        completion(placeholder(in: context))
+        let entry = loadEntry()
+        completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<TotalBudgetEntry>) -> Void) {
-        // Werte aus App Group laden
-        let defaults = UserDefaults(suiteName: "group.com.jne_solutions.household")
+        let entry = loadEntry()
+
+        let timeline = Timeline(entries: [entry], policy: .never)
+        completion(timeline)
+    }
+
+    private func loadEntry() -> TotalBudgetEntry {
+        let defaults = UserDefaults(suiteName: "group.pureBudgetIOS")
+
         let fraction = defaults?.string(forKey: "fractionTotalBudget") ?? "0"
         let totalBudget = defaults?.string(forKey: "totalBudget") ?? "0"
         let currency = defaults?.string(forKey: "currency") ?? "€"
@@ -37,34 +45,33 @@ struct TotalBudgetProvider: TimelineProvider {
         let formattedFraction = "\(fraction) \(currency)"
         let totalText = "\(totalFrom) \(formattedAmount) \(totalConnector)"
 
-        let entry = TotalBudgetEntry(
+        return TotalBudgetEntry(
             date: Date(),
             fractionTotalBudget: formattedFraction,
             totalText: totalText,
             backgroundColor: baseColor
         )
-
-        // Sofort anzeigen, erneutes Update in 15 Min
-        let timeline = Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(900)))
-        completion(timeline)
     }
 }
 
 struct TotalBudgetWidgetEntryView: View {
+    @Environment(\.colorScheme) var colorScheme
     var entry: TotalBudgetProvider.Entry
 
     var body: some View {
         VStack(alignment: .center, spacing: 8) {
             Text(entry.fractionTotalBudget)
-                .font(.system(size: 36, weight: .bold))
-                .foregroundColor(.white)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
             Text(entry.totalText)
                 .font(.system(size: 18))
-                .foregroundColor(.white)
+                .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(entry.backgroundColor)
-        .widgetURL(URL(string: "jnehousehold://openApp")) // Deep Link zu Flutter
+        .containerBackground(for: .widget) {
+            colorScheme == .dark ? Color.black : Color.white
+        }
+        .widgetURL(URL(string: "jnehousehold://"))
     }
 }
 
@@ -75,8 +82,8 @@ struct TotalBudgetWidget: Widget {
         StaticConfiguration(kind: kind, provider: TotalBudgetProvider()) { entry in
             TotalBudgetWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Total Budget")
-        .description("Shows your total household budget.")
+        .configurationDisplayName(NSLocalizedString("WIDGET_TOTAL_BUDGET_TITLE", comment: "Title of the total budget widget"))
+        .description(NSLocalizedString("WIDGET_TOTAL_BUDGET_DESCRIPTION", comment: "Description of the total budget widget"))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
