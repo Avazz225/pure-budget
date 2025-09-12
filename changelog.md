@@ -6,6 +6,11 @@
 
 - report issue button to submit error reports from within the app
 - custom background gardients
+- notification service
+- "real" credit card bank account
+  - "refills at" from bank account xy
+- default bank account per category
+- preparation for pure budget browser plugin
 
 ```txt
 Developer Info:
