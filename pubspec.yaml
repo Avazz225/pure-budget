@@ -103,8 +103,7 @@ flutter:
 
   assets:
     - lib/i18n/
-    - assets/icons/logo.png
-    - assets/icons/pb_icon.ico
+    - assets/icons/
 
   fonts:
     - family: RobotoMono

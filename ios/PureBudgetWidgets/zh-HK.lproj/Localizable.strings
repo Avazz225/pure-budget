@@ -1,0 +1,11 @@
+//
+//  Localizable.strings
+//  Runner
+//
+//  Created by Jan Jeschinski on 07.09.25.
+//
+
+"WIDGET_TOTAL_BUDGET_TITLE" = "总预算";
+"WIDGET_TOTAL_BUDGET_DESCRIPTION" = "显示您的家庭总预算。";
+"WIDGET_CATEGORIES_TITLE" = "类别";
+"WIDGET_CATEGORIES_DESCRIPTION" = "显示每个类别的预算。";

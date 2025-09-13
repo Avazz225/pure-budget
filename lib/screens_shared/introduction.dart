@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/helper/default_values.dart';
-import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/export_import.dart';
@@ -318,7 +317,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
                       style: largeBody,
                       textAlign: TextAlign.center,
                     ),
-                    AddCategory(budgetState: budgetState, pro: getProStatus(budgetState.isPro, budgetState.isDesktopPro)),
+                    AddCategory(budgetState: budgetState, pro: budgetState.proStatusIsSet(simplePro: true)),
                     categoryList(budgetState, setState)
                   ]
                 )

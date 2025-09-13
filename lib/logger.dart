@@ -7,7 +7,7 @@ enum LogLevel { debug, info, warning, error }
 
 class Logger {
   static final Logger _instance = Logger._internal();
-  final int minTagLen = 16;
+  final int minTagLen = 20;
   final int maxLevelLen = 9;
 
   late final LogLevel _minLevel;
@@ -22,7 +22,7 @@ class Logger {
   Future<void> init({LogLevel minLevel = LogLevel.debug}) async {
     _minLevel = minLevel;
 
-    if (!Platform.isAndroid && !Platform.isIOS && !Platform.isLinux) {
+    if ((!Platform.isAndroid && !Platform.isIOS && !Platform.isLinux) && !kDebugMode) {
       _isDesktop = true;
       final dir = await getApplicationDocumentsDirectory();
       final appDir = Directory(join(dir.path, 'PureBudget'));
@@ -67,12 +67,13 @@ class Logger {
     prefix = prefix + " " * (minTagLen - prefix.length);
     final output = "[$now] $levelStr $prefix $message";
 
-    if (_isDesktop && _logFile != null) {
-      _logFile!.writeAsStringSync("$output \n", mode: FileMode.append, flush: true);
-    }
 
     if (kDebugMode) {
       debugPrint(output);
+    } else {
+      if (_isDesktop && _logFile != null) {
+        _logFile!.writeAsStringSync("$output \n", mode: FileMode.append, flush: true);
+      }
     }
   }
 }

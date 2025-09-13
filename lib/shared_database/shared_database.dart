@@ -364,7 +364,7 @@ class SharedDatabase {
       if (totalChanges > 0 || changeEncryptKey) {
         await uploadFile(sharedDbFilePath, tempRemoteDbCopyFile);
       } else{
-        _logger.debug("Skipping upload no changes.", tag: "sharedDatabase");
+        _logger.debug("Skipping upload no upstream changes.", tag: "sharedDatabase");
       }
 
       // delete local copy
@@ -488,8 +488,6 @@ class SharedDatabase {
         List<Map<String, dynamic>> changes = _reduceImmutableChanges(immutableChanges);
         
         _logger.debug("Downstream pulling changes, cleaned: ${changes.length}", tag: "sharedDatabase");
-
-        totalChanges += changes.length;
 
         // Apply changes to local database
         await localDatabase.transaction((txn) async {

@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/screens_mobile/mobile_receipt_scanner.dart';
@@ -62,7 +60,7 @@ class HomeScreenState extends State<HomeScreen> {
             else
             const Icon(Icons.cloud_sync_rounded),
           ], 
-          if (budgetState.isPro || kDebugMode)
+          if (budgetState.proStatusIsSet())
           IconButton(
             icon: const Icon(Icons.camera_alt_rounded),
             onPressed: () => Navigator.of(context).push(
@@ -104,7 +102,7 @@ class HomeScreenState extends State<HomeScreen> {
                 value: 'help',
                 child: Text(I18n.translate("help")),
               ),
-              if (!getProStatus(budgetState.isPro, budgetState.isDesktopPro) || kDebugMode)
+              if (budgetState.proStatusIsSet(inverted: true))
               PopupMenuItem(
                 value: 'inAppPurchase',
                 child: Row(
@@ -121,7 +119,7 @@ class HomeScreenState extends State<HomeScreen> {
                   ],
                 )
               ),
-              if (getProStatus(budgetState.isPro, budgetState.isDesktopPro) || kDebugMode)
+              if (budgetState.proStatusIsSet())
               PopupMenuItem(
                 value: 'customization',
                 child: Text(I18n.translate("customization")),
@@ -139,7 +137,7 @@ class HomeScreenState extends State<HomeScreen> {
         1 => const StatisticsScreen(),
         3 => Column(
               children: [
-                AddCategory(budgetState: budgetState, pro: getProStatus(budgetState.isPro, budgetState.isDesktopPro)),
+                AddCategory(budgetState: budgetState, pro: budgetState.proStatusIsSet()),
                 categoryList(budgetState, setState),
               ],
             ),
@@ -202,7 +200,7 @@ class HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   tabindex = index;
                 });
-              } else if (index == 2 && (budgetState.isPro || kDebugMode)) {
+              } else if (index == 2 && budgetState.proStatusIsSet()) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState,),
@@ -211,7 +209,7 @@ class HomeScreenState extends State<HomeScreen> {
               }
             },
           ),
-          if (!getProStatus(budgetState.isPro, budgetState.isDesktopPro))
+          if (budgetState.proStatusIsSet(inverted: true, ignoreDebugMode: true))
           const MainBanner()
         ],
       ),

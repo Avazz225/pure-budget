@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/services/desktop_pro_upgrade_manager.dart';
-import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/screens_shared/customization_screen.dart';
@@ -218,7 +217,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
               1 => const StatisticsScreen(),
               3 => Column(
                     children: [
-                      AddCategory(budgetState: budgetState, pro: getProStatus(budgetState.isPro, budgetState.isDesktopPro)),
+                      AddCategory(budgetState: budgetState, pro: budgetState.proStatusIsSet(simplePro: true)),
                       categoryList(budgetState, setState),
                     ],
                   ),

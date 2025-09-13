@@ -1,0 +1,11 @@
+//
+//  Localizable.strings
+//  Runner
+//
+//  Created by Jan Jeschinski on 07.09.25.
+//
+
+"WIDGET_TOTAL_BUDGET_TITLE" = "Orçamento total";
+"WIDGET_TOTAL_BUDGET_DESCRIPTION" = "Mostra o orçamento total da sua casa.";
+"WIDGET_CATEGORIES_TITLE" = "Categorias";
+"WIDGET_CATEGORIES_DESCRIPTION" = "Mostra o orçamento por categoria.";

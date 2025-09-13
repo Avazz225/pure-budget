@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jne_household_app/logger.dart';
@@ -30,7 +27,7 @@ class UriHandler {
           accountId: state.filterBudget, 
           bankAccounts: state.bankAccounts, 
           bankAccoutCount: state.bankAccounts.length,
-          allowCamera: (kDebugMode || state.isPro) && (Platform.isAndroid || Platform.isIOS)
+          allowCamera: state.proStatusIsSet(mobileOnly: true)
         );
         if (res) {
           Navigator.of(navigatorKey.currentContext!).push(
