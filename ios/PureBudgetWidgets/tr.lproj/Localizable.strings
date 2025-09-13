@@ -1,0 +1,11 @@
+//
+//  Localizable.strings
+//  Runner
+//
+//  Created by Jan Jeschinski on 07.09.25.
+//
+
+"WIDGET_TOTAL_BUDGET_TITLE" = "Toplam Bütçe";
+"WIDGET_TOTAL_BUDGET_DESCRIPTION" = "Toplam hanehalkı bütçenizi gösterir.";
+"WIDGET_CATEGORIES_TITLE" = "Kategoriler";
+"WIDGET_CATEGORIES_DESCRIPTION" = "Kategoriye göre bütçenizi gösterir.";

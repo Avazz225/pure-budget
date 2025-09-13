@@ -1,5 +1,3 @@
-import 'dart:io';
-
 const int maxAutoExpenses = 5;
 const int maxCategories = 5;
 
@@ -12,13 +10,3 @@ const String proVersionProductId = "jjs.purebudget.pro";
 
 // desktop vars
 const desktopIsDefaultPro = false;
-
-bool getProStatus(bool isPro, bool desktopIsPro) {
-  if (isPro) return true;
-
-  if (!(Platform.isAndroid || Platform.isIOS) && (desktopIsDefaultPro || desktopIsPro)) {
-    return true;
-  }
-  return false;
-}
-

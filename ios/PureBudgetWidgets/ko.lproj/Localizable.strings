@@ -1,0 +1,11 @@
+//
+//  Localizable.strings
+//  Runner
+//
+//  Created by Jan Jeschinski on 07.09.25.
+//
+
+"WIDGET_TOTAL_BUDGET_TITLE" = "총 예산";
+"WIDGET_TOTAL_BUDGET_DESCRIPTION" = "전체 가계 예산을 표시합니다.";
+"WIDGET_CATEGORIES_TITLE" = "카테고리";
+"WIDGET_CATEGORIES_DESCRIPTION" = "카테고리별 예산을 표시합니다.";

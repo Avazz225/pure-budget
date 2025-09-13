@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
-import 'package:jne_household_app/helper/free_restrictions.dart';
 import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -247,7 +246,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               child: Language(budgetState: budgetState)
             ),
             const SizedBox(height: 8,),
-            if (getProStatus(budgetState.isPro, budgetState.isDesktopPro) || kDebugMode || Platform.isLinux || Platform.isWindows || Platform.isMacOS)
+            if (budgetState.proStatusIsSet() || Platform.isLinux || Platform.isWindows || Platform.isMacOS)
             ElevatedButton(
               style: btnNeutralStyle,
               onPressed: () => Navigator.of(context).push(

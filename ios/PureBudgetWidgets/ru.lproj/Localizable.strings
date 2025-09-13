@@ -1,0 +1,11 @@
+//
+//  Localizable.strings
+//  Runner
+//
+//  Created by Jan Jeschinski on 07.09.25.
+//
+
+"WIDGET_TOTAL_BUDGET_TITLE" = "Общий бюджет";
+"WIDGET_TOTAL_BUDGET_DESCRIPTION" = "Показывает общий бюджет семьи.";
+"WIDGET_CATEGORIES_TITLE" = "Категории";
+"WIDGET_CATEGORIES_DESCRIPTION" = "Показывает бюджет по категориям.";

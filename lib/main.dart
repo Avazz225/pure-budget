@@ -32,23 +32,28 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 
 Future<void> main() async {
-  const bool takeScreenshots = String.fromEnvironment('SCREENS', defaultValue: 'f') == "t";
-
   WidgetsFlutterBinding.ensureInitialized();
+
   // initialize logger
   final logger = Logger();
   await logger.init(minLevel: (kDebugMode) ? LogLevel.debug : LogLevel.error);
+  const bool takeScreenshots = String.fromEnvironment('SCREENS', defaultValue: 'f') == "t";
+
+  final quickActions = QuickActionsService();
+  if (Platform.isIOS) {
+    await quickActions.initIOS();
+  }
 
   // initialize app
   final initializationData = await InitializationService.initializeApp();
   logger.info("Initialization finished", tag: "init");
 
   logger.info("Initialize quick actions", tag: "quickActions");
-  final quickActions = QuickActionsService();
   await quickActions.init(
     categories: initializationData.budgetState.categories,
     sharedDbRegistered: initializationData.budgetState.sharedDbUrl != "none",
     onActionSelected: (action) async {
+      logger.debug("Action called: $action", tag: "quickActions");
       if (action.startsWith("new?")) {
         final catId = int.tryParse(action.substring(4));
         logger.debug("New expense for category: $catId", tag: "quickActions");
@@ -59,7 +64,7 @@ Future<void> main() async {
           accountId: initializationData.budgetState.filterBudget,
           bankAccounts: initializationData.budgetState.bankAccounts,
           bankAccoutCount: initializationData.budgetState.bankAccounts.length,
-          allowCamera: (kDebugMode || initializationData.budgetState.isPro) && (Platform.isAndroid || Platform.isIOS)
+          allowCamera: initializationData.budgetState.proStatusIsSet(mobileOnly: true)
         );
       } else {
         switch (action) {

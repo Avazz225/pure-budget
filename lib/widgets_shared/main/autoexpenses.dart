@@ -20,7 +20,7 @@ Widget autoExpenseList(dynamic budgetState) {
 
   List<Widget> buildAutoExpensesForCategory(context, int categoryId) {
     final budgetState = Provider.of<BudgetState>(context);
-    var allowNewAutoExpense = (budgetState.autoExpenses.length < maxAutoExpenses) || getProStatus(budgetState.isPro, budgetState.isDesktopPro);
+    var allowNewAutoExpense = (budgetState.autoExpenses.length < maxAutoExpenses) || budgetState.proStatusIsSet(simplePro: true);
 
     final expenses = budgetState.autoExpenses
       .where((expense) => expense.categoryId == categoryId)

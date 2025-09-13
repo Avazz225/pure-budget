@@ -1,0 +1,11 @@
+//
+//  Localizable.strings
+//  Runner
+//
+//  Created by Jan Jeschinski on 07.09.25.
+//
+
+"WIDGET_TOTAL_BUDGET_TITLE" = "合計予算";
+"WIDGET_TOTAL_BUDGET_DESCRIPTION" = "家計全体の予算を表示します。";
+"WIDGET_CATEGORIES_TITLE" = "カテゴリ";
+"WIDGET_CATEGORIES_DESCRIPTION" = "カテゴリごとの予算を表示します。";
