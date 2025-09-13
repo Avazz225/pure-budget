@@ -414,5 +414,15 @@
     "availableStr": "verfügbar",
     "from": "von",
 
-    "or": "oder"
+    "or": "oder",
+
+    "reportDesc": "Bitte beschreibe dein Problem möglichst genau.",
+    "reportDoNotEdit": "Bitte bearbeiten Sie die folgenden Daten nicht, da diese zur Analyse Ihres Problems erforderlich sind. Sie können sie jedoch überprüfen.",
+    "report": "Einen Fehler melden",
+    "reportSend": "Absenden",
+    "copied": "kopiert",
+    "recipient": "Empfänger",
+    "subject": "Betreff",
+    "body": "Mailtext",
+    "reportHelp": "Die Felder können per Mausklick kopiert werden."
 }

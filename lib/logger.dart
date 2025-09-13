@@ -13,6 +13,7 @@ class Logger {
   late final LogLevel _minLevel;
   File? _logFile;
   bool _isDesktop = false;
+  final List<String> _criticals = [];
 
   Logger._internal();
 
@@ -50,11 +51,17 @@ class Logger {
   }
 
   void warning(String message, {String? tag}) {
+    _criticals.add("[WARNING] [$tag] $message");
     _log(LogLevel.warning, message, tag: tag);
   }
 
   void error(String message, {String? tag}) {
+    _criticals.add("[ERROR]   [$tag] $message");
     _log(LogLevel.error, message, tag: tag);
+  }
+
+  List<String> getCriticalLog() {
+    return _criticals;
   }
 
   void _log(LogLevel level, String message, {String? tag}) {
