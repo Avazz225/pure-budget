@@ -5,7 +5,7 @@
 ### 3.2.0
 
 - report issue button to submit error reports from within the app
-- custom background gardients
+- custom background gradients
 - notification service
 - "real" credit card bank account
   - "refills at" from bank account xy
