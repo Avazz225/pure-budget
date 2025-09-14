@@ -11,6 +11,7 @@ import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/widgets_shared/app_background.dart';
 import 'package:jne_household_app/widgets_shared/buttons.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/color_picker_dialog.dart';
 import 'package:jne_household_app/widgets_shared/home/category_list.dart';
 import 'package:provider/provider.dart';
 
@@ -44,6 +45,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
   late double _blurIntensity;
   late String _customBackgroundPath;
   late int _appBackground;
+  late Map<String,dynamic> _customGradient;
 
   @override
   void initState() {
@@ -65,6 +67,11 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
     _blurIntensity = designState.blurIntensity * 100;
     _customBackgroundPath = designState.customBackgroundPath;
     _appBackground = designState.appBackground;
+    _customGradient = designState.customGradient;
+
+    if (_customGradient.isEmpty || _customGradient['colors'].isEmpty) {
+      _customGradient['colors'] = [Colors.blue, Colors.purple];
+    }
   }
 
   bool isDesktop() {
@@ -140,7 +147,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                       child: SizedBox(
                         height: height,
                         width: width,
-                        child: AppBackground(imagePath: "none", gradientOption: i, blur: designState.customBackgroundBlur,)
+                        child: AppBackground(imagePath: "none", gradientOption: i, blur: designState.customBackgroundBlur, customGradient: designState.customGradient)
                       )
                     )
                   );
@@ -151,6 +158,127 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
+              child: Text(I18n.translate("done")),
+            )
+          ],
+        );
+      }
+    );
+  }
+
+  void showAppBackgroundCustomizer() {
+    final designState = Provider.of<DesignState>(context, listen: false);
+    final height = MediaQuery.of(context).size.height / 3;
+    final width = MediaQuery.of(context).size.width / 3;
+
+    showDialog(
+      context: context, 
+      builder: (context) {
+        return AdaptiveAlertDialog(
+          title: Text(I18n.translate("configCustomBackground")),
+          content: StatefulBuilder(
+          builder: (context, setState) {
+            final List<Color> colors = List<Color>.from(_customGradient['colors'] ?? []);
+            int type = _customGradient['type'] ?? 0;
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Text(I18n.translate("gradientColors"), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 200,
+                      width: 200,
+                      child: ReorderableListView(
+                        shrinkWrap: true,
+                        onReorder: (oldIndex, newIndex) {
+                          setState(() {
+                            if (newIndex > oldIndex) newIndex -= 1;
+                            final color = colors.removeAt(oldIndex);
+                            colors.insert(newIndex, color);
+                            _customGradient['colors'] = colors;
+                          });
+                        },
+                        children: [
+                          for (int i = 0; i < colors.length; i++)
+                            ListTile(
+                              key: ValueKey("color_$i"),
+                              leading: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: colors[i],
+                                  border: Border.all(color: Colors.black26),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              title: Text(I18n.translate("color", placeholders: {"index": (i + 1).toString()})),
+                              trailing: (colors.length > 2) ? IconButton(
+                                icon: const Icon(Icons.delete_rounded, color: Colors.red),
+                                onPressed: () {
+                                  setState(() {
+                                    colors.removeAt(i);
+                                    _customGradient['colors'] = colors;
+                                  });
+                                },
+                              ): null,
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        final newColor = await openColorPickerDialog(context, Colors.white);
+                        setState(() {
+                          colors.add(newColor);
+                          _customGradient['colors'] = colors;
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                      label: Text(I18n.translate("addColor")),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(I18n.translate("gradientType"), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Slider(
+                      min: 1,
+                      max: 9,
+                      divisions: 8,
+                      value: type.toDouble() + 1,
+                      label: (type + 1).toString(),
+                      onChanged: (val) {
+                        setState(() {
+                          type = val.round() - 1;
+                          _customGradient['type'] = type;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: SizedBox(
+                        height: height,
+                        width: width,
+                        child: AppBackground(imagePath: "none", gradientOption: -1, blur: designState.customBackgroundBlur, customGradient: _customGradient)
+                      )
+                    )
+                  ]
+                ),
+              );
+            }
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await designState.updateCustomBackgroundPath("none");
+                await designState.updateAppBackground(-1);
+                await designState.updateCustomGradient(_customGradient);
+                setState(() {
+                  _customBackgroundPath = "none";
+                  _appBackground = -1;
+                });
+
+                Navigator.of(context).pop();
+              },
               child: Text(I18n.translate("done")),
             )
           ],
@@ -556,6 +684,11 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                               ),
                               button(
                                 context,
+                                () {showAppBackgroundCustomizer();},
+                                label: I18n.translate("configCustomBackground")
+                              ),
+                              button(
+                                context,
                                 () {showCustomBackgroundImagePicker();},
                                 label: I18n.translate("customBackgroundPath")
                               )
@@ -606,7 +739,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                                     children: [
                                       Text(I18n.translate("preview"), style: bigBody,),
                                       const SizedBox(height: 8),
-                                      appBackgroundPreview(context, _customBackgroundPath, _appBackground, _customBackgroundBlur, _blurIntensity / 100)
+                                      appBackgroundPreview(context, _customBackgroundPath, _appBackground, _customBackgroundBlur, _blurIntensity / 100, _customGradient)
                                     ]
                                   )
                                 )
@@ -627,11 +760,11 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
   }
 }
 
-Widget appBackgroundPreview(context, imagePath, appBackground, customBackgroundBlur, blurIntensity) {
+Widget appBackgroundPreview(context, imagePath, appBackground, customBackgroundBlur, blurIntensity, customGradient) {
   return SizedBox(
     height: MediaQuery.of(context).size.height / 2,
     width: MediaQuery.of(context).size.width / 2,
-    child: AppBackground(imagePath: imagePath, gradientOption: appBackground, blur: customBackgroundBlur, blurIntensity: blurIntensity)
+    child: AppBackground(imagePath: imagePath, gradientOption: appBackground, blur: customBackgroundBlur, blurIntensity: blurIntensity, customGradient: customGradient)
   );
 }
 

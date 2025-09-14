@@ -4,9 +4,8 @@
 
 ### 3.2.0
 
-- custom background gradients
 - notification service
-- "real" credit card bank account
+- credit card bank account type
   - "refills at" from bank account xy
 - default bank account per category
 - preparation for pure budget browser plugin
@@ -25,6 +24,7 @@ Integration of mobile payment apps is impossible due to privacy reasons maybe pu
 ### 3.2.0 in doing
 
 - report issue button to submit error reports from within the app
+- custom background gradients
 
 ### 3.1.2 bundle 29 (27.08.2025)
 

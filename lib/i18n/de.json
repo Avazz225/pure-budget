@@ -424,5 +424,10 @@
     "recipient": "Empfänger",
     "subject": "Betreff",
     "body": "Mailtext",
-    "reportHelp": "Die Felder können per Mausklick kopiert werden."
+    "reportHelp": "Die Felder können per Mausklick kopiert werden.",
+    "configCustomBackground": "Mehrfarbigen Hintergrund erstellen",
+    "addColor": "Farbe hinzufügen",
+    "gradientColors": "Farben",
+    "gradientType": "Verlaufstyp",
+    "color": "Farbe {index}"
 }

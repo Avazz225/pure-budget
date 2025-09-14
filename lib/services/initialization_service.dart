@@ -106,6 +106,7 @@ class InitializationService {
       customBackgroundBlur: designData["customBackgroundBlur"] == 1,
       mainMenuStyle: designData["mainMenuStyle"] as int,
       blurIntensity: designData["blurIntensity"] as double,
+      customGradient: designData["customGradient"] as String
     );
 
     // Initialize date formatting

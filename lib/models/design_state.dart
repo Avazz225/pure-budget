@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
 
@@ -15,7 +17,8 @@ class DesignState extends ChangeNotifier {
   String customBackgroundPath;
   bool customBackgroundBlur; // only if customBackground is used
   int mainMenuStyle; // button style for main menu
-  double blurIntensity;
+  double blurIntensity; // blur of background image
+  Map<String, dynamic> customGradient; // custom gradient for background
 
   DesignState._({
     required this.layoutMainVertical,
@@ -31,7 +34,8 @@ class DesignState extends ChangeNotifier {
     required this.customBackgroundBlur,
     required this.customBackgroundPath,
     required this.mainMenuStyle,
-    required this.blurIntensity
+    required this.blurIntensity,
+    required this.customGradient
   });
 
   factory DesignState({
@@ -48,7 +52,8 @@ class DesignState extends ChangeNotifier {
     required bool customBackgroundBlur,
     required String customBackgroundPath,
     required int mainMenuStyle,
-    required double blurIntensity
+    required double blurIntensity,
+    required String customGradient
   }) {
     return DesignState._(
       layoutMainVertical: layoutMainVertical,
@@ -64,7 +69,8 @@ class DesignState extends ChangeNotifier {
       customBackgroundBlur: customBackgroundBlur,
       customBackgroundPath: customBackgroundPath,
       mainMenuStyle: mainMenuStyle,
-      blurIntensity: blurIntensity
+      blurIntensity: blurIntensity,
+      customGradient: decodeCustomGradient(customGradient)
     );
   }
 
@@ -82,7 +88,8 @@ class DesignState extends ChangeNotifier {
     required bool customBackgroundBlur,
     required String customBackgroundPath,
     required int mainMenuStyle,
-    required double blurIntensity
+    required double blurIntensity,
+    required String customGradient
   }) {
     final instance = DesignState(
       layoutMainVertical: layoutMainVertical,
@@ -98,11 +105,38 @@ class DesignState extends ChangeNotifier {
       customBackgroundBlur: customBackgroundBlur,
       customBackgroundPath: customBackgroundPath,
       mainMenuStyle: mainMenuStyle,
-      blurIntensity: blurIntensity
+      blurIntensity: blurIntensity,
+      customGradient: customGradient
     );
 
     return instance;
   } 
+
+  static Map<String, dynamic> decodeCustomGradient(String jsonString) {
+    final Map<String, dynamic> data = json.decode(jsonString);
+
+    final colors = (data["colors"] as List)
+        .map((v) => Color(v as int))
+        .toList();
+
+    final type = data["type"] as int;
+
+    return {
+      "colors": colors,
+      "type": type,
+    };
+  }
+
+  Future<void> updateCustomGradient(Map<String, dynamic> data) async {
+    customGradient = data;
+
+    final Map<String, dynamic> processed = {
+      "colors": data['colors'].map((c) => c.value).toList(),
+      "type": data['type'],
+    };
+    
+    await DatabaseHelper().updateDesign("customGradient", json.encode(processed));
+  }
 
   Future<void> updateMainMenuStyle(int index) async {
     mainMenuStyle = index;
