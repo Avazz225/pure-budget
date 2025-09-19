@@ -115,6 +115,13 @@ class DesignState extends ChangeNotifier {
   static Map<String, dynamic> decodeCustomGradient(String jsonString) {
     final Map<String, dynamic> data = json.decode(jsonString);
 
+    if (data["colors"] == null || data["type"] == null) {
+      return {
+        "colors": [Colors.blue, Colors.purple],
+        "type": 0,
+      };
+    }
+    
     final colors = (data["colors"] as List)
         .map((v) => Color(v as int))
         .toList();

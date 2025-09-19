@@ -4,7 +4,6 @@
 
 ### 3.2.0
 
-- notification service
 - credit card bank account type
   - "refills at" from bank account xy
 - default bank account per category
@@ -25,6 +24,7 @@ Integration of mobile payment apps is impossible due to privacy reasons maybe pu
 
 - report issue button to submit error reports from within the app
 - custom background gradients
+- notification service [unavailable on windows]
 
 ### 3.1.2 bundle 29 (27.08.2025)
 

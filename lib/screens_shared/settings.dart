@@ -10,12 +10,14 @@ import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/screens_shared/remote_database.dart';
+import 'package:jne_household_app/services/notification_service.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/debug_import_file_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/report_issue_dialog.dart';
 import 'package:jne_household_app/widgets_shared/settings/bank_account.dart';
 import 'package:jne_household_app/widgets_shared/settings/export_import.dart';
 import 'package:jne_household_app/widgets_shared/settings/language.dart';
+import 'package:jne_household_app/widgets_shared/settings/reminder.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:mail_sender/mail_sender.dart';
 import 'package:path/path.dart' as p;
@@ -247,6 +249,15 @@ class SettingsScreenState extends State<SettingsScreen> {
             Card(
               child: Language(budgetState: budgetState)
             ),
+            if (!Platform.isWindows)
+            ...[
+              const ReminderSettingsWidget(),
+              if (kDebugMode)
+              ...[
+                ElevatedButton(onPressed: () => NotificationService().showTestNotification(), child: const Text("DEBUG: Show test notification")),
+                ElevatedButton(onPressed: () => NotificationService().listScheduledNotification(), child: const Text("DEBUG: List scheduled notifications")),
+              ]
+            ],
             const SizedBox(height: 8,),
             if (budgetState.proStatusIsSet() || Platform.isLinux || Platform.isWindows || Platform.isMacOS)
             ElevatedButton(

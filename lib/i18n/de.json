@@ -429,5 +429,11 @@
     "addColor": "Farbe hinzufügen",
     "gradientColors": "Farben",
     "gradientType": "Verlaufstyp",
-    "color": "Farbe {index}"
+    "color": "Farbe {index}",
+    "reminderTitle": "Schon deine heutigen Ausgaben erfasst?",
+    "reminderText": "Wenn nicht, Zeit das nachzuholen!",
+    "reminderSaved": "Reminder gespeichert",
+    "activateReminder": "Erinnerungen nutzen",
+    "change": "Ändern",
+    "time": "Uhrzeit: {time}"
 }

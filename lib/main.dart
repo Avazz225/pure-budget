@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jne_household_app/services/notification_service.dart';
 import 'package:jne_household_app/services/uri_handler.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jne_household_app/services/quick_actions_service.dart';
@@ -47,6 +48,15 @@ Future<void> main() async {
   // initialize app
   final initializationData = await InitializationService.initializeApp();
   logger.info("Initialization finished", tag: "init");
+  logger.info("Initialize notification service", tag: "init");
+  if (!Platform.isWindows) {
+    await NotificationService().init();
+    if (kDebugMode) {
+      NotificationService().getPendingReminders();
+    }
+  }
+  
+  logger.info("Initialization of notification service finished", tag: "init");
 
   logger.info("Initialize quick actions", tag: "quickActions");
   await quickActions.init(
