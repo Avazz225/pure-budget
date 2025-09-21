@@ -91,7 +91,8 @@ class NotificationService {
       final scheduled = _nextInstanceOfWeekdayTime(day, settings.time);
       _logger.debug("Scheduling reminder for $day at ${settings.time}, scheduled time: $scheduled", tag: "notification");
 
-      await _plugin.zonedSchedule(
+      try {
+        await _plugin.zonedSchedule(
         id,
         title,
         body,
@@ -100,6 +101,22 @@ class NotificationService {
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
+      } catch (e) {
+        _logger.warning("Error scheduling notification: $e", tag: "notification");
+        try {
+          await _plugin.zonedSchedule(
+            id,
+            title,
+            body,
+            scheduled,
+            _buildDetails(),
+            androidScheduleMode: AndroidScheduleMode.inexact,
+            matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+          );
+        } catch (e) {
+          _logger.error("Error scheduling notification with fallback failed: $e", tag: "notification");
+        }
+      }
     }
 
     _logger.debug("Set new reminders", tag: "notification");
