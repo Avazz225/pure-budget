@@ -4,9 +4,6 @@
 
 ### 3.2.0
 
-- credit card bank account type
-  - "refills at" from bank account xy
-- default bank account per category
 - preparation for pure budget browser plugin
 
 ```txt
@@ -25,6 +22,9 @@ Integration of mobile payment apps is impossible due to privacy reasons maybe pu
 - report issue button to submit error reports from within the app
 - custom background gradients
 - notification service [unavailable on windows]
+- credit card bank account type
+  - "refills at" from normal bank account
+- default bank account per category
 
 ### 3.1.2 bundle 29 (27.08.2025)
 

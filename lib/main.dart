@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/services/background_jobs.dart';
 import 'package:jne_household_app/services/notification_service.dart';
 import 'package:jne_household_app/services/uri_handler.dart';
 import 'package:window_manager/window_manager.dart';
@@ -74,7 +76,8 @@ Future<void> main() async {
           accountId: initializationData.budgetState.filterBudget,
           bankAccounts: initializationData.budgetState.bankAccounts,
           bankAccoutCount: initializationData.budgetState.bankAccounts.length,
-          allowCamera: initializationData.budgetState.proStatusIsSet(mobileOnly: true)
+          allowCamera: initializationData.budgetState.proStatusIsSet(mobileOnly: true),
+          overrideBankAccount: initializationData.budgetState.categories.where((c) => c.categoryId == catId).first.overrideBankAccount,
         );
       } else {
         switch (action) {
@@ -150,7 +153,7 @@ class HouseholdBudgetApp extends StatefulWidget {
 }
 
 
-class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
+class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBindingObserver {
   final LocalAuthentication auth = LocalAuthentication();
   bool _isAuthenticated = false;
 
@@ -158,6 +161,27 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> {
   void initState() {
     super.initState();
     _authenticate(widget.lockApp);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      // App kommt aus dem Hintergrund in den Vordergrund
+      await _checkAndRunJobs();
+    }
+  }
+
+  Future<void> _checkAndRunJobs() async {
+    final dbHelper = DatabaseHelper();
+    final settings = await dbHelper.getSettings();
+    backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings['lastAutoExpenseRun']);
   }
 
   Future<void> _authenticate(bool authRequired) async {

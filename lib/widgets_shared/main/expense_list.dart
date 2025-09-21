@@ -40,7 +40,7 @@ class _ExpenseListState extends State<ExpenseList> {
   }
 
   void _loadExpenses() {
-    _expensesFuture = DatabaseHelper().getExpenses(widget.categoryId, widget.state.filterBudget, widget.state.budgetRanges[widget.state.range]);
+    _expensesFuture = DatabaseHelper().getExpenses(widget.categoryId, widget.state.filterBudget, widget.state.budgetRanges[widget.state.range], widget.state.bankAccounts);
   }
 
   void _refreshExpenses() {
@@ -76,7 +76,8 @@ class _ExpenseListState extends State<ExpenseList> {
                         accountId: widget.state.filterBudget, 
                         bankAccounts: widget.state.bankAccounts, 
                         bankAccoutCount: widget.state.bankAccounts.length,
-                        allowCamera: widget.state.proStatusIsSet(mobileOnly: true)
+                        allowCamera: widget.state.proStatusIsSet(mobileOnly: true),
+                        overrideBankAccount: widget.state.categories.where((c) => c.categoryId == widget.categoryId).first.overrideBankAccount,
                       );
                       if (res) {
                         Navigator.of(context).push(
@@ -175,7 +176,16 @@ class _ExpenseListState extends State<ExpenseList> {
             IconButton(
               icon: const Icon(Icons.edit_rounded),
               onPressed: () async {
-                await showExpenseDialog(context: context, category: widget.category, categoryId: widget.categoryId, expense: expense, accountId: expense['accountId'].toString(), bankAccounts: accounts, bankAccoutCount: accounts.length);
+                await showExpenseDialog(
+                  context: context, 
+                  category: widget.category, 
+                  categoryId: widget.categoryId, 
+                  expense: expense, 
+                  accountId: expense['accountId'].toString(), 
+                  bankAccounts: accounts, 
+                  bankAccoutCount: accounts.length,
+                  overrideBankAccount: widget.state.categories.where((c) => c.categoryId == widget.categoryId).first.overrideBankAccount,
+                );
                 _refreshExpenses();
               },
             ),

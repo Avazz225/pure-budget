@@ -8,6 +8,9 @@ class BankAccount {
   int budgetResetDay;
   String lastSavingRun;
   double transfers;
+  bool isCreditCard;
+  int refillsFrom;
+  String refillPrincipleMode;
 
   BankAccount({
     required this.id,
@@ -18,6 +21,9 @@ class BankAccount {
     required this.budgetResetPrinciple,
     required this.budgetResetDay,
     required this.lastSavingRun,
-    required this.transfers
+    required this.transfers,
+    required this.isCreditCard,
+    required this.refillsFrom,
+    required this.refillPrincipleMode
   });
 }

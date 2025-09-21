@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:jne_household_app/models/reminder_settings.dart';
+import 'package:jne_household_app/models/reset_principles.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
@@ -44,16 +45,17 @@ class DatabaseHelper {
     
     return openDatabase(
       join(dbPath, (kDebugMode) ? 'debug_budget.db' : 'budget.db'),
-      version: 32,
+      version: 36,
       onCreate: (db, version) {
         db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
         db.execute('CREATE TABLE categories(id INTEGER PRIMARY KEY, name TEXT, color TEXT, position INTEGER)');
-        db.execute('CREATE TABLE settings (id INTEGER PRIMARY KEY, currency TEXT, language TEXT DEFAULT "auto", includePlanned INTEGER DEFAULT 0, lastAutoExpenseRun TEXT DEFAULT "none", showAvailableBudget INTEGER DEFAULT 0, isPro INTEGER DEFAULT 0, useBalance INTEGER DEFAULT 0, filterBudget TEXT DEFAULT "*", lastAdFail TEXT DEFAULT "none", lastAdSuccess TEXT DEFAULT "none", lastSavingRun TEXT DEFAULT "none", lastProcessedBatchId INTEGER DEFAULT -1, sharedDbUrl TEXT DEFAULT "none", syncMode TEXT DEFAULT "instant", syncFrequency INTEGER DEFAULT 1, lastSync TEXT DEFAULT "none", lockApp INTEGER DEFAULT 0, isDesktopPro INTEGER DEFAULT 0, selectedScanCategory INTEGER DEFAULT -1, reminder TEXT DEFAULT "{}")');
+        db.execute('CREATE TABLE settings (id INTEGER PRIMARY KEY, currency TEXT, language TEXT DEFAULT "auto", includePlanned INTEGER DEFAULT 0, lastAutoExpenseRun TEXT DEFAULT "none", showAvailableBudget INTEGER DEFAULT 0, isPro INTEGER DEFAULT 0, useBalance INTEGER DEFAULT 0, filterBudget TEXT DEFAULT "*", lastAdFail TEXT DEFAULT "none", lastAdSuccess TEXT DEFAULT "none", lastSavingRun TEXT DEFAULT "none", lastProcessedBatchId INTEGER DEFAULT -1, sharedDbUrl TEXT DEFAULT "none", syncMode TEXT DEFAULT "instant", syncFrequency INTEGER DEFAULT 1, lastSync TEXT DEFAULT "none", lockApp INTEGER DEFAULT 0, isDesktopPro INTEGER DEFAULT 0, selectedScanCategory INTEGER DEFAULT -1, reminder TEXT DEFAULT "{}", lastCreditCardRefillRun TEXT DEFAULT "none")');
         db.execute('CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER, principleMode TEXT DEFAULT "monthly", receiverAccountId DEFAULT -1, moneyFlow INTEGER DEFAULT 0, ratePayment INTEGER DEFAULT 0, rateCount INTEGER, firstRateAmount REAL, lastRateAmount REAL)');
-        db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none")');
-        db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY, categoryId INTEGER, accountId INTEGER, budget REAL)');
+        db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none", isCreditCard INTEGER DEFAULT 0, refillsFrom INTEGER DEFAULT -1, refillPrincipleMode TEXT DEFAULT "monthly")');
+        db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY, categoryId INTEGER, accountId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
         db.execute('CREATE TABLE editLog (id INTEGER PRIMARY KEY, affectedTable TEXT, affectedId INTEGER, type TEXT, sharedBatchId INTEGER DEFAULT -1)');
         db.execute('CREATE TABLE design (id INTEGER PRIMARY KEY, layoutMainVertical INTEGER DEFAULT 1, categoryMainStyle INTEGER DEFAULT 0, addExpenseStyle INTEGER DEFAULT 1, arcStyle INTEGER DEFAULT 0, arcPercent REAL DEFAULT 50.0, arcWidth REAL DEFAULT 0.8, arcSegmentsRounded INTEGER DEFAULT 1, dialogSolidBackground INTEGER DEFAULT 1, appBackgroundSolid INTEGER DEFAULT 1, appBackground INTEGER DEFAULT 0, customBackgroundBlur INTEGER DEFAULT 0, customBackgroundPath TEXT DEFAULT "none", mainMenuStyle INTEGER DEFAULT 0, blurIntensity REAL DEFAULT 0.1, customGradient TEXT DEFAULT "{}")');
+        db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT, categoryId INTEGER)');
 
         int arcStyle = (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ? 1 : 0;
         db.execute('INSERT INTO design (id, arcStyle) VALUES (1, $arcStyle)');
@@ -257,6 +259,25 @@ class DatabaseHelper {
         if (oldVersion < 32) {
           await db.execute('ALTER TABLE settings ADD COLUMN reminder TEXT DEFAULT "{}"');
         }
+
+        if (oldVersion < 33) {
+          await db.execute('ALTER TABLE bankaccounts ADD COLUMN isCreditCard INTEGER DEFAULT 0');
+          await db.execute('ALTER TABLE bankaccounts ADD COLUMN refillsFrom INTEGER DEFAULT -1');
+          await db.execute('ALTER TABLE bankaccounts ADD COLUMN refillPrincipleMode TEXT DEFAULT "monthly"');
+        }
+
+        if (oldVersion < 34) {
+          await db.execute('ALTER TABLE settings ADD COLUMN lastCreditCardRefillRun TEXT DEFAULT "none"');
+          await db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT)');
+        }
+
+        if (oldVersion < 35) {
+          await db.execute('ALTER TABLE creditCardRefills ADD COLUMN categoryId INTEGER');
+        }
+
+        if (oldVersion < 36) {
+          await db.execute('ALTER TABLE categoryBudgets ADD COLUMN overrideBankAccount INTEGER DEFAULT null');
+        }
       },
     );
   }
@@ -379,34 +400,63 @@ class DatabaseHelper {
     }
   }
 
-  Future<double> getSpentForCurrentMonth(int categoryId, String accountId, Map<String, DateTime> range, bool includePlanned) async {
+  Future<double> getSpentForCurrentMonth(int categoryId, String accountId, Map<String, DateTime> range, bool includePlanned, List<BankAccount> bankAccounts)async {
     final db = await database;
     final now = DateTime.now();
     final nowAfterEnd = range['end']!.isBefore(now);
     String query;
     List params = [];
-
-    if (accountId == "*") {
-      query = '''SELECT SUM(amount) as totalSpent
-        FROM expenses
-        WHERE categoryId = ?
-          AND date >= ?
-          AND date < ?
-      ''';
-      params = [categoryId, formatForSqlite(range['start']!), (includePlanned || nowAfterEnd) ? formatForSqlite(range['end']!) : formatForSqlite(now)];
-    } else {
-      query  = '''SELECT SUM(amount) as totalSpent
+    double result = 0.0;
+    query  = '''SELECT SUM(amount) as totalSpent
       FROM expenses
       WHERE categoryId = ?
         AND accountID = ?
         AND date >= ?
         AND date < ?''';
-      params = [categoryId, accountId, formatForSqlite(range['start']!), (includePlanned || nowAfterEnd) ? formatForSqlite(range['end']!) : formatForSqlite(now)];
+
+    for (final account in bankAccounts.where((acc) => (accountId == "*") ? true : (acc.isCreditCard) ? (acc.refillsFrom.toString() == accountId) : (acc.id.toString() == accountId))) {
+      if (!account.isCreditCard) {
+        params = [categoryId, account.id.toString(), formatForSqlite(range['start']!), (includePlanned || nowAfterEnd) ? formatForSqlite(range['end']!) : formatForSqlite(now)];
+      } else {
+        Map<String, DateTime> adaptRange = getDateRangeForCreditCard({"principle": account.budgetResetPrinciple, "day": account.budgetResetDay}, rangeToMeet: range);
+        _logger.debug("Calculated adapted range start: ${adaptRange['start'].toString()}; end: ${adaptRange['end'].toString()} for bankAccount ${account.name} (${account.id.toString()}) ", tag: "database");
+        if (dateAfterRange(range, adaptRange['end']!)) {
+          _logger.debug("Skipping this account as the range is in the future", tag: "database");
+          continue;
+        }
+        params = [categoryId, account.id.toString(), formatForSqlite(adaptRange['start']!), (includePlanned || nowAfterEnd) ? formatForSqlite(adaptRange['end']!) : formatForSqlite(now)];
+      }
+      result += (await db.rawQuery(query, params)).first['totalSpent'] as double? ?? 0.0;
     }
 
-    final result = await db.rawQuery(query, params);
+    return result;
+  }
 
-    return (result.first['totalSpent'] as double?) ?? 0.0;
+  Future<Map<String, dynamic>> getSpentForLastMonth(String accountId, BankAccount account, int catId)async {
+    final db = await database;
+    String query;
+    List params = [];
+    double result = 0.0;
+    query  = '''SELECT SUM(amount) as totalSpent
+      FROM expenses
+      WHERE accountID = ?
+        AND categoryId = ?
+        AND date >= ?
+        AND date < ?''';
+
+    Map<String, DateTime> adaptRange = getDateRangeForCreditCard({"principle": account.budgetResetPrinciple, "day": account.budgetResetDay}, lastMonth: true);
+    _logger.debug("Calculated adapted range start: ${adaptRange['start'].toString()}; end: ${adaptRange['end'].toString()} for bankAccount ${account.name} (${account.id.toString()}) ", tag: "database");
+    params = [account.id.toString(), catId.toString(), formatForSqlite(adaptRange['start']!), formatForSqlite(adaptRange['end']!)];
+    
+    result += (await db.rawQuery(query, params)).first['totalSpent'] as double? ?? 0.0;
+    
+    return {"result": result, "range": adaptRange};
+  }
+
+  Future<Map<String, dynamic>> getLastRefill(int accountId, int catId) async {
+    final db = await database;
+    List res = await db.query("creditCardRefills", where: "creditAccountId = ? AND categoryId = ?", whereArgs: [accountId, catId], orderBy: "date DESC", limit: 1);
+    return (res.isNotEmpty) ? res.first : {};
   }
 
   Future<void> insertCategoryBudget(Map<String, dynamic> catBudget, {Database? dbObj}) async {
@@ -432,7 +482,7 @@ class DatabaseHelper {
     }
 
     for (BankAccount acc in bankAccounts) {
-      int budId = await db.insert("categoryBudgets", {"categoryId": id, "accountId": acc.id, "budget": (filter == acc.id.toString()) ? category['budget'] : 0});
+      int budId = await db.insert("categoryBudgets", {"categoryId": id, "accountId": acc.id, "budget": (filter == acc.id.toString()) ? category['budget'] : 0, "overrideBankAccount": category["overrideBankAccount"]});
       await insertEditLog("categoryBudgets", budId, "insert", dbObj: db);
     }
 
@@ -477,6 +527,7 @@ class DatabaseHelper {
 
   Future<int> insertBankAccount(Map<String, dynamic> bankAccount, {Database? dbObj}) async {
     final db = dbObj ?? await database;
+    bankAccount['isCreditCard'] = bankAccount['isCreditCard'] ? 1 : 0;
     int id = await db.insert('bankaccounts', bankAccount);
     await insertEditLog("bankaccounts", id, "insert", dbObj: db);
     List<Category> cats = await getCategories("*");
@@ -490,6 +541,7 @@ class DatabaseHelper {
 
   Future<void> updateBankAccount(Map<String, dynamic> bankAccount, id) async {
     final db = await database;
+    bankAccount['isCreditCard'] = bankAccount['isCreditCard'] ? 1 : 0;
     await db.update('bankaccounts', bankAccount, where: "id = ?", whereArgs: [id]);
     await insertEditLog("bankaccounts", id, "update", dbObj: db);
   }
@@ -498,6 +550,18 @@ class DatabaseHelper {
     final db = await database;
     await db.delete('bankaccounts', where: "id = ?", whereArgs: [id]);
     await insertEditLog("bankaccounts", id, "delete", dbObj: db);
+
+    List<Map<String, dynamic>> affectedBankAccounts = await db.query('bankaccounts', where: "refillsFrom = ?", whereArgs: [id]);
+    for (Map<String, dynamic> acc in affectedBankAccounts) {
+      await db.update('bankaccounts', {"refillsFrom": -1}, where: "id = ?", whereArgs: [acc['id']]);
+      await insertEditLog("bankaccounts", acc['id'], "update", dbObj: db);
+    }
+
+    List<Map<String, dynamic>> affectedRefills = await db.query('creditCardRefills', where: "accountId = ?", whereArgs: [id]);
+    for (Map<String, dynamic> entry in affectedRefills) { 
+      await db.update('creditCardRefills', {"accountId": -1}, where: "accountId = ?", whereArgs: [id]);
+      await insertEditLog("creditCardRefills", entry['id'], "delete", dbObj: db);
+    }
 
     List<Map<String, dynamic>> affected = await db.query('categoryBudgets', where: "accountId = ?", whereArgs: [id]);
     await db.delete('categoryBudgets', where: "accountId = ?", whereArgs: [id]);
@@ -569,12 +633,15 @@ class DatabaseHelper {
         budget = catBudgetData.firstWhere((cb) => cb['categoryId'] == data['id'] && cb['accountId'].toString() == filter)['budget'];
       }
 
+      int? override = catBudgetData.firstWhere((cb) => cb['categoryId'] == data['id'] && cb['accountId'].toString() == filter)['overrideBankAccount'];
+
       return Category(
         id: data['id'] as int,
         name: data['name'] as String,
         budget: budget,
         position: data['position'],
         color: data['color'] != null ?hexToColor(data['color'] as String) : Colors.grey, // Farbe umwandeln
+        overrideBankAccount: override
       );
     }).toList();
   }
@@ -593,7 +660,10 @@ class DatabaseHelper {
         budgetResetPrinciple: data['budgetResetPrinciple'] as String,
         budgetResetDay: data['budgetResetDay'] as int,
         lastSavingRun: data['lastSavingRun'] as String,
-        transfers: moneyFlows.where((mf) => mf.receiverAccountId == data['id']).fold(0, (sum, mf) => sum + mf.amount)
+        transfers: moneyFlows.where((mf) => mf.receiverAccountId == data['id']).fold(0, (sum, mf) => sum + mf.amount),
+        isCreditCard: data['isCreditCard'] == 1,
+        refillsFrom: data['refillsFrom'] as int,
+        refillPrincipleMode: data['refillPrincipleMode'] as String
       );
     }).toList();
   }
@@ -666,8 +736,9 @@ class DatabaseHelper {
     }
 
     List<Map<String, dynamic>> affected = await db.query('categoryBudgets', where: 'categoryId = ? AND accountId = ?', whereArgs: [category.id, filter]);
-    await db.update('categoryBudgets', {"budget": category.budget}, where: 'categoryId = ? AND accountId = ?', whereArgs: [category.id, filter]);
     for (Map<String, dynamic> entry in affected) {
+      await db.update('categoryBudgets', {"budget": category.budget, "overrideBankAccount": category.overrideBankAccount}, where: 'categoryId = ? AND accountId = ? AND id = ?', whereArgs: [category.id, filter, entry['id']]);
+      _logger.debug("Updated category budget for categoryId ${category.id} and accountId $filter to ${category.budget} and override: ${category.overrideBankAccount}", tag: "database");
       await insertEditLog("categoryBudgets", entry['id'], "update", dbObj: db);
     }
     
@@ -701,7 +772,7 @@ class DatabaseHelper {
     await insertEditLog("expenses", expense['id'], "delete", dbObj: db);
   }
 
-  Future<List<Map<String, dynamic>>> getExpenses(int categoryId, String accountId, Map<String, DateTime> range) async {
+  Future<List<Map<String, dynamic>>> getExpenses(int categoryId, String accountId, Map<String, DateTime> range, List<BankAccount> bankAccounts) async {
     final db = await database;
     String where;
     List whereParams = [];
@@ -710,8 +781,13 @@ class DatabaseHelper {
       where = "categoryId = ? AND date >= ? AND date <= ?";
       whereParams = [categoryId, formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
     } else {
-      where = "categoryId = ? AND accountId = ? AND date >= ? AND date <= ?";
-      whereParams = [categoryId, accountId, formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
+      whereParams = [categoryId, formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
+      String inlay = "";
+      for (BankAccount acc in bankAccounts.where((acc) => (acc.isCreditCard) ? (acc.refillsFrom.toString() == accountId) : (acc.id.toString() == accountId))) {
+        inlay += "accountId = ? OR ";
+        whereParams.add(acc.id);
+      }
+      where = "categoryId = ? AND date >= ? AND date <= ? AND (${inlay.substring(0, inlay.length - 3)})";
     }
 
     List<Map<String, dynamic>>result = await db.query('expenses', where: where, whereArgs: whereParams, orderBy: "date ASC");
@@ -782,7 +858,17 @@ class DatabaseHelper {
         "includePlanned": data['settings'][0]['includePlanned'],
         "lastAutoExpenseRun": data['settings'][0]['lastAutoExpenseRun'],
         "showAvailableBudget": data['settings'][0]['showAvailableBudget'],
-        "isPro": data['settings'][0]['isPro']
+        "isPro": data['settings'][0]['isPro'],
+        "useBalance": data['settings'][0]['useBalance'], 
+        "filterBudget": data['settings'][0]['filterBudget'], 
+        "lastAdFail": data['settings'][0]['lastAdFail'], 
+        "lastAdSuccess": data['settings'][0]['lastAdSuccess'],
+        "lastSavingRun": data['settings'][0]['lastSavingRun'], 
+        "lastProcessedBatchId": data['settings'][0]['lastProcessedBatchId'], 
+        "isDesktopPro": data['settings'][0]['isDesktopPro'],
+        "selectedScanCategory": data['settings'][0]['selectedScanCategory'],
+        "reminder": data['settings'][0]['reminder'], 
+        "lastCreditCardRefillRun": data['settings'][0]['lastCreditCardRefillRun']
       };
       await insertSettings(setting, dbObj: db);
 
@@ -826,6 +912,12 @@ class DatabaseHelper {
       }
     }
 
+    if (data.keys.contains('creditCardRefills')) {
+      for (Map<String, dynamic> refill in data['creditCardRefills']){
+        await insertRefill(refill, dbObj: db);
+      }
+    }
+
     db.delete("editLog");
 
     if (data.keys.contains('editLog')) {
@@ -833,6 +925,12 @@ class DatabaseHelper {
       await insertEditLogFlat(editLog, dbObj: db);
     }
     }
+  }
+
+  Future<void> insertRefill(Map<String, dynamic> refill, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    int id = await db.insert('creditCardRefills', refill);
+    await insertEditLog("creditCardRefills", id, "insert", dbObj: db);
   }
 
   Future<List<Map<String, dynamic>>> statisticMonthTotal(Map<String, DateTime> range, dynamic filter) async {

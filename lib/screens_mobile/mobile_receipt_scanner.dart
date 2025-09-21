@@ -89,7 +89,8 @@ class _ReceiptPageState extends State<ReceiptPage> {
       bankAccoutCount: widget.budgetState.bankAccounts.length,
       defaultVal: data.amount,
       category: widget.budgetState.rawCategories.where((c) => c.id == selectedCat).first.name,
-      categoryId: selectedCat
+      categoryId: selectedCat,
+      overrideBankAccount: widget.budgetState.categories.where((c) => c.categoryId == selectedCat).first.overrideBankAccount,
     );
 
     if (widget.closeAfterSuccess) {

@@ -36,7 +36,7 @@ Future<bool> checkRemoteDbExists(String sharedDbFilePath) async {
 class SharedDatabase {
   final DatabaseHelper localDb;
   late final File tempRemoteDbCopyFile;
-  final int remoteDbVersion = 4;
+  final int remoteDbVersion = 8;
   final _logger = Logger();
   int totalChanges = 0;
 
@@ -47,10 +47,11 @@ class SharedDatabase {
     await db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
     await db.execute('CREATE TABLE categories(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, color TEXT, position INTEGER)');
     await db.execute('CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY AUTOINCREMENT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER, principleMode TEXT DEFAULT "monthly", receiverAccountId DEFAULT -1, moneyFlow INTEGER DEFAULT 0, ratePayment INTEGER DEFAULT 0, rateCount INTEGER, firstRateAmount REAL, lastRateAmount REAL)');
-    await db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none")');
-    await db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY AUTOINCREMENT, categoryId INTEGER, accountId INTEGER, budget REAL)');
+    await db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none", isCreditCard INTEGER DEFAULT 0, refillsFrom INTEGER DEFAULT -1, refillPrincipleMode TEXT DEFAULT "monthly")');
+    await db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY AUTOINCREMENT, categoryId INTEGER, accountId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
     await db.execute('CREATE TABLE editLog (id INTEGER PRIMARY KEY AUTOINCREMENT, affectedTable TEXT, affectedId INTEGER, type TEXT, sharedBatchId INTEGER DEFAULT -1)');
     await db.execute('CREATE TABLE registeredDevices (id TEXT PRIMARY KEY, deviceMetadata TEXT, isPro INTEGER DEFAULT 0, blocked INTEGER DEFAULT 0)');
+    await db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY AUTOINCREMENT, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT, categoryId INTEGER)');
   }
 
   Future<void> _upgradeTables(Database db, int oldVersion, int newVersion) async {
@@ -66,6 +67,20 @@ class SharedDatabase {
       await db.execute('''ALTER TABLE autoexpenses ADD COLUMN rateCount INTEGER''');
       await db.execute('''ALTER TABLE autoexpenses ADD COLUMN firstRateAmount REAL''');
       await db.execute('''ALTER TABLE autoexpenses ADD COLUMN lastRateAmount REAL''');
+    }
+    if (oldVersion < 5) {
+      await db.execute('ALTER TABLE bankaccounts ADD COLUMN isCreditCard INTEGER DEFAULT 0');
+      await db.execute('ALTER TABLE bankaccounts ADD COLUMN refillsFrom INTEGER DEFAULT -1');
+      await db.execute('ALTER TABLE bankaccounts ADD COLUMN refillPrincipleMode TEXT DEFAULT "monthly"');
+    }
+    if (oldVersion < 6) {
+      await db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY AUTOINCREMENT, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT)');
+    }
+    if( oldVersion < 7) {
+      await db.execute('ALTER TABLE creditCardRefills ADD COLUMN categoryId INTEGER');
+    }
+    if (oldVersion < 8) {
+      await db.execute('ALTER TABLE categoryBudgets ADD COLUMN overrideBankAccount INTEGER DEFAULT null');
     }
   }
 

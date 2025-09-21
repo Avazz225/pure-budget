@@ -48,6 +48,7 @@ class BackupManager {
     final editLog = await db.exportTable("editLog");
     final bankaccounts = await db.exportTable("bankaccounts");
     final categoryBudgets = await db.exportTable("categoryBudgets");
+    final creditCardRefills = await db.exportTable("creditCardRefills");
 
     final fullBackup = {
       "autoexpenses": autoexpenses,
@@ -56,6 +57,7 @@ class BackupManager {
       "settings": settings,
       "bankaccounts": bankaccounts,
       "categoryBudgets": categoryBudgets,
+      "creditCardRefills": creditCardRefills,
       "editLog": editLog
     };
 

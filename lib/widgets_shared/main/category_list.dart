@@ -85,7 +85,7 @@ Widget categoryList(BudgetState budgetState, Function setState) {
                 trailing: IconButton(
                   icon: const Icon(Icons.edit_rounded),
                   onPressed: () => editCategory(
-                      context, category, assigned, setState, currentAccount),
+                      context, category, assigned, setState, currentAccount, budgetState.bankAccounts),
                 ),
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -8,13 +9,14 @@ import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.d
 import 'package:jne_household_app/widgets_shared/dialogs/color_picker_dialog.dart';
 import 'package:provider/provider.dart';
 
-void editCategory(context, Category category, bool assigned, Function setState, String currentAccount) {
+void editCategory(context, Category category, bool assigned, Function setState, String currentAccount, List<BankAccount> bankAccounts) {
     showDialog(
       context: context,
       builder: (context) {
         final TextEditingController nameController = TextEditingController(text: category.name);
         final TextEditingController budgetController = TextEditingController(text: I18n.comma()?category.budget.toString().replaceAll(".", ","):category.budget.toString());
         Color selectedColor = category.color;
+        int? overrideBankAccount = category.overrideBankAccount;
 
         return StatefulBuilder(
           builder: (context, setState) {
@@ -50,6 +52,30 @@ void editCategory(context, Category category, bool assigned, Function setState, 
                     )
                     :
                     const SizedBox.shrink(),
+                    if (bankAccounts.length > 1)
+                    DropdownButtonFormField<int?>(
+                      value: overrideBankAccount,
+                      decoration: InputDecoration(
+                        labelText: I18n.translate("overrideAccount"),
+                      ),
+                      items: [
+                        DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text(I18n.translate("defaultAccount")),
+                        ),
+                        ...bankAccounts.map((account) {
+                          return DropdownMenuItem<int?>(
+                            value: account.id,
+                            child: Text(account.name),
+                          );
+                        }),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          overrideBankAccount = value;
+                        });
+                      },
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 4.0),
                       child: Wrap(
@@ -99,7 +125,8 @@ void editCategory(context, Category category, bool assigned, Function setState, 
                       name: nameController.text,
                       budget: double.tryParse(budgetController.text.replaceAll(",", ".")) ?? category.budget,
                       color: selectedColor,
-                      position: category.position
+                      position: category.position,
+                      overrideBankAccount: overrideBankAccount,
                     );
                     final partialBudgetState = Provider.of<BudgetState>(context, listen: false);
                     if (updatedCategory.budget != 0.0 || updatedCategory.id == -1){

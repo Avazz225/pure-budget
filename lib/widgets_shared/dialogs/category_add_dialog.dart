@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/services/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -8,12 +9,13 @@ import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.d
 import 'package:jne_household_app/widgets_shared/dialogs/color_picker_dialog.dart';
 import 'package:provider/provider.dart';
 
-Future<void> addCategory(context) async {
+Future<void> addCategory(context, List<BankAccount> bankAccounts) async {
     String name = '';
     double budget = 0.0;
     Color selectedColor = availableColors.first;
     final FocusNode descriptionFocusNode = FocusNode();
     final FocusNode amountFocusNode = FocusNode();
+    int? overrideBankAccount;
 
     await showDialog(
       context: context,
@@ -46,6 +48,32 @@ Future<void> addCategory(context) async {
                         budget = double.tryParse(value.replaceAll(",", ".")) ?? 0.0;
                       },
                     ),
+                    if (bankAccounts.length > 1)
+                    ...[
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<int?>(
+                        value: overrideBankAccount,
+                        decoration: InputDecoration(
+                          labelText: I18n.translate("overrideAccount"),
+                        ),
+                        items: [
+                          DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text(I18n.translate("defaultAccount")),
+                          ),
+                          ...bankAccounts.map((account) {
+                            return DropdownMenuItem<int?>(
+                              value: account.id,
+                              child: Text(account.name),
+                            );
+                          }),
+                        ],
+                      onChanged: (value) {
+                        setState(() {
+                          overrideBankAccount = value;
+                        });
+                      },
+                    )],
                     const SizedBox(height: 10),
                     Text(I18n.translate("pickColor")),
                     Padding(
@@ -111,7 +139,8 @@ Future<void> addCategory(context) async {
         'name': name,
         'budget': budget,
         'color': selectedColor.value.toRadixString(16),
-        'raw_color': selectedColor
+        'raw_color': selectedColor,
+        'overrideBankAccount': overrideBankAccount,
       };
       await budgetState.insertCategory(newCategory);
     }

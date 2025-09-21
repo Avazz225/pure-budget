@@ -287,14 +287,15 @@ class BudgetState extends ChangeNotifier {
     final cats = await DatabaseHelper().getCategories(filterBudget);
 
     categories = await Future.wait(cats.map((cat) async {
-      double spent = await DatabaseHelper().getSpentForCurrentMonth(cat.id, filterBudget, budgetRanges[overrideRange ?? range], includePlanned);
+      double spent = await DatabaseHelper().getSpentForCurrentMonth(cat.id, filterBudget, budgetRanges[overrideRange ?? range], includePlanned, bankAccounts);
       return CategoryBudget(
         categoryId: cat.id,
         category: cat.name,
         budget: cat.budget,
         spent: spent,
         color: cat.color,
-        position: cat.position
+        position: cat.position,
+        overrideBankAccount: cat.overrideBankAccount,
       );
     }).toList());
 
@@ -518,7 +519,10 @@ class BudgetState extends ChangeNotifier {
       budgetResetPrinciple: acc['budgetResetPrinciple'],
       budgetResetDay: acc['budgetResetDay'],
       lastSavingRun: "none",
-      transfers: 0
+      transfers: 0,
+      isCreditCard: acc['isCreditCard'] == 1,
+      refillsFrom: acc['refillsFrom'],
+      refillPrincipleMode: acc['refillPrincipleMode']
     );
 
     bankAccounts.add(newAcc);
@@ -547,7 +551,10 @@ class BudgetState extends ChangeNotifier {
       budgetResetPrinciple: acc['budgetResetPrinciple'],
       budgetResetDay: acc['budgetResetDay'],
       lastSavingRun: acc['lastSavingRun'],
-      transfers: getTransfers(id)
+      transfers: getTransfers(id),
+      isCreditCard: acc['isCreditCard'] == 1,
+      refillsFrom: acc['refillsFrom'],
+      refillPrincipleMode: acc['refillPrincipleMode']
     );
 
     final index = bankAccounts.indexWhere((account) => account.id == targetAccount.id);
@@ -742,8 +749,8 @@ class BudgetState extends ChangeNotifier {
   Future<int> insertCategory(Map<String, dynamic> category) async {
     final newPos = rawCategories.length;
     int id = await DatabaseHelper().insertCategory(category, filterBudget, newPos);
-    rawCategories.add(Category(id: id, name: category['name'], budget: category['budget'], color: category['raw_color'], position: newPos));
-    categories.add(CategoryBudget(categoryId: id, category: category['name'], budget: category['budget'], spent: 0.0, color: category['raw_color'], position: newPos));
+    rawCategories.add(Category(id: id, name: category['name'], budget: category['budget'], color: category['raw_color'], position: newPos, overrideBankAccount: category['overrideBankAccount']));
+    categories.add(CategoryBudget(categoryId: id, category: category['name'], budget: category['budget'], spent: 0.0, color: category['raw_color'], position: newPos, overrideBankAccount: category['overrideBankAccount']));
     sortRawCategories();
     sortCategories();
     calcNotAssignedBudget();
@@ -861,7 +868,7 @@ class BudgetState extends ChangeNotifier {
 
   // expenses
   Future<void> addExpense(String category, int categoryId, double amount, String description, String date, int accountId) async {
-    bool expenseInPast = dateBeforRange(DateTime.parse(date), budgetRanges[0]['start']!);
+    bool expenseInPast = dateBeforeRange(DateTime.parse(date), budgetRanges[0]['start']!);
     final expense = {
       'amount': amount,
       'description': description,
@@ -888,7 +895,7 @@ class BudgetState extends ChangeNotifier {
   }
 
   Future<void> updateExpense(int id, int categoryId, double amount, String description, String date, int accountId) async {
-    bool expenseInPast = dateBeforRange(DateTime.parse(date), budgetRanges[0]['start']!);
+    bool expenseInPast = dateBeforeRange(DateTime.parse(date), budgetRanges[0]['start']!);
     double oldAmount = (expenseInPast) ? (await DatabaseHelper().getExpense(id))['amount'] as double : 0;
 
     final expense = {
@@ -918,7 +925,7 @@ class BudgetState extends ChangeNotifier {
   }
 
   Future<void> deleteExpense(int id, String date, int accountId) async {
-    bool expenseInPast = dateBeforRange(DateTime.parse(date), budgetRanges[0]['start']!);
+    bool expenseInPast = dateBeforeRange(DateTime.parse(date), budgetRanges[0]['start']!);
     double oldAmount = (expenseInPast) ? (await DatabaseHelper().getExpense(id))['amount'] as double : 0;
     final expense = {
       'id': id

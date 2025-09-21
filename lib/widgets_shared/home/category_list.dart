@@ -118,7 +118,8 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
               accountId: budgetState.filterBudget,
               bankAccounts: budgetState.bankAccounts,
               bankAccoutCount: budgetState.bankAccounts.length,
-              allowCamera: budgetState.proStatusIsSet(mobileOnly: true)
+              allowCamera: budgetState.proStatusIsSet(mobileOnly: true),
+              overrideBankAccount: budgetState.categories.where((c) => c.categoryId == category.categoryId).first.overrideBankAccount,
             );
             if (res) {
               Navigator.of(context).push(

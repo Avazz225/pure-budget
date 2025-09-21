@@ -6,12 +6,14 @@ class Category {
   double budget;
   Color color;
   int position;
+  int? overrideBankAccount;
 
   Category({
     required this.id,
     required this.name,
     required this.budget,
     required this.color,
-    required this.position
+    required this.position,
+    required this.overrideBankAccount,
   });
 }

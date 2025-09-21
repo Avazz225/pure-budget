@@ -15,7 +15,7 @@ class AddCategory extends StatelessWidget {
   Widget build(BuildContext context) {
     if ( budgetState.rawCategories.length <= maxCategories || pro) {
       return ElevatedButton(
-        onPressed: () => addCategory(context),
+        onPressed: () => addCategory(context, budgetState.bankAccounts),
         style: btnNeutralStyle,
         child: Text(I18n.translate("newCategory")),
       );

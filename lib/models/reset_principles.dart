@@ -61,6 +61,42 @@ bool isSameDay(DateTime d1, DateTime d2) {
   return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
 }
 
+Map<String, DateTime> getDateRangeForCreditCard(Map<String, dynamic> resetInfo, {Map<String, DateTime>? rangeToMeet, bool lastMonth=false}) {
+  DateTime today = DateTime.now();
+  int i = 1;
+
+  if (rangeToMeet != null) {
+      while (!dateInRange(rangeToMeet, today)) {
+        today = today.subtract(Duration(days: i));
+        i++;
+      }
+  }
+
+  
+  Map<String, DateTime> adapt = getDateRangeForPrinciple(resetInfo, year: today.year, month: today.month, now: today);
+
+  if (dateInRange(adapt, today)) {
+    if (lastMonth) {
+      DateTime targetDay = subtractMonths(today, 1);
+      return getDateRangeForPrinciple(resetInfo, year: today.year, month: today.month, now: targetDay);
+    }
+    return adapt;
+  } else if (dateBeforeRange(today, adapt['end']!)) {
+    if (lastMonth) {
+      DateTime targetDay = subtractMonths(today, 2);
+      return getDateRangeForPrinciple(resetInfo, year: today.year, month: today.month, now: targetDay);
+    }
+    DateTime targetDay = subtractMonths(today, 1);
+    return getDateRangeForPrinciple(resetInfo, year: today.year, month: today.month, now: targetDay);
+  } else {
+    if (lastMonth) {
+      return adapt;
+    }
+    DateTime targetDay = subtractMonths(today, -1);
+    return getDateRangeForPrinciple(resetInfo, year: today.year, month: today.month, now: targetDay);
+  }
+}
+
 List<Map<String, DateTime>> getMultipleRanges(Map<String, dynamic> resetInfo, int count, DateTime firstDate) {
   DateTime today = DateTime.now();
   bool include = true;
@@ -180,6 +216,14 @@ bool dateInOrAfterRange(DateTime date, DateTime rangeEnd) {
   return !rangeEnd.isBefore(date) && !date.isAtSameMomentAs(rangeEnd);
 }
 
-bool dateBeforRange(DateTime date, DateTime rangeStart) {
+bool dateBeforeRange(DateTime date, DateTime rangeStart) {
   return date.isBefore(rangeStart);
+}
+
+bool dateAfterRange(Map<String, DateTime> range, DateTime date) {
+  return date.isAfter(range['end']!);
+}
+
+bool dateInRange(Map<String, DateTime> range, DateTime date) {
+  return (date.isAtSameMomentAs(range['start']!) || date.isAfter(range['start']!)) && (date.isAtSameMomentAs(range['end']!) || date.isBefore(range['end']!));
 }

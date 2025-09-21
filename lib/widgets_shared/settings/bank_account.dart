@@ -26,7 +26,7 @@ class BankAccount extends StatelessWidget {
                 value: "*",
                 child: Text(I18n.translate("allAcc")),
               )
-            ] + budgetState.bankAccounts.map((entry) {
+            ] + budgetState.bankAccounts.where((acc) => !acc.isCreditCard).map((entry) {
               int index = entry.id;
               String displayText = entry.name;
               return DropdownMenuItem<String>(

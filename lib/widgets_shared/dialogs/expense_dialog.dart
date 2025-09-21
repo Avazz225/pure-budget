@@ -24,8 +24,9 @@ Future<bool> showExpenseDialog({
     required int bankAccoutCount,
     String? defaultVal,
     bool allowCamera = false,
+    int? overrideBankAccount,
   }) async {
-    Logger().debug("PARAMS:\n\tcategory: $category\n\tcategoryId: $categoryId\n\taccountId: $accountId\n\tdefaultVal: $defaultVal", tag: "EXP_DIALOG");
+    Logger().debug("PARAMS:\n\tcategory: $category\n\tcategoryId: $categoryId\n\taccountId: $accountId\n\tdefaultVal: $defaultVal\n\toverrideBankAccount: $overrideBankAccount", tag: "EXP_DIALOG");
     final bool isEditing = expense != null;
     final TextEditingController amountController = TextEditingController(
       text: isEditing
@@ -58,8 +59,24 @@ Future<bool> showExpenseDialog({
 
     String selectedIndex = (accountId != "*") ? accountId : bankAccounts.first.id.toString();
 
+    List<BankAccount> filteredAccounts = [];
+    if (accountId != "*" || filter != "*") {
+      if (bankAccounts.where((acc) => acc.id.toString() == accountId).first.isCreditCard) {
+        int mainId = bankAccounts.where((acc) => acc.id.toString() == accountId).first.refillsFrom;
+        filteredAccounts = bankAccounts.where((acc) => (acc.isCreditCard) ? (acc.refillsFrom == mainId) : (acc.id == mainId)).toList();
+      } else {
+        filteredAccounts = bankAccounts.where((acc) => (acc.isCreditCard) ? (acc.refillsFrom.toString() == accountId) : (acc.id.toString() == accountId)).toList();
+      }
+    } else {
+      filteredAccounts = bankAccounts;
+    }
+
     if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
       ScreenshotManager().takeScreenshot(name: "expenseAdd");
+    }
+
+    if ( !isEditing && (overrideBankAccount != null && bankAccounts.where((acc) => acc.id == overrideBankAccount).isNotEmpty)) {
+      selectedIndex = overrideBankAccount.toString();
     }
 
     await showDialog(
@@ -143,29 +160,30 @@ Future<bool> showExpenseDialog({
                         ),
                       ],
                     ),
-                    if ((accountId == "*" || (isEditing && filter == "*")) && bankAccoutCount > 1)
-                    const SizedBox(height: 10),
-                    if ((accountId == "*" || (isEditing && filter == "*")) && bankAccoutCount > 1)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(I18n.translate("filterBankAccount")),
-                        DropdownButton<String>(
-                          value: selectedIndex,
-                          items: bankAccounts.map((entry) {
-                            int index = entry.id;
-                            String displayText = entry.name;
-                            return DropdownMenuItem<String>(
-                              value: index.toString(),
-                              child: Text(displayText),
-                            );
-                          }).toList(),
-                          onChanged: (String? filter) async {
-                            setState(() => selectedIndex = filter!);
-                          },
-                        )
-                      ],
-                    ),
+                    if (filteredAccounts.length > 1)
+                    ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(I18n.translate("filterBankAccount")),
+                          DropdownButton<String>(
+                            value: selectedIndex,
+                            items: bankAccounts.map((entry) {
+                              int index = entry.id;
+                              String displayText = entry.name;
+                              return DropdownMenuItem<String>(
+                                value: index.toString(),
+                                child: Text(displayText),
+                              );
+                            }).toList(),
+                            onChanged: (String? filter) async {
+                              setState(() => selectedIndex = filter!);
+                            },
+                          )
+                        ],
+                      ),
+                    ]
                   ],
                 )
               ),

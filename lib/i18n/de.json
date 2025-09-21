@@ -435,5 +435,13 @@
     "reminderSaved": "Reminder gespeichert",
     "activateReminder": "Erinnerungen nutzen",
     "change": "Ändern",
-    "time": "Uhrzeit: {time}"
+    "time": "Uhrzeit: {time}",
+    "isCreditCard": "Ist Kreditkarte",
+    "creditCard": "",
+    "refillsFrom": "Beglichen durch",
+    "refillsFrom2": "Kreditkarte beglichen durch: {account}",
+    "monthlyRefill": "Beglichen am: {day}",
+    "refillAcc": "Kreditkarte {name} begleichen",
+    "overrideAccount": "Standardkonto",
+    "defaultAccount": "Automatisch"
 }

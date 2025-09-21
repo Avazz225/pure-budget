@@ -27,7 +27,8 @@ class UriHandler {
           accountId: state.filterBudget, 
           bankAccounts: state.bankAccounts, 
           bankAccoutCount: state.bankAccounts.length,
-          allowCamera: state.proStatusIsSet(mobileOnly: true)
+          allowCamera: state.proStatusIsSet(mobileOnly: true),
+          overrideBankAccount: state.categories.where((c) => c.categoryId == categoryId).first.overrideBankAccount,
         );
         if (res) {
           Navigator.of(navigatorKey.currentContext!).push(
