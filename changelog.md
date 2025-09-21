@@ -4,8 +4,6 @@
 
 ### 3.2.0
 
-- preparation for pure budget browser plugin
-
 ```txt
 Developer Info:
 Integration of mobile payment apps is impossible due to privacy reasons maybe push notificaations could be utilized
@@ -25,6 +23,7 @@ Integration of mobile payment apps is impossible due to privacy reasons maybe pu
 - credit card bank account type
   - "refills at" from normal bank account
 - default bank account per category
+- preparation for pure budget browser plugin
 
 ### 3.1.2 bundle 29 (27.08.2025)
 

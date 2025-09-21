@@ -79,6 +79,21 @@ Future<void> main() async {
           allowCamera: initializationData.budgetState.proStatusIsSet(mobileOnly: true),
           overrideBankAccount: initializationData.budgetState.categories.where((c) => c.categoryId == catId).first.overrideBankAccount,
         );
+      } else if (action.startsWith("direct?")) {
+        final query = action.substring(7);
+        final params = Map.fromEntries(
+          query.split("&").map((part) {
+            final kv = part.split("=");
+            return MapEntry(kv[0], kv.length > 1 ? kv[1] : "");
+          }),
+        );
+        initializationData.budgetState.addExpense(
+          "", 
+          (params.keys.contains('categoryId')) ? int.tryParse(params['categoryId']!) ?? -1 : -1,
+          (params.keys.contains('amount')) ?double.tryParse(params['amount']!) ?? 0.0 : 0.0,
+          (params.keys.contains('description')) ?params['description'] ?? "" : "",
+          formatForSqlite(DateTime.now()),
+          (params.keys.contains('accountId')) ?int.tryParse(params['accountId']!) ?? -1 : -1);
       } else {
         switch (action) {
           case 'sync':
