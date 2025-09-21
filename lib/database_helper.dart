@@ -633,7 +633,8 @@ class DatabaseHelper {
         budget = catBudgetData.firstWhere((cb) => cb['categoryId'] == data['id'] && cb['accountId'].toString() == filter)['budget'];
       }
 
-      int? override = catBudgetData.firstWhere((cb) => cb['categoryId'] == data['id'] && cb['accountId'].toString() == filter)['overrideBankAccount'];
+      int? override =
+      catBudgetData.firstWhere((cb) => cb['categoryId'] == data['id'] && cb['accountId'].toString() == filter, orElse: () => {'overrideBankAccount': null})['overrideBankAccount'];
 
       return Category(
         id: data['id'] as int,
