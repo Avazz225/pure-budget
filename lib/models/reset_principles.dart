@@ -97,6 +97,23 @@ Map<String, DateTime> getDateRangeForCreditCard(Map<String, dynamic> resetInfo, 
   }
 }
 
+DateTime getCreditCardStartDayLastMonth(Map<String, dynamic> resetInfo) {
+  DateTime today = DateTime.now();
+  today = DateTime(today.year, today.month, 1);
+  
+  Map<String, DateTime> adapt = getDateRangeForPrinciple(resetInfo, year: today.year, month: today.month, now: today);
+
+  if (dateInRange(adapt, today)) {
+    return adapt["start"]!;
+  } else if (dateBeforeRange(today, adapt['end']!)) {
+    DateTime targetDay = subtractMonths(today, 1);
+    return getDateRangeForPrinciple(resetInfo, year: today.year, month: today.month, now: targetDay)["start"]!;
+  } else {
+    DateTime targetDay = subtractMonths(today, -1);
+    return getDateRangeForPrinciple(resetInfo, year: today.year, month: today.month, now: targetDay)["start"]!;
+  }
+}
+
 List<Map<String, DateTime>> getMultipleRanges(Map<String, dynamic> resetInfo, int count, DateTime firstDate) {
   DateTime today = DateTime.now();
   bool include = true;

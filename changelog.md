@@ -15,7 +15,7 @@ Integration of mobile payment apps is impossible due to privacy reasons maybe pu
 
 ## Changelog
 
-### 3.2.0 in doing
+### 3.2.3 in doing
 
 - report issue button to submit error reports from within the app
 - custom background gradients

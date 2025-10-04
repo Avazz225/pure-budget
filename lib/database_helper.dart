@@ -782,13 +782,17 @@ class DatabaseHelper {
       where = "categoryId = ? AND date >= ? AND date <= ?";
       whereParams = [categoryId, formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
     } else {
-      whereParams = [categoryId, formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
+      whereParams = [categoryId];
       String inlay = "";
       for (BankAccount acc in bankAccounts.where((acc) => (acc.isCreditCard) ? (acc.refillsFrom.toString() == accountId) : (acc.id.toString() == accountId))) {
-        inlay += "accountId = ? OR ";
-        whereParams.add(acc.id);
+        inlay += "(date >= ? AND date <= ? AND accountId = ?) OR ";
+        if (acc.isCreditCard) {
+          whereParams.addAll([formatForSqlite(getCreditCardStartDayLastMonth({"principle": acc.budgetResetPrinciple, "day": acc.budgetResetDay})), formatForSqlite(range['end']!), acc.id]);
+        } else {
+          whereParams.addAll([formatForSqlite(range['start']!), formatForSqlite(range['end']!), acc.id]);
+        }
       }
-      where = "categoryId = ? AND date >= ? AND date <= ? AND (${inlay.substring(0, inlay.length - 3)})";
+      where = "categoryId = ? AND (${inlay.substring(0, inlay.length - 3)})";
     }
 
     List<Map<String, dynamic>>result = await db.query('expenses', where: where, whereArgs: whereParams, orderBy: "date ASC");

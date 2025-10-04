@@ -71,16 +71,15 @@ Future<void> processBalanceCalculation(DatabaseHelper dbHelper, String lastSavin
   List<BankAccount> accounts = await dbHelper.getBankAccounts(await dbHelper.getAutoExpenses());
 
   for (BankAccount account in accounts) {
-    if (account.isCreditCard) {
-      continue;
-    }
-    List<Map<String, DateTime>> ranges = getMultipleRanges({"principle": account.budgetResetPrinciple, "day": account.budgetResetDay}, 2, DateTime(2000));
-    if (lastSavingRun != "none") {
-      if (!dateBeforeRange(DateTime.parse(lastSavingRun), ranges[0]['start']!)) {
-        return;
+    if (!account.isCreditCard) {
+      List<Map<String, DateTime>> ranges = getMultipleRanges({"principle": account.budgetResetPrinciple, "day": account.budgetResetDay}, 2, DateTime(2000));
+      if (lastSavingRun != "none") {
+        if (!dateBeforeRange(DateTime.parse(lastSavingRun), ranges[0]['start']!)) {
+          return;
+        }
       }
+      await dbHelper.processSavings(account.id, ranges[1]);
     }
-    await dbHelper.processSavings(account.id, ranges[1]);
   }
 } 
 

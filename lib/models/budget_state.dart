@@ -7,6 +7,7 @@ import 'package:home_widget/home_widget.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/services/auto_booking.dart';
+import 'package:jne_household_app/services/background_jobs.dart';
 import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
@@ -244,6 +245,10 @@ class BudgetState extends ChangeNotifier {
         }
       }
       syncInProgress = false;
+
+      // execute background jobs after database sync
+      await backgroundJobs(dbHelper: db);
+
       notifyListeners();
     }
   }

@@ -148,6 +148,7 @@ Widget listTile({required context, required bool allSpent, required bool unassig
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8),
     ),
+    color: (designState.categoryMainStyle == 0) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
     child: Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [ 

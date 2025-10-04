@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:jne_household_app/logger.dart';
 
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/database_helper.dart';
@@ -27,8 +28,12 @@ class InitializationService {
     // get settings
     Map<String, dynamic> settings = await dbHelper.getSettings();
 
-    // execute asnyc jobs
-    await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings['lastAutoExpenseRun']);
+    // execute asnyc jobs if no shared db is connected to prevent duplicate entries
+    if (settings["sharedDbUrl"] == "none") {
+      Logger().debug("Processing background jobs immediately. No shared Database", tag: "initialization Service");
+      await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings['lastAutoExpenseRun']);
+      Logger().debug("Processing background jobs done.", tag: "initialization Service");
+    }
 
     // refresh settings
     settings = await dbHelper.getSettings();
