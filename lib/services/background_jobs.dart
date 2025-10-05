@@ -13,9 +13,12 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
   dbHelper ??= DatabaseHelper();
   autoExpenses ??= await dbHelper.getAutoExpenses(noMoneyFlow: false);
   
-  if (lastAutoExpenseRun == null) {
+  if (lastAutoExpenseRun == null || lastCreditCardRefillRun == null || lastSavingRun == null) {
     final settings = await dbHelper.getSettings();
-    lastAutoExpenseRun = settings['lastAutoExpenseRun'];
+
+    lastAutoExpenseRun ??= settings['lastAutoExpenseRun'];
+    lastCreditCardRefillRun ??= settings['lastCreditCardRefillRun'];
+    lastSavingRun ??= settings['lastSavingRun'];
   }
 
   if (!wasToday(lastAutoExpenseRun)) {
@@ -23,27 +26,6 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
     await dbHelper.updateSettings("lastAutoExpenseRun", formatForSqlite(DateTime.now()));
   } else {
     logger.debug("Skipping auto expense processing, already done today", tag: "background jobs");
-  }
-  
-
-  if (lastSavingRun == null) {
-    final settings = await dbHelper.getSettings();
-    lastSavingRun = settings['lastSavingRun'];
-    lastSavingRun ??= DateTime.now().toString();
-  }
-
-  if (!wasToday(lastSavingRun)) {
-    await processBalanceCalculation(dbHelper, lastSavingRun);
-    await dbHelper.updateSettings("lastSavingRun", formatForSqlite(DateTime.now()));
-  } else {
-    logger.debug("Skipping balance calculation, already done today", tag: "background jobs");
-  }
-
-
-  if (lastCreditCardRefillRun == null) {
-    final settings = await dbHelper.getSettings();
-    lastCreditCardRefillRun = settings['lastCreditCardRefillRun'];
-    lastCreditCardRefillRun ??= DateTime.now().toString();
   }
 
   if(!wasToday(lastCreditCardRefillRun)) {
@@ -53,6 +35,13 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
     await dbHelper.updateSettings("lastCreditCardRefillRun", formatForSqlite(DateTime.now()));
   } else {
     logger.debug("Skipping credit card refill processing, already done today", tag: "background jobs");
+  }
+
+  if (!wasToday(lastSavingRun)) {
+    await processBalanceCalculation(dbHelper, lastSavingRun);
+    await dbHelper.updateSettings("lastSavingRun", formatForSqlite(DateTime.now()));
+  } else {
+    logger.debug("Skipping balance calculation, already done today", tag: "background jobs");
   }
 
   logger.debug("Finished background jobs", tag: "background jobs");
