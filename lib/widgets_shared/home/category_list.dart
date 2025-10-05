@@ -149,109 +149,128 @@ Widget listTile({required context, required bool allSpent, required bool unassig
       borderRadius: BorderRadius.circular(8),
     ),
     color: (designState.categoryMainStyle == 0) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
-    child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [ 
-      Stack(
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Stack(
         children: [
-            if (designState.categoryMainStyle != 3)
-            ...[
-              Positioned(
-                height: (designState.categoryMainStyle == 0) ? null : 5,
-                left: 0,
-                right: 0,
-                top: (designState.categoryMainStyle == 0) ? 0 : (designState.categoryMainStyle == 1) ? null : 0,
-                bottom: (designState.categoryMainStyle == 0) ? 0 : (designState.categoryMainStyle == 2) ? null : 0,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: category.color.withValues(alpha: (allSpent)? .2 : 1),
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                height: (designState.categoryMainStyle == 0) ? null : 5,
-                left: 0,
-                right: 0,
-                top: (designState.categoryMainStyle == 0) ? 0 : (designState.categoryMainStyle == 1) ? null : 0,
-                bottom: (designState.categoryMainStyle == 0) ? 0 : (designState.categoryMainStyle == 2) ? null : 0,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: FractionallySizedBox(
-                    widthFactor: (!unassigned) ? (category.spent / category.budget).clamp(0.0, 1.0) : (category.spent / budgetState.notAssignedBudget).clamp(0.0, 1.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: (allSpent)? 0 : 0.5),
-                        borderRadius: const BorderRadius.horizontal(
-                          left: Radius.circular(8),
-                          right: Radius.circular(8),
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Container(
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: .2),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [ 
+              Stack(
+                children: [
+                    if (designState.categoryMainStyle != 3)
+                    ...[
+                      Positioned(
+                        height: (designState.categoryMainStyle == 0) ? null : 5,
+                        left: 0,
+                        right: 0,
+                        top: (designState.categoryMainStyle == 0) ? 0 : (designState.categoryMainStyle == 1) ? null : 0,
+                        bottom: (designState.categoryMainStyle == 0) ? 0 : (designState.categoryMainStyle == 2) ? null : 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: category.color.withValues(alpha: (allSpent)? .2 : 1),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.4),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            ListTile(
-              title: Text(
-                (!unassigned)
-                    ? category.category
-                    : I18n.translate("unassigned"),
-                style: TextStyle(color: textColor),
-              ),
-              subtitle: Text(
-                (budgetState.showAvailableBudget)
-                    ? I18n.translate("available", placeholders: {
-                        "actual": ((!unassigned)
-                                ? (category.budget - category.spent)
-                                : (budgetState.notAssignedBudget -
-                                    category.spent))
-                            .toStringAsFixed(2),
-                        "planned": (!unassigned)
-                            ? category.budget.toStringAsFixed(2)
-                            : budgetState.notAssignedBudget
-                                .toStringAsFixed(2),
-                        "currency": currency.toString()
-                      })
-                    : I18n.translate("spent", placeholders: {
-                        "actual": category.spent.toStringAsFixed(2),
-                        "planned": (!unassigned)
-                            ? category.budget.toStringAsFixed(2)
-                            : budgetState.notAssignedBudget
-                                .toStringAsFixed(2),
-                        "currency": currency.toString()
-                      }),
-                style: TextStyle(color: textColor),
-              ),
-              trailing: (designState.addExpenseStyle == 0) ? IconButton(
-                icon: Icon(Icons.add_rounded, color: textColor),
-                onPressed: onPressed,
-              ) : buttonBuilder(
-                context,
-                onPressed,
-                label: I18n.translate("new")
-              ),
-              onTap: showExpensesBottomSheet,
-              onLongPress: () {
-                if (budgetState.proStatusIsSet(mobileOnly: true)) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),
-                    ),
-                  );
-                }
-              },
+                      Positioned(
+                        height: (designState.categoryMainStyle == 0) ? null : 5,
+                        left: 0,
+                        right: 0,
+                        top: (designState.categoryMainStyle == 0) ? 0 : (designState.categoryMainStyle == 1) ? null : 0,
+                        bottom: (designState.categoryMainStyle == 0) ? 0 : (designState.categoryMainStyle == 2) ? null : 0,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: FractionallySizedBox(
+                            widthFactor: (!unassigned) ? (category.spent / category.budget).clamp(0.0, 1.0) : (category.spent / budgetState.notAssignedBudget).clamp(0.0, 1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: (allSpent)? 0 : 0.5),
+                                borderRadius: const BorderRadius.horizontal(
+                                  left: Radius.circular(8),
+                                  right: Radius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    ListTile(
+                      title: Text(
+                        (!unassigned)
+                            ? category.category
+                            : I18n.translate("unassigned"),
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      subtitle: Text(
+                        (budgetState.showAvailableBudget)
+                            ? I18n.translate("available", placeholders: {
+                                "actual": ((!unassigned)
+                                        ? (category.budget - category.spent)
+                                        : (budgetState.notAssignedBudget -
+                                            category.spent))
+                                    .toStringAsFixed(2),
+                                "planned": (!unassigned)
+                                    ? category.budget.toStringAsFixed(2)
+                                    : budgetState.notAssignedBudget
+                                        .toStringAsFixed(2),
+                                "currency": currency.toString()
+                              })
+                            : I18n.translate("spent", placeholders: {
+                                "actual": category.spent.toStringAsFixed(2),
+                                "planned": (!unassigned)
+                                    ? category.budget.toStringAsFixed(2)
+                                    : budgetState.notAssignedBudget
+                                        .toStringAsFixed(2),
+                                "currency": currency.toString()
+                              }),
+                        style: TextStyle(
+                          color: textColor.withValues(alpha: .9)
+                        ),
+                      ),
+                      trailing: (designState.addExpenseStyle == 0) ? buttonBuilder(
+                        context,
+                        onPressed,
+                        icon: Icons.add_rounded,
+                      ) : buttonBuilder(
+                        context,
+                        onPressed,
+                        label: I18n.translate("new")
+                      ),
+                      onTap: showExpensesBottomSheet,
+                      onLongPress: () {
+                        if (budgetState.proStatusIsSet(mobileOnly: true)) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),
+                            ),
+                          );
+                        }
+                      },
+                    )
+                  ]
+                )
+              ]
             )
           ]
         )
-      ]
-    )
+      )
   );
 }
