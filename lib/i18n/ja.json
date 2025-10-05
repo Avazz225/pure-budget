@@ -443,5 +443,9 @@
     "monthlyRefill": "清算日: {day}",
     "refillAcc": "クレジットカード {name} を清算",
     "overrideAccount": "デフォルトアカウント",
-    "defaultAccount": "自動"
+    "defaultAccount": "自動",
+
+    "goMobile": "外出先でも計画を続けよう！",
+    "mobileAd": "モバイル版をダウンロードして、どこでも予算を確認できます。",
+    "openVersion": "{platform} バージョンを開く"
 }

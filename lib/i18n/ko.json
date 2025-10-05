@@ -443,5 +443,9 @@
     "monthlyRefill": "결제일: {day}",
     "refillAcc": "신용카드 {name} 결제",
     "overrideAccount": "기본 계좌",
-    "defaultAccount": "자동"
+    "defaultAccount": "자동",
+
+    "goMobile": "이동 중에도 계획하세요!",
+    "mobileAd": "모바일 버전을 다운로드하고 어디서나 예산을 확인하세요.",
+    "openVersion": "{platform} 버전 열기"
 }

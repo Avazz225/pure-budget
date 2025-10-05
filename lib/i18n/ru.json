@@ -443,5 +443,9 @@
     "monthlyRefill": "Погашено: {day}",
     "refillAcc": "Погасить карту {name}",
     "overrideAccount": "Счёт по умолчанию",
-    "defaultAccount": "Автоматически"
+    "defaultAccount": "Автоматически",
+
+    "goMobile": "Планируйте на ходу!",
+    "mobileAd": "Загрузите мобильную версию и следите за бюджетом где угодно.",
+    "openVersion": "Открыть версию {platform}"
 }

@@ -443,5 +443,9 @@
     "monthlyRefill": "Saldata il: {day}",
     "refillAcc": "Saldo carta {name}",
     "overrideAccount": "Conto predefinito",
-    "defaultAccount": "Automatico"
+    "defaultAccount": "Automatico",
+
+    "goMobile": "Pianifica ovunque tu sia!",
+    "mobileAd": "Scarica la versione mobile e tieni d'occhio il tuo budget ovunque.",
+    "openVersion": "Apri la versione {platform}"
 }

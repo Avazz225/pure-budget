@@ -443,5 +443,9 @@
     "monthlyRefill": "结算日期：{day}",
     "refillAcc": "结算信用卡 {name}",
     "overrideAccount": "默认账户",
-    "defaultAccount": "自动"
+    "defaultAccount": "自动",
+
+    "goMobile": "随时随地规划！",
+    "mobileAd": "下载手机版本，随时随地掌握您的预算。",
+    "openVersion": "打开 {platform} 版本"
 }

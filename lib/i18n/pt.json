@@ -443,5 +443,9 @@
     "monthlyRefill": "Pago em: {day}",
     "refillAcc": "Pagar cartão {name}",
     "overrideAccount": "Conta padrão",
-    "defaultAccount": "Automático"
+    "defaultAccount": "Automático",
+
+    "goMobile": "Planeie em qualquer lugar!",
+    "mobileAd": "Descarregue a versão móvel e acompanhe o seu orçamento em qualquer lugar.",
+    "openVersion": "Abrir versão {platform}"
 }

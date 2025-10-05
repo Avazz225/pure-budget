@@ -443,5 +443,9 @@
     "monthlyRefill": "noblu' {day}",
     "refillAcc": "Huch nav {name} nob",
     "overrideAccount": "motlh QujmeH Huch Hal",
-    "defaultAccount": "Automatic"
+    "defaultAccount": "Automatic",
+
+    "goMobile": "mIghHomDaq nab yIta'!",
+    "mobileAd": "naw' mach qel, HuchlIj DatDaq leghlaH.",
+    "openVersion": "{platform} pat yIpoSmoH"
 }

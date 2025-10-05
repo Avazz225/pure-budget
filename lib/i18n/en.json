@@ -443,5 +443,9 @@
     "monthlyRefill": "Settled on: {day}",
     "refillAcc": "Settle credit card {name}",
     "overrideAccount": "Default account",
-    "defaultAccount": "Automatic"
+    "defaultAccount": "Automatic",
+
+    "goMobile": "Plan on the go!",
+    "mobileAd": "Download the mobile version and keep an eye on your budget anywhere.",
+    "openVersion": "Open {platform} version"
 }

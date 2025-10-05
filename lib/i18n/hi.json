@@ -443,5 +443,9 @@
     "monthlyRefill": "निपटान दिनांक: {day}",
     "refillAcc": "क्रेडिट कार्ड {name} का निपटान करें",
     "overrideAccount": "डिफ़ॉल्ट खाता",
-    "defaultAccount": "स्वचालित"
+    "defaultAccount": "स्वचालित",
+
+    "goMobile": "चलते-फिरते योजना बनाएं!",
+    "mobileAd": "मोबाइल संस्करण डाउनलोड करें और कहीं भी अपना बजट देखें।",
+    "openVersion": "{platform} संस्करण खोलें"
 }

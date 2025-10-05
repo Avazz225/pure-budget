@@ -443,5 +443,9 @@
     "monthlyRefill": "Liquidado el: {day}",
     "refillAcc": "Liquidar tarjeta {name}",
     "overrideAccount": "Cuenta predeterminada",
-    "defaultAccount": "Automático"
+    "defaultAccount": "Automático",
+
+    "goMobile": "¡Planifica sobre la marcha!",
+    "mobileAd": "Descarga la versión móvil y controla tu presupuesto en cualquier lugar.",
+    "openVersion": "Abrir versión {platform}"
 }

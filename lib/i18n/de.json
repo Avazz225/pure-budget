@@ -443,5 +443,9 @@
     "monthlyRefill": "Beglichen am: {day}",
     "refillAcc": "Kreditkarte {name} begleichen",
     "overrideAccount": "Standardkonto",
-    "defaultAccount": "Automatisch"
+    "defaultAccount": "Automatisch",
+
+    "goMobile": "Unterwegs weiterplanen!",
+    "mobileAd": "Lade die mobile Version und behalte dein Budget überall im Blick.",
+    "openVersion": "{platform}-Version öffnen"
 }

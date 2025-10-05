@@ -443,5 +443,9 @@
     "monthlyRefill": "Ödeme tarihi: {day}",
     "refillAcc": "Kredi kartı {name} öde",
     "overrideAccount": "Varsayılan hesap",
-    "defaultAccount": "Otomatik"
+    "defaultAccount": "Otomatik",
+
+    "goMobile": "Yolda plan yap!",
+    "mobileAd": "Mobil sürümü indir ve bütçeni her yerde takip et.",
+    "openVersion": "{platform} sürümünü aç"
 }

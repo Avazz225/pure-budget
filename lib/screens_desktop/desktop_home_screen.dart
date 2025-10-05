@@ -5,6 +5,7 @@ import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/screens_shared/customization_screen.dart';
 import 'package:jne_household_app/screens_shared/help_screen.dart';
+import 'package:jne_household_app/widgets_desktop/go_mobile_banner.dart';
 import 'package:jne_household_app/widgets_desktop/home/statistics.dart';
 import 'package:jne_household_app/widgets_shared/background_painter.dart';
 import 'package:jne_household_app/widgets_shared/buttons.dart';
@@ -190,19 +191,6 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           );
                         },
                       ),
-                      /*if (!budgetState.isPro || kDebugMode)
-                      buildActionButton(
-                        context,
-                        label: I18n.translate("upgradeToPro"),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const InAppPurchaseScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      */
                       const SizedBox(height: 0,),
                     ],
                   ),
@@ -243,6 +231,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: (budgetState.proStatusIsSet() || budgetState.proStatusIsSet(desktop: true)) && !kDebugMode ? null : const GoMobileBanner(),
     );
   }
 }

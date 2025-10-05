@@ -443,5 +443,9 @@
     "monthlyRefill": "Réglé le : {day}",
     "refillAcc": "Régler la carte {name}",
     "overrideAccount": "Compte par défaut",
-    "defaultAccount": "Automatique"
+    "defaultAccount": "Automatique",
+
+    "goMobile": "Planifiez en déplacement !",
+    "mobileAd": "Téléchargez la version mobile et gardez un œil sur votre budget partout.",
+    "openVersion": "Ouvrir la version {platform}"
 }
