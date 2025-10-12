@@ -153,6 +153,7 @@ Widget listTile({required context, required bool allSpent, required bool unassig
       borderRadius: BorderRadius.circular(8),
       child: Stack(
         children: [
+          if (designState.getListTileBlur())
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(

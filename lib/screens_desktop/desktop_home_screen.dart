@@ -231,7 +231,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: (budgetState.proStatusIsSet() || budgetState.proStatusIsSet(desktop: true)) && !kDebugMode ? null : const GoMobileBanner(),
+      bottomNavigationBar: (budgetState.proStatusIsSet() || budgetState.proStatusIsSet(desktop: true) || budgetState.sharedDbUrl != "none") && !kDebugMode ? null : const GoMobileBanner(),
     );
   }
 }

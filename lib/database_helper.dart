@@ -333,7 +333,7 @@ class DatabaseHelper {
     await db.update("design", {key: value}, where: 'id = 1');
   }
 
-  Future<void> processSavings(int accountId, Map<String, DateTime> range) async {
+  Future<void> processSavings(int accountId, Map<String, DateTime> range, logger) async {
     final db = await database;
     double income = (await getTotalBudget(accountId.toString()))['totalIncome'];
     String query  = '''SELECT SUM(amount) as totalSpent
@@ -345,6 +345,8 @@ class DatabaseHelper {
 
     dynamic spent = (await db.rawQuery(query, params))[0]['totalSpent'];
     spent ??= 0.0;
+
+    logger.debug("Spent $spent", tag: "balance clac");
 
     dynamic balance = (await db.query("bankaccounts", columns: ['balance'], where: 'id = ?', whereArgs: [accountId]))[0]['balance'] as double;
     balance ??= 0.0;

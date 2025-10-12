@@ -38,7 +38,7 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
   }
 
   if (!wasToday(lastSavingRun)) {
-    await processBalanceCalculation(dbHelper, lastSavingRun);
+    await processBalanceCalculation(dbHelper, lastSavingRun, logger);
     await dbHelper.updateSettings("lastSavingRun", formatForSqlite(DateTime.now()));
   } else {
     logger.debug("Skipping balance calculation, already done today", tag: "background jobs");
@@ -56,18 +56,19 @@ bool wasToday(String lastRun) {
   return lastRunDate.year == now.year && lastRunDate.month == now.month && lastRunDate.day == now.day;
 }
 
-Future<void> processBalanceCalculation(DatabaseHelper dbHelper, String lastSavingRun) async {
+Future<void> processBalanceCalculation(DatabaseHelper dbHelper, String lastSavingRun, Logger logger) async {
   List<BankAccount> accounts = await dbHelper.getBankAccounts(await dbHelper.getAutoExpenses());
 
   for (BankAccount account in accounts) {
     if (!account.isCreditCard) {
+      logger.debug("Processing balance calculation for ${account.name}", tag: "balance calculation");
       List<Map<String, DateTime>> ranges = getMultipleRanges({"principle": account.budgetResetPrinciple, "day": account.budgetResetDay}, 2, DateTime(2000));
       if (lastSavingRun != "none") {
         if (!dateBeforeRange(DateTime.parse(lastSavingRun), ranges[0]['start']!)) {
           return;
         }
       }
-      await dbHelper.processSavings(account.id, ranges[1]);
+      await dbHelper.processSavings(account.id, ranges[1], logger);
     }
   }
 } 

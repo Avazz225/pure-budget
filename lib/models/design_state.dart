@@ -134,6 +134,20 @@ class DesignState extends ChangeNotifier {
     };
   }
 
+  bool getListTileBlur() {
+    // cards are solid
+    if (categoryMainStyle == 0) {
+      return false;
+    }
+
+    // uses custom background image
+    if (customBackgroundPath != "none") {
+      return true;
+    }
+
+    return false;
+  }
+
   Future<void> updateCustomGradient(Map<String, dynamic> data) async {
     customGradient = data;
 
