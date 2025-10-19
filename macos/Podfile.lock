@@ -6,6 +6,10 @@ PODS:
   - flutter_inappwebview_macos (0.0.1):
     - FlutterMacOS
     - OrderedSet (~> 6.0.3)
+  - flutter_local_notifications (0.0.1):
+    - FlutterMacOS
+  - flutter_native_timezone_latest (0.0.1):
+    - FlutterMacOS
   - flutter_secure_storage_macos (6.1.3):
     - FlutterMacOS
   - flutter_web_auth_2 (3.0.0):
@@ -47,6 +51,8 @@ DEPENDENCIES:
   - desktop_webview_window (from `Flutter/ephemeral/.symlinks/plugins/desktop_webview_window/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
+  - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
+  - flutter_native_timezone_latest (from `Flutter/ephemeral/.symlinks/plugins/flutter_native_timezone_latest/macos`)
   - flutter_secure_storage_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos`)
   - flutter_web_auth_2 (from `Flutter/ephemeral/.symlinks/plugins/flutter_web_auth_2/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
@@ -74,6 +80,10 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   flutter_inappwebview_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
+  flutter_local_notifications:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
+  flutter_native_timezone_latest:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_native_timezone_latest/macos
   flutter_secure_storage_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos
   flutter_web_auth_2:
@@ -106,26 +116,28 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_to_front/macos
 
 SPEC CHECKSUMS:
-  desktop_webview_window: d4365e71bcd4e1aa0c14cf0377aa24db0c16a7e2
-  file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
-  flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
-  flutter_secure_storage_macos: c2754d3483d20bb207bb9e5a14f1b8e771abcdb9
-  flutter_web_auth_2: 2e1dc2d2139973e4723c5286ce247dd590390d70
+  desktop_webview_window: 7e37af677d6d19294cb433d9b1d878ef78dffa4d
+  file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
+  flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
+  flutter_local_notifications: 4bf37a31afde695b56091b4ae3e4d9c7a7e6cda0
+  flutter_native_timezone_latest: 78d81274afba52f90ea9eb7e7326881436dd62e9
+  flutter_secure_storage_macos: 7f45e30f838cf2659862a4e4e3ee1c347c2b3b54
+  flutter_web_auth_2: 62b08da29f15a20fa63f144234622a1488d45b65
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
-  in_app_purchase_storekit: a1ce04056e23eecc666b086040239da7619cd783
-  local_auth_darwin: fa4b06454df7df8e97c18d7ee55151c57e7af0de
-  mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
+  in_app_purchase_storekit: d1a48cb0f8b29dbf5f85f782f5dd79b21b90a5e6
+  local_auth_darwin: d2e8c53ef0c4f43c646462e3415432c4dab3ae19
+  mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
-  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
-  screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
-  share_plus: 1fa619de8392a4398bfaf176d441853922614e89
-  sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
-  tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
-  url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
-  webview_flutter_wkwebview: a4af96a051138e28e29f60101d094683b9f82188
-  window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
-  window_to_front: 4cdc24ddd8461ad1a55fa06286d6a79d8b29e8d8
+  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
+  share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
+  sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
+  tray_manager: a104b5c81b578d83f3c3d0f40a997c8b10810166
+  url_launcher_macos: 0fba8ddabfc33ce0a9afe7c5fef5aab3d8d2d673
+  webview_flutter_wkwebview: 1821ceac936eba6f7984d89a9f3bcb4dea99ebb2
+  window_manager: b729e31d38fb04905235df9ea896128991cad99e
+  window_to_front: 9e76fd432e36700a197dac86a0011e49c89abe0a
 
 PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.16.2

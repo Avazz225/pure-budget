@@ -61,6 +61,7 @@ class NotificationService {
   }
 
   Future<void> showTestNotification() async {
+    _logger.debug("Showing test notification", tag: "notification");
     _plugin.show(0, "test", "testBody", _buildDetails());
   }
 
