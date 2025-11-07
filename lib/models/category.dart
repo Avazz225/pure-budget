@@ -1,19 +1,22 @@
-import 'package:flutter/material.dart';
+import 'package:jne_household_app/models/category_budget_plain.dart';
+import 'package:jne_household_app/models/category_plain.dart';
 
 class Category {
-  final int id;
-  String name;
   double budget;
-  Color color;
-  int position;
-  int? overrideBankAccount;
+  List<CategoryBudgetPlain> categoryBudgetsPlain;
+  CategoryPlain category;
+
 
   Category({
-    required this.id,
-    required this.name,
     required this.budget,
-    required this.color,
-    required this.position,
-    required this.overrideBankAccount,
+    required this.categoryBudgetsPlain,
+    required this.category
   });
+
+  save() {
+    category.save();
+    for (CategoryBudgetPlain c in categoryBudgetsPlain) {
+      c.save();
+    }
+  }
 }

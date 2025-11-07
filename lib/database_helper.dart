@@ -2,8 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:jne_household_app/models/category_budget_plain.dart';
+import 'package:jne_household_app/models/category_plain.dart';
+import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/models/reminder_settings.dart';
 import 'package:jne_household_app/models/reset_principles.dart';
+import 'package:jne_household_app/models/settings.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
@@ -56,13 +60,22 @@ class DatabaseHelper {
         db.execute('CREATE TABLE editLog (id INTEGER PRIMARY KEY, affectedTable TEXT, affectedId INTEGER, type TEXT, sharedBatchId INTEGER DEFAULT -1)');
         db.execute('CREATE TABLE design (id INTEGER PRIMARY KEY, layoutMainVertical INTEGER DEFAULT 1, categoryMainStyle INTEGER DEFAULT 0, addExpenseStyle INTEGER DEFAULT 1, arcStyle INTEGER DEFAULT 0, arcPercent REAL DEFAULT 50.0, arcWidth REAL DEFAULT 0.8, arcSegmentsRounded INTEGER DEFAULT 1, dialogSolidBackground INTEGER DEFAULT 1, appBackgroundSolid INTEGER DEFAULT 1, appBackground INTEGER DEFAULT 0, customBackgroundBlur INTEGER DEFAULT 0, customBackgroundPath TEXT DEFAULT "none", mainMenuStyle INTEGER DEFAULT 0, blurIntensity REAL DEFAULT 0.1, customGradient TEXT DEFAULT "{}")');
         db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT, categoryId INTEGER)');
+        db.execute('CREATE TABLE intervals (id INTEGER PRIMARY KEY, start TEXT, end TEXT, accountId INTEGER)');
+        db.execute('CREATE TABLE realizedCategoryBudgets (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, categoryId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
+        db.execute('CREATE TABLE realizedBankaccounts (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, balance REAL, income REAL)');
+        db.execute('CREATE TABLE realizedAutoexpenses (id INTEGER PRIMARY KEY, intervalId INTEGER, autoexpenseId INTEGER, expenseId INTEGER)');
 
         int arcStyle = (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ? 1 : 0;
+        DateTime tdy = DateTime.now();
+        String start = formatForSqlite(tdy);
+        String end = formatForSqlite(tdy.add(const Duration(days: 30)));
+
         db.execute('INSERT INTO design (id, arcStyle) VALUES (1, $arcStyle)');
         db.execute('INSERT INTO settings (currency) VALUES ("€")');
         db.execute('INSERT INTO categories (id, name, color, position) VALUES (-1, "__undefined_category_name__", "${colorToHex(Colors.grey[700]!)}", 0)');
         db.execute('INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, "${I18n.translate("unassignedAccount")}", 0, 0, "monthStart", 1)');
         db.execute('INSERT INTO categoryBudgets (categoryId, accountId, budget) VALUES (-1, -1, 0)');
+        db.execute('INSERT INTO intervals (start, end) VALUES ($start, $end)');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 3) {
@@ -278,8 +291,112 @@ class DatabaseHelper {
         if (oldVersion < 36) {
           await db.execute('ALTER TABLE categoryBudgets ADD COLUMN overrideBankAccount INTEGER DEFAULT null');
         }
+
+        if (oldVersion < 37) {
+          await db.execute('CREATE TABLE intervals (id INTEGER PRIMARY KEY, start TEXT, end TEXT, accountId INTEGER)');
+          await db.execute('CREATE TABLE realizedCategoryBudgets (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, categoryId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
+          await db.execute('CREATE TABLE realizedBankaccounts (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, balance REAL, income REAL)');
+          await db.execute('CREATE TABLE realizedAutoexpenses (id INTEGER PRIMARY KEY, intervalId INTEGER, autoexpenseId INTEGER, expenseId INTEGER)');
+          await migrateTo37(db);
+        }
       },
     );
+  }
+
+  Future<void> migrateTo37(Database db) async {
+    // read first expense
+    final firstExpense = await genericSelect("expenses", onlyFirst: true, dbObj: db);
+    final firstDate = firstExpense['date'];
+
+    // read all necessary data
+    final bankAccounts = await genericSelect("bankaccounts", dbObj: db);
+    final categories = await genericSelect("categoryBudgets", dbObj: db);
+    final allBookedAutoExepenses = await genericSelect("expenses", filter: "autoId != ?", filterArgs: [-1],dbObj: db);
+    final autoExpenses = await genericSelect("autoexpenses", dbObj: db);
+
+    // create all intervals
+    List intervals = [];
+    
+    // create all realizedBankaccounts
+    for (Map<String, dynamic> i in intervals) {
+      for (Map<String, dynamic> ba in bankAccounts) {
+        await db.insert(
+          "realizedBankaccounts", 
+          {
+            "intervalId": i['id'],
+            "accountId": ba['id'],
+            "balance": ba['balance'],
+            "income": ba['income']
+          }
+        );
+      }
+    }
+
+    // create all realizedCategoryBudgets
+    for (Map<String, dynamic> i in intervals) {
+      for (Map<String, dynamic> cb in categories) {
+        await db.insert(
+          "realizedBankaccounts", 
+          {
+            "intervalId": i['id'],
+            "accountId": cb['accountId'],
+            "categoryId": cb['categoryId'],
+            "budget": cb['budget'],
+            "overrideBankAccount": cb['overrideBankAccount']
+          }
+        );
+      }
+    }
+
+    // create all realizedAutoexpenses. Here we need to have reinforced logic
+    // to assign all autoexpenses to the correct intervals
+  }
+
+  Future<int> genericInsert(String table, Map<String, dynamic> values, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    int id = (await db.insert(table, values));
+    await genericInsertLog(table, id, "insert", dbObj: db);
+    return id;
+  }
+
+  Future<void> genericUpdate(String table, Map<String, dynamic> values, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    await db.update(table, values, where: "id = ?", whereArgs: [values['id']]);
+    await genericInsertLog(table, values['id'],"update", dbObj: db);
+  }
+
+  Future<void> genericDelete(String table, int id, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    await db.delete(table, where: "id = ?", whereArgs: [id]);
+    await genericInsertLog(table, id, "delete", dbObj: db);
+  }
+
+  Future<dynamic> genericSelect(String table, {bool onlyFirst = false, String? filter, List? filterArgs, String? order, Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    List res = await db.query(table, where: filter, whereArgs: filterArgs, orderBy: order);
+    if (onlyFirst) {
+      return res.first;
+    } else {
+      return res;
+    }
+  }
+
+  Future<dynamic> rawSelect(String query, List params, {bool onlyFirst = false, Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    List res = await db.rawQuery(query, params);
+    if (onlyFirst) {
+      return res.first;
+    } else {
+      return res;
+    }
+  }
+
+  Future<void> genericInsertLog(table, id, method, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    if (["settings", "design", "editLog"].contains(table)) {
+      return;
+    }
+    await insertEditLog(table, id, "update", dbObj: db);
   }
 
   Future<void> insertEditLog(String table, int affectedId, String type, {Database? dbObj}) async {
@@ -323,14 +440,13 @@ class DatabaseHelper {
     await insertEditLog("categoryBudgets", -1, "insert", dbObj: db);
   }
 
-  Future<Map<String, dynamic>> getDesignData() async {
-    final db = await database;
-    return (await db.query("design")).first;
-  }
-
   Future<void> updateDesign(String key, dynamic value) async {
     final db = await database;
-    await db.update("design", {key: value}, where: 'id = 1');
+    Map<String, dynamic> values = {
+      "id": 1,
+      key: value
+    };
+    await genericUpdate("design", values, dbObj: db);
   }
 
   Future<void> processSavings(int accountId, Map<String, DateTime> range, logger) async {
@@ -357,9 +473,9 @@ class DatabaseHelper {
     await insertEditLog("bankaccounts", accountId, "update", dbObj: db);
   }
 
-  Future<Map<String, dynamic>> getSettings() async {
+  Future<Settings> getSettings() async {
     final db = await database;
-    return (await db.query('settings'))[0];
+    return Settings((await db.query('settings'))[0]);
   }
 
   Future<Map<String, dynamic>> getTotalBudget(dynamic filterBudget) async {
@@ -383,14 +499,8 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> updateSettings(String key, dynamic value) async {
-    final db = await database;
-    await db.update('settings', {key: value}, where: 'id = 1');
-  }
-
   Future<ReminderSettings> loadReminder() async {
-    final db = await database;
-    Map<String, dynamic> res = json.decode((await db.query("settings", columns: ["reminder"], where: "id = ?", whereArgs: [1]))[0]["reminder"] as String);
+    Map<String, dynamic> res = json.decode((await getSettings()).reminder);
     return ReminderSettings.fromJson(res);
   }
 
@@ -534,7 +644,7 @@ class DatabaseHelper {
     await insertEditLog("bankaccounts", id, "insert", dbObj: db);
     List<Category> cats = await getCategories("*");
     for (Category cat in cats) {
-      int cbId = await db.insert("categoryBudgets", {"accountId": id, "categoryId": cat.id, "budget": 0});
+      int cbId = await db.insert("categoryBudgets", {"accountId": id, "categoryId": cat.category.id, "budget": 0});
       await insertEditLog("categoryBudgets", cbId, "insert", dbObj: db);
     }
 
@@ -620,39 +730,43 @@ class DatabaseHelper {
     }
   }
 
+  Future<List<CategoryPlain>> getCategoriesPlain() async {
+    final List<Map<String, dynamic>> result = await genericSelect("categories", order: 'position DESC');
+    return result.map((exp) => CategoryPlain(exp)).toList();
+  }
+
+  Future<List<CategoryBudgetPlain>> getCategoryBudgets() async {
+    final List<Map<String, dynamic>> result = await genericSelect("categoryBudgets");
+    return result.map((exp) => CategoryBudgetPlain(exp)).toList();
+  }
+
   Future<List<Category>> getCategories(String filter) async {
-    final db = await database;
-    final List<Map<String, dynamic>> categoryData = await db.query('categories', orderBy: 'position DESC');
-    final List<Map<String, dynamic>> catBudgetData = await db.query("categoryBudgets");
+    final categoriesPlain = await getCategoriesPlain();
+    final categoryBudgets = await getCategoryBudgets();
 
-    return categoryData.map((data) {
+    return categoriesPlain.map((data) {
       double budget;
+      List<CategoryBudgetPlain> selectedCategoryBudgets;
       if (filter == "*") {
-        budget = catBudgetData
-          .where((cb) => cb['categoryId'] == data['id'])
-          .fold(0.0, (sum, cb) => sum + (cb['budget'] ?? 0.0));
+        budget = categoryBudgets
+          .where((cb) => cb.categoryId == data.id)
+          .fold(0.0, (sum, cb) => sum + (cb.budget));
+        selectedCategoryBudgets = categoryBudgets.where((cb) => cb.categoryId == data.id).toList();
       } else {
-        budget = catBudgetData.firstWhere((cb) => cb['categoryId'] == data['id'] && cb['accountId'].toString() == filter)['budget'];
+        selectedCategoryBudgets = [categoryBudgets.firstWhere((cb) => cb.categoryId == data.id && cb.accountId.toString() == filter)];
+        budget = selectedCategoryBudgets.first.budget;
       }
-
-      int? override =
-      catBudgetData.firstWhere((cb) => cb['categoryId'] == data['id'] && cb['accountId'].toString() == filter, orElse: () => {'overrideBankAccount': null})['overrideBankAccount'];
-
       return Category(
-        id: data['id'] as int,
-        name: data['name'] as String,
         budget: budget,
-        position: data['position'],
-        color: data['color'] != null ?hexToColor(data['color'] as String) : Colors.grey, // Farbe umwandeln
-        overrideBankAccount: override
+        categoryBudgetsPlain: selectedCategoryBudgets,
+        category: data
       );
-    }).toList();
+    }).where((c) => (c.budget != 0.0 || c.category.id == -1)).toList();
   }
 
   Future<List<BankAccount>> getBankAccounts(List<AutoExpense> moneyFlows) async {
     final db = await database;
     final List<Map<String, dynamic>> bankaccountdata = List.from(await db.query('bankaccounts'));
-    // Konvertiere die Datenbankzeilen in Category-Objekte
     return bankaccountdata.map((data) {
       return BankAccount(
         id: data['id'] as int,
@@ -719,37 +833,9 @@ class DatabaseHelper {
     }).toList();
   }
 
-  Future<void> updateCategoryBase(Category category, String filter) async {
+  Future<bool> checkAutoExpense(int autoId, int categoryId, DateTime date) async {
     final db = await database;
-    await db.update(
-      'categories',
-      {
-        'name': category.name,
-        'color': colorToHex(category.color),
-        'position': category.position
-      },
-      where: 'id = ?',
-      whereArgs: [category.id],
-    );
-
-    await insertEditLog("categories", category.id, "update", dbObj: db);
-
-    if (filter == "*") {
-      filter = "-1";
-    }
-
-    List<Map<String, dynamic>> affected = await db.query('categoryBudgets', where: 'categoryId = ? AND accountId = ?', whereArgs: [category.id, filter]);
-    for (Map<String, dynamic> entry in affected) {
-      await db.update('categoryBudgets', {"budget": category.budget, "overrideBankAccount": category.overrideBankAccount}, where: 'categoryId = ? AND accountId = ? AND id = ?', whereArgs: [category.id, filter, entry['id']]);
-      _logger.debug("Updated category budget for categoryId ${category.id} and accountId $filter to ${category.budget} and override: ${category.overrideBankAccount}", tag: "database");
-      await insertEditLog("categoryBudgets", entry['id'], "update", dbObj: db);
-    }
-    
-  }
-
-  Future<bool> checkAutoExpense(int autoId, int categoryId, String date) async {
-    final db = await database;
-    return (await db.query("expenses", where: "autoId = ? AND categoryId = ? AND date = ?", whereArgs: [autoId, categoryId, formatForSqliteFromStr(date)])).isNotEmpty;
+    return (await db.query("expenses", where: "autoId = ? AND categoryId = ? AND date = ?", whereArgs: [autoId, categoryId, formatForSqlite(date)])).isNotEmpty;
   }
 
   Future<Map<String, dynamic>> getFirstExpense() async {
@@ -757,26 +843,7 @@ class DatabaseHelper {
     return (await db.query('expenses', limit: 1, orderBy: "date ASC"))[0];
   }
 
-  Future<void> insertExpense(Map<String, dynamic> expense, {Database? dbObj}) async {
-    final db = dbObj ?? await database;
-    int id = await db.insert('expenses', expense);
-    await insertEditLog("expenses", id, "insert", dbObj: db);
-  }
-
-  Future<void> updateExpense(Map<String, dynamic> expense) async {
-    final db = await database;
-    await db.update('expenses', expense, where: 'id = ?', whereArgs: [expense['id']]);
-    await insertEditLog("expenses", expense['id'], "update", dbObj: db);
-  }
-
-  Future<void> deleteExpense(Map<String, dynamic> expense) async {
-    final db = await database;
-    await db.delete('expenses', where: 'id = ?', whereArgs: [expense['id']]);
-    await insertEditLog("expenses", expense['id'], "delete", dbObj: db);
-  }
-
-  Future<List<Map<String, dynamic>>> getExpenses(int categoryId, String accountId, Map<String, DateTime> range, List<BankAccount> bankAccounts) async {
-    final db = await database;
+  Future<List<Expense>> getExpenses(int categoryId, String accountId, Map<String, DateTime> range, List<BankAccount> bankAccounts) async {
     String where;
     List whereParams = [];
 
@@ -797,8 +864,8 @@ class DatabaseHelper {
       where = "categoryId = ? AND (${inlay.substring(0, inlay.length - 3)})";
     }
 
-    List<Map<String, dynamic>>result = await db.query('expenses', where: where, whereArgs: whereParams, orderBy: "date ASC");
-    return result;
+    final List<Map<String, dynamic>> result = await genericSelect("expenses", filter: where, filterArgs: whereParams, order: "date ASC");
+    return result.map((exp) => Expense(exp)).toList();
   }
 
   Future<Map<String, dynamic>> getExpense(int id) async {
@@ -841,7 +908,8 @@ class DatabaseHelper {
     await resetDatabase();
 
     for (Map<String, dynamic> expense in data['expenses']){
-      await insertExpense(expense, dbObj: db);
+
+      await genericInsert("expenses", expense, dbObj: db);
     }
 
     for (Map<String, dynamic> autoexpenses in data['autoexpenses']){

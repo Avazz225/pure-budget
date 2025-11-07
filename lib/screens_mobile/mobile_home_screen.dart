@@ -40,9 +40,9 @@ class HomeScreenState extends State<HomeScreen> {
       backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
       appBar: AppBar(
         backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
-        title: Text("${I18n.translate('appTitle')} ${budgetState.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.filterBudget).first.name}" : ""}"),
+        title: Text("${I18n.translate('appTitle')} ${budgetState.settings.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name}" : ""}"),
         actions: [
-          if(budgetState.sharedDbUrl != "none")
+          if(budgetState.settings.sharedDbUrl != "none")
           ...[
             if (!budgetState.syncInProgress)
             ...[
@@ -65,7 +65,7 @@ class HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.camera_alt_rounded),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState,),
+                builder: (context) => ReceiptPage(baseCurrency: budgetState.settings.currency, budgetState: budgetState, designState: designState,),
               ),
             ),
           ),
@@ -203,7 +203,7 @@ class HomeScreenState extends State<HomeScreen> {
               } else if (index == 2 && budgetState.proStatusIsSet()) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState,),
+                    builder: (context) => ReceiptPage(baseCurrency: budgetState.settings.currency, budgetState: budgetState, designState: designState,),
                   ),
                 );
               }

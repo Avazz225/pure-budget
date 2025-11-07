@@ -17,14 +17,14 @@ class UriHandler {
         final categoryId = int.parse(call.arguments.toString());
         _logger.debug("Called addExpense with '$categoryId'", tag: "methodChannel");
         _logger.debug("Total ${state.rawCategories.length} categories available", tag: "methodChannel");
-        String categoryName = state.rawCategories.where((c) => c.id == categoryId).first.name;
+        String categoryName = state.rawCategories.where((c) => c.category.id == categoryId).first.category.name;
         _logger.debug("Called addExpense for '$categoryName'", tag: "methodChannel");
 
         bool res = await showExpenseDialog(
           context: navigatorKey.currentContext!, 
           categoryId: categoryId, 
           category: categoryName, 
-          accountId: state.filterBudget, 
+          accountId: state.settings.filterBudget, 
           bankAccounts: state.bankAccounts, 
           bankAccoutCount: state.bankAccounts.length,
           allowCamera: state.proStatusIsSet(mobileOnly: true),
@@ -34,7 +34,7 @@ class UriHandler {
           Navigator.of(navigatorKey.currentContext!).push(
             MaterialPageRoute(
               builder: (context) => ReceiptPage(
-                baseCurrency: state.currency, 
+                baseCurrency: state.settings.currency, 
                 budgetState: state, 
                 designState: designState, 
                 overrideCatId: categoryId, 

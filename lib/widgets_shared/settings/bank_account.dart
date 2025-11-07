@@ -20,14 +20,14 @@ class BankAccount extends StatelessWidget {
             )
           ),
           DropdownButton<String>(
-            value: budgetState.filterBudget,
+            value: budgetState.settings.filterBudget,
             items: [
               DropdownMenuItem<String>(
                 value: "*",
                 child: Text(I18n.translate("allAcc")),
               )
             ] + budgetState.bankAccounts.where((acc) => !acc.isCreditCard).map((entry) {
-              int index = entry.id;
+              int index = entry.id!;
               String displayText = entry.name;
               return DropdownMenuItem<String>(
                 value: index.toString(),

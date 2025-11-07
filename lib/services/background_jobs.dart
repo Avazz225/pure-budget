@@ -2,6 +2,7 @@ import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/category.dart';
+import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/services/auto_booking.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
@@ -12,18 +13,18 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
   logger.debug("Starting background jobs", tag: "background jobs");
   dbHelper ??= DatabaseHelper();
   autoExpenses ??= await dbHelper.getAutoExpenses(noMoneyFlow: false);
-  
-  if (lastAutoExpenseRun == null || lastCreditCardRefillRun == null || lastSavingRun == null) {
-    final settings = await dbHelper.getSettings();
+  final settings = await dbHelper.getSettings();
 
-    lastAutoExpenseRun ??= settings['lastAutoExpenseRun'];
-    lastCreditCardRefillRun ??= settings['lastCreditCardRefillRun'];
-    lastSavingRun ??= settings['lastSavingRun'];
+  if (lastAutoExpenseRun == null || lastCreditCardRefillRun == null || lastSavingRun == null) {
+    lastAutoExpenseRun ??= settings.lastAutoExpenseRun;
+    lastCreditCardRefillRun ??= settings.lastCreditCardRefillRun;
+    lastSavingRun ??= settings.lastSavingRun;
   }
 
   if (!wasToday(lastAutoExpenseRun)) {
     await processAutoExpenses(lastAutoExpenseRun, autoExpenses);
-    await dbHelper.updateSettings("lastAutoExpenseRun", formatForSqlite(DateTime.now()));
+    settings.lastAutoExpenseRun = formatForSqlite(DateTime.now());
+    await settings.save();
   } else {
     logger.debug("Skipping auto expense processing, already done today", tag: "background jobs");
   }
@@ -32,14 +33,16 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
     bankAccounts ??= await dbHelper.getBankAccounts(autoExpenses);
     categories ??= await dbHelper.getCategories("*");
     await processCreditCardRefills(dbHelper, bankAccounts, categories, lastCreditCardRefillRun);
-    await dbHelper.updateSettings("lastCreditCardRefillRun", formatForSqlite(DateTime.now()));
+    settings.lastCreditCardRefillRun = formatForSqlite(DateTime.now());
+    await settings.save();
   } else {
     logger.debug("Skipping credit card refill processing, already done today", tag: "background jobs");
   }
 
   if (!wasToday(lastSavingRun)) {
     await processBalanceCalculation(dbHelper, lastSavingRun, logger);
-    await dbHelper.updateSettings("lastSavingRun", formatForSqlite(DateTime.now()));
+    settings.lastSavingRun = formatForSqlite(DateTime.now());
+    await settings.save();
   } else {
     logger.debug("Skipping balance calculation, already done today", tag: "background jobs");
   }
@@ -68,7 +71,7 @@ Future<void> processBalanceCalculation(DatabaseHelper dbHelper, String lastSavin
           return;
         }
       }
-      await dbHelper.processSavings(account.id, ranges[1], logger);
+      await dbHelper.processSavings(account.id!, ranges[1], logger);
     }
   }
 } 
@@ -79,8 +82,8 @@ Future<void> processCreditCardRefills(DatabaseHelper dbHelper, List<BankAccount>
     if (account.isCreditCard) {
       logger.debug("Processing credit card refills for account ${account.name}", tag: "refill job");
       for (Category cat in categories) {
-        Map<String, dynamic> lastRefill = await dbHelper.getLastRefill(account.id, cat.id);
-        Map<String, dynamic> result = await dbHelper.getSpentForLastMonth(account.id.toString(), account, cat.id);
+        Map<String, dynamic> lastRefill = await dbHelper.getLastRefill(account.id!, cat.category.id!);
+        Map<String, dynamic> result = await dbHelper.getSpentForLastMonth(account.id.toString(), account, cat.category.id!);
         double spent = result['result'] as double;
         Map<String, DateTime> range = result['range'] as Map<String, DateTime>;
 
@@ -97,21 +100,22 @@ Future<void> processCreditCardRefills(DatabaseHelper dbHelper, List<BankAccount>
             "accountId": account.refillsFrom,
             "creditAccountId": account.id,
             "amount": spent,
-            "categoryId": cat.id,
+            "categoryId": cat.category.id,
             "date": formatForSqlite(DateTime.now())
           });
-          await dbHelper.insertExpense({
+
+          await Expense({
             "accountId": account.refillsFrom,
-            "categoryId": cat.id,
+            "categoryId": cat.category.id,
             "amount": spent,
             "date": formatForSqlite(DateTime.now()),
             "description": I18n.translate("refillAcc", placeholders: {"name": account.name}),
             "autoId": -2
-          });
+          }).save();
 
-          logger.debug("Executed refill for account ${account.name} -> ${cat.name}, value $spent", tag: "refill job");
+          logger.debug("Executed refill for account ${account.name} -> ${cat.category.name}, value $spent", tag: "refill job");
         } else {
-          logger.debug("No refill needed for cat ${cat.name}", tag: "refill job");
+          logger.debug("No refill needed for cat ${cat.category.name}", tag: "refill job");
         }
       }
     }

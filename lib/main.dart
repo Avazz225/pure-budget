@@ -63,7 +63,7 @@ Future<void> main() async {
   logger.info("Initialize quick actions", tag: "quickActions");
   await quickActions.init(
     categories: initializationData.budgetState.categories,
-    sharedDbRegistered: initializationData.budgetState.sharedDbUrl != "none",
+    sharedDbRegistered: initializationData.budgetState.settings.sharedDbUrl != "none",
     onActionSelected: (action) async {
       logger.debug("Action called: $action", tag: "quickActions");
       if (action.startsWith("new?")) {
@@ -73,27 +73,12 @@ Future<void> main() async {
           context: navigatorKey.currentContext!,
           category: initializationData.budgetState.categories.where((c) => c.categoryId == catId).first.category,
           categoryId: catId,
-          accountId: initializationData.budgetState.filterBudget,
+          accountId: initializationData.budgetState.settings.filterBudget,
           bankAccounts: initializationData.budgetState.bankAccounts,
           bankAccoutCount: initializationData.budgetState.bankAccounts.length,
           allowCamera: initializationData.budgetState.proStatusIsSet(mobileOnly: true),
           overrideBankAccount: initializationData.budgetState.categories.where((c) => c.categoryId == catId).first.overrideBankAccount,
         );
-      } else if (action.startsWith("direct?")) {
-        final query = action.substring(7);
-        final params = Map.fromEntries(
-          query.split("&").map((part) {
-            final kv = part.split("=");
-            return MapEntry(kv[0], kv.length > 1 ? kv[1] : "");
-          }),
-        );
-        initializationData.budgetState.addExpense(
-          "", 
-          (params.keys.contains('categoryId')) ? int.tryParse(params['categoryId']!) ?? -1 : -1,
-          (params.keys.contains('amount')) ?double.tryParse(params['amount']!) ?? 0.0 : 0.0,
-          (params.keys.contains('description')) ?params['description'] ?? "" : "",
-          formatForSqlite(DateTime.now()),
-          (params.keys.contains('accountId')) ?int.tryParse(params['accountId']!) ?? -1 : -1);
       } else {
         switch (action) {
           case 'sync':
@@ -134,7 +119,7 @@ Future<void> main() async {
               value: initializationData.designState,
             ),
           ],
-          child: HouseholdBudgetApp(lockApp: initializationData.budgetState.lockApp),
+          child: HouseholdBudgetApp(lockApp: initializationData.budgetState.settings.lockApp),
         )
       );
     } else {
@@ -150,7 +135,7 @@ Future<void> main() async {
                 value: initializationData.designState,
               ),
             ],
-            child: HouseholdBudgetApp(lockApp: initializationData.budgetState.lockApp),
+            child: HouseholdBudgetApp(lockApp: initializationData.budgetState.settings.lockApp),
           ),
         )
       );
@@ -196,8 +181,8 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBin
   Future<void> _checkAndRunJobs() async {
     final dbHelper = DatabaseHelper();
     final settings = await dbHelper.getSettings();
-    if (settings["sharedDbUrl"] == "none") {
-      backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings['lastAutoExpenseRun']);
+    if (settings.sharedDbUrl == "none") {
+      backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
     } else {
       Provider.of<BudgetState>(context, listen: false).syncSharedDb(manual: true);
     }

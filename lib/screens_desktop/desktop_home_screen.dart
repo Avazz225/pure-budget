@@ -63,9 +63,9 @@ class HomeScreenState extends State<DesktopHomeScreen> {
       backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
       appBar: AppBar(
         backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
-        title: Text("${I18n.translate('appTitle')} ${budgetState.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.filterBudget).first.name}" : ""}"),
+        title: Text("${I18n.translate('appTitle')} ${budgetState.settings.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name}" : ""}"),
         actions: [
-          if(budgetState.sharedDbUrl != "none" && budgetState.sharedDbConnected && !budgetState.syncInProgress)
+          if(budgetState.settings.sharedDbUrl != "none" && budgetState.sharedDbConnected && !budgetState.syncInProgress)
           buttonBuilder(
             context,
             () {
@@ -73,7 +73,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
             },
             icon: Icons.cloud_queue_rounded
           ),
-          if(budgetState.sharedDbUrl != "none" && !budgetState.sharedDbConnected && !budgetState.syncInProgress)
+          if(budgetState.settings.sharedDbUrl != "none" && !budgetState.sharedDbConnected && !budgetState.syncInProgress)
           buttonBuilder(
             context,
             () {
@@ -81,7 +81,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
             },
             icon: Icons.cloud_off_rounded,
           ),
-          if(budgetState.sharedDbUrl != "none" && budgetState.syncInProgress)
+          if(budgetState.settings.sharedDbUrl != "none" && budgetState.syncInProgress)
           buttonBuilder(
             context,
             () {},
@@ -152,7 +152,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           );
                         },
                       ),
-                      if (budgetState.isDesktopPro || kDebugMode)
+                      if (budgetState.settings.isDesktopPro || kDebugMode)
                       buildActionButton(
                         context,
                         label: I18n.translate("customization"),
@@ -164,7 +164,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           );
                         },
                       ),
-                      if (!budgetState.isDesktopPro || kDebugMode)
+                      if (!budgetState.settings.isDesktopPro || kDebugMode)
                       buildActionButton(
                         context, 
                         label: I18n.translate("upgradeToPro"), 
@@ -175,7 +175,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.lightGreen, Colors.lightBlue, Colors.yellowAccent] : [Colors.pink, Colors.purple, Colors.deepOrange]),
                         onTap: () async  {
                           await ProUpgradeManager().ensureProUpgrade(
-                            isProLocally: budgetState.isDesktopPro,
+                            isProLocally: budgetState.settings.isDesktopPro,
                             budgetState: budgetState,
                           );
                         } 
@@ -231,7 +231,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: (budgetState.proStatusIsSet() || budgetState.proStatusIsSet(desktop: true) || budgetState.sharedDbUrl != "none") && !kDebugMode ? null : const GoMobileBanner(),
+      bottomNavigationBar: (budgetState.proStatusIsSet() || budgetState.proStatusIsSet(desktop: true) || budgetState.settings.sharedDbUrl != "none") && !kDebugMode ? null : const GoMobileBanner(),
     );
   }
 }

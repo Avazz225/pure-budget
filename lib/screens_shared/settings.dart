@@ -91,7 +91,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
-    final currency = budgetState.currency;
+    final currency = budgetState.settings.currency;
 
     return Scaffold(
       appBar: AppBar(
@@ -132,7 +132,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                       )
                     ),
                     Switch(
-                      value: budgetState.includePlanned,
+                      value: budgetState.settings.includePlanned,
                       onChanged: (value) {
                         setState(() {
                           budgetState.updateInclude(value);
@@ -157,7 +157,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                       )
                     ),
                     Switch(
-                      value: budgetState.showAvailableBudget,
+                      value: budgetState.settings.showAvailableBudget,
                       onChanged: (value) {
                         setState(() {
                           budgetState.updateAvailableBudget(value);
@@ -182,7 +182,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                       )
                     ),
                     Switch(
-                      value: budgetState.useBalance,
+                      value: budgetState.settings.useBalance,
                       onChanged: (value) {
                         setState(() {
                           budgetState.updateUseBalance(value);
@@ -208,7 +208,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                       )
                     ),
                     Switch(
-                      value: budgetState.lockApp,
+                      value: budgetState.settings.lockApp,
                       onChanged: (value) async {
                         try {
                           bool supported = await auth.isDeviceSupported();
@@ -269,7 +269,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               ), 
               child: Text(I18n.translate("sharedDB"))
             ),
-            if (budgetState.sharedDbUrl == "none")
+            if (budgetState.settings.sharedDbUrl == "none")
             const ExportImport(),
             if (!Platform.isIOS && !Platform.isAndroid)
             const SizedBox(height: 8,),
@@ -309,7 +309,7 @@ class SettingsScreenState extends State<SettingsScreen> {
             ),
             if (kDebugMode)
             ...[
-              ElevatedButton(onPressed: () => budgetState.updateIsPro(!budgetState.isPro), child: Text("DEBUG: Toggle pro\nCurrent: ${budgetState.isPro}")),
+              ElevatedButton(onPressed: () => budgetState.updateIsPro(!budgetState.settings.isPro), child: Text("DEBUG: Toggle pro\nCurrent: ${budgetState.settings.isPro}")),
               ElevatedButton(onPressed: () => {showDummyImportDialog(context, budgetState)}, child: const Text("DEBUG: Fast import pbstate lang file"))
             ]
           ]

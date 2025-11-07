@@ -26,7 +26,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
     final designState = Provider.of<DesignState>(context);
-    final currency = budgetState.currency;
+    final currency = budgetState.settings.currency;
     final List<double> categorySpent = budgetState.categories.map((c) => c.spent).toList();
     final double totalSpent = categorySpent.fold(0.0, (sum, spent) => sum + spent);
 
@@ -62,7 +62,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
           BudgetArcWidget(
             totalBudget: budgetState.totalBudget,
             totalSpent: totalSpent,
-            currency: budgetState.currency,
+            currency: budgetState.settings.currency,
             categorySpent: categorySpent,
             segmentColors: budgetState.categories.map((c) => c.color).toList(),
             showText: designState.layoutMainVertical,
@@ -72,7 +72,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
           BudgetLineWidget(
             totalBudget: budgetState.totalBudget,
             totalSpent: totalSpent,
-            currency: budgetState.currency,
+            currency: budgetState.settings.currency,
             categorySpent: categorySpent,
             segmentColors: budgetState.categories.map((c) => c.color).toList(),
             showText: designState.layoutMainVertical,
@@ -92,7 +92,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
                 child: BudgetArcWidget(
                   totalBudget: budgetState.totalBudget,
                   totalSpent: totalSpent,
-                  currency: budgetState.currency,
+                  currency: budgetState.settings.currency,
                   categorySpent: categorySpent,
                   segmentColors: budgetState.categories.map((c) => c.color).toList(),
                   showText: designState.layoutMainVertical,
@@ -106,7 +106,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
                 child: BudgetLineWidget(
                   totalBudget: budgetState.totalBudget,
                   totalSpent: totalSpent,
-                  currency: budgetState.currency,
+                  currency: budgetState.settings.currency,
                   categorySpent: categorySpent,
                   segmentColors: budgetState.categories.map((c) => c.color).toList(),
                   showText: designState.layoutMainVertical,

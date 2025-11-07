@@ -37,6 +37,8 @@ migrate_working_dir/
 /dummydata/*.json
 /dummydata/*.py
 
+todo.md
+
 
 # Symbolication related
 app.*.symbols

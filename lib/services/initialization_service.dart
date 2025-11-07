@@ -6,6 +6,7 @@ import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/design_state.dart';
+import 'package:jne_household_app/models/settings.dart';
 import 'package:jne_household_app/services/background_jobs.dart';
 
 class InitializationData {
@@ -26,12 +27,12 @@ class InitializationService {
     DatabaseHelper dbHelper = DatabaseHelper();
 
     // get settings
-    Map<String, dynamic> settings = await dbHelper.getSettings();
+    Settings settings = await dbHelper.getSettings();
 
     // execute asnyc jobs if no shared db is connected to prevent duplicate entries
-    if (settings["sharedDbUrl"] == "none") {
+    if (settings.sharedDbUrl == "none") {
       Logger().debug("Processing background jobs immediately. No shared Database", tag: "initialization Service");
-      await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings['lastAutoExpenseRun']);
+      await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
       Logger().debug("Processing background jobs done.", tag: "initialization Service");
     }
 
@@ -39,7 +40,7 @@ class InitializationService {
     settings = await dbHelper.getSettings();
 
     // update filter
-    String filter = settings['filterBudget'].toString();
+    String filter = settings.filterBudget;
 
     // read money flows
     final moneyFlows = await dbHelper.getMoneyFlows();
@@ -51,7 +52,7 @@ class InitializationService {
     }
     final categories = await dbHelper.getCategories(filter);
     final autoExpenses = await dbHelper.getAutoExpenses();
-    final totalBalance = (await dbHelper.getTotalBudget(filter))[settings['useBalance'] == 1 ? 'totalBalance' : 'totalIncome'];
+    final totalBalance = (await dbHelper.getTotalBudget(filter))[settings.useBalance ? 'totalBalance' : 'totalIncome'];
     
     Map<String, dynamic> resetInfo;
 
@@ -63,38 +64,26 @@ class InitializationService {
     }
 
     // determine whether app has been set up
-    bool isSetupComplete = (bankAccounts[0].balance != 0.00 || settings['currency'] != "€" || bankAccounts[0].income != 0.00 || categories.length != 1);
+    bool isSetupComplete = (bankAccounts[0].balance != 0.00 || bankAccounts[0].income != 0.00 || categories.length != 1);
 
     // Initialize BudgetState
     final budgetState = await BudgetState.initialize(
       totalBudget: totalBalance,
       rawCategories: categories,
-      currency: settings['currency'] ?? "€",
       resetInfo: resetInfo,
-      language: settings['language'],
-      includePlanned: settings['includePlanned'] == 1,
       autoExpenses: autoExpenses,
-      showAvailableBudget: settings['showAvailableBudget'] == 1,
-      isPro: settings['isPro'] == 1,
       isSetupComplete: isSetupComplete,
-      filterBudget: filter,
-      useBalance: settings['useBalance'] == 1,
       bankAccounts: bankAccounts,
       moneyFlows: moneyFlows,
-      sharedDbUrl: settings['sharedDbUrl'],
-      syncMode: settings['syncMode'],
-      syncFrequency: settings['syncFrequency'],
-      lockApp: settings['lockApp'] == 1,
-      isDesktopPro: settings['isDesktopPro'] == 1,
-      selectedScanCategory: settings['selectedScanCategory']
+      settings: settings
     );
 
     // Load language settings (if set manually)
-    if (settings['language'] != "auto") {
-      await I18n.load(settings['language'], saveWidgetData: budgetState.saveWidgetData);
+    if (settings.language != "auto") {
+      await I18n.load(settings.language, saveWidgetData: budgetState.saveWidgetData);
     }
 
-    Map<String, dynamic> designData = await dbHelper.getDesignData();
+    Map<String, dynamic> designData = await dbHelper.genericSelect("design", onlyFirst: true);
 
     final designState = DesignState.initialize(
       layoutMainVertical: designData["layoutMainVertical"] == 1,

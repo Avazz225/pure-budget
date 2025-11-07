@@ -245,7 +245,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
                           textAlign: TextAlign.center,
                         ),
                         Text(
-                          budgetState.currency,
+                          budgetState.settings.currency,
                           style: largeBody,
                         ),
                         Wrap(
@@ -257,16 +257,16 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
                                 budgetState.updateCurrency(currency);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: currency != budgetState.currency ? Colors.transparent : Colors.green[600],
+                                backgroundColor: currency != budgetState.settings.currency ? Colors.transparent : Colors.green[600],
                                 foregroundColor: Colors.white
                               ),
                               child: Text(currency),
                             );
                           }).toList() + [
                             ElevatedButton(
-                              onPressed: () => editCurrency(budgetState.currency), 
+                              onPressed: () => editCurrency(budgetState.settings.currency), 
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: defaultCurrencies.contains(budgetState.currency) ? Colors.blue[600] : Colors.green[600],
+                                backgroundColor: defaultCurrencies.contains(budgetState.settings.currency) ? Colors.blue[600] : Colors.green[600],
                                 foregroundColor: Colors.white
                               ),
                               child: const Icon(Icons.edit_rounded),

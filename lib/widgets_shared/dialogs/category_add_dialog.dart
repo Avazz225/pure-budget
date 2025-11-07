@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
+import 'package:jne_household_app/models/category.dart';
+import 'package:jne_household_app/models/category_budget_plain.dart';
+import 'package:jne_household_app/models/category_plain.dart';
 import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/services/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -135,13 +139,30 @@ Future<void> addCategory(context, List<BankAccount> bankAccounts) async {
 
     if (name.isNotEmpty && budget > 0) {
       final budgetState = Provider.of<BudgetState>(context, listen: false);
-      final newCategory = {
-        'name': name,
-        'budget': budget,
-        'color': selectedColor.value.toRadixString(16),
-        'raw_color': selectedColor,
-        'overrideBankAccount': overrideBankAccount,
-      };
-      await budgetState.insertCategory(newCategory);
+      CategoryPlain c = CategoryPlain({
+        "name": name,
+        "color": colorToHex(selectedColor),
+        "position": budgetState.categories.length
+      });
+
+      await c.save();
+
+      int filter = budgetState.settings.filterBudget == "*" ? -1 : int.parse(budgetState.settings.filterBudget);
+
+      double de = 0.0;
+
+      List<CategoryBudgetPlain> l = budgetState.bankAccounts.map((ba) => CategoryBudgetPlain({
+        'categoryId': c.id,
+        'accountId': ba.id,
+        'budget': ba.id == filter ? budget : de,
+        "overrideBankAccount": overrideBankAccount
+      })).toList();
+
+      Category newC = Category(
+        budget: budget,
+        categoryBudgetsPlain: l,
+        category: c
+      );
+      await budgetState.insertCategory(newC);
     }
   }

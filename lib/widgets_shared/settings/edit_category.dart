@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -13,10 +14,10 @@ void editCategory(context, Category category, bool assigned, Function setState, 
     showDialog(
       context: context,
       builder: (context) {
-        final TextEditingController nameController = TextEditingController(text: category.name);
+        final TextEditingController nameController = TextEditingController(text: category.category.name);
         final TextEditingController budgetController = TextEditingController(text: I18n.comma()?category.budget.toString().replaceAll(".", ","):category.budget.toString());
-        Color selectedColor = category.color;
-        int? overrideBankAccount = category.overrideBankAccount;
+        Color selectedColor = colorFromHex(category.category.color)!;
+        int? overrideBankAccount = category.categoryBudgetsPlain.first.overrideBankAccount;
 
         return StatefulBuilder(
           builder: (context, setState) {
@@ -120,24 +121,28 @@ void editCategory(context, Category category, bool assigned, Function setState, 
                 ),
                 TextButton(
                   onPressed: () async {
-                    final updatedCategory = Category(
-                      id: category.id,
-                      name: nameController.text,
-                      budget: double.tryParse(budgetController.text.replaceAll(",", ".")) ?? category.budget,
-                      color: selectedColor,
-                      position: category.position,
-                      overrideBankAccount: overrideBankAccount,
-                    );
                     final partialBudgetState = Provider.of<BudgetState>(context, listen: false);
-                    if (updatedCategory.budget != 0.0 || updatedCategory.id == -1){
-                      await partialBudgetState.updateRawCategory(updatedCategory);
+
+                    final updatedCategory = category;
+                    updatedCategory.budget = double.tryParse(budgetController.text.replaceAll(",", ".")) ?? category.budget;
+
+                    updatedCategory.category.name = nameController.text;
+                    updatedCategory.category.color = colorToHex(selectedColor);
+                    updatedCategory.category.position = category.category.position;
+                    if (partialBudgetState.settings.filterBudget == "*") {
+                      updatedCategory.categoryBudgetsPlain.first.overrideBankAccount = overrideBankAccount;
+                      updatedCategory.categoryBudgetsPlain.first.budget = double.tryParse(budgetController.text.replaceAll(",", ".")) ?? category.budget;
                     } else {
-                      await partialBudgetState.deleteRawCategory(category.id, category.name);
+                      updatedCategory.categoryBudgetsPlain.firstWhere((cb) => cb.accountId.toString() == partialBudgetState.settings.filterBudget).budget = double.tryParse(budgetController.text.replaceAll(",", ".")) ?? category.budget;
+                      updatedCategory.categoryBudgetsPlain.firstWhere((cb) => cb.accountId.toString() == partialBudgetState.settings.filterBudget).overrideBankAccount = overrideBankAccount;
                     }
+                    
+
+                    await partialBudgetState.updateRawCategory(updatedCategory);
                     
                     Navigator.of(context).pop(true);
                   },
-                  child: Text(category.id != -1 ? (double.tryParse(budgetController.text.replaceAll(",", ".")) == 0.0) ? I18n.translate("delete") : I18n.translate("save") : I18n.translate("save")),
+                  child: Text(category.category.id != -1 ? (double.tryParse(budgetController.text.replaceAll(",", ".")) == 0.0) ? I18n.translate("delete") : I18n.translate("save") : I18n.translate("save")),
                 ),
               ],
             );

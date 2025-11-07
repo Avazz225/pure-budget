@@ -30,19 +30,19 @@ GENERAL INFO
 
 -----------------------------------
 APP CONFIG
-  -> Pro status: ${(state.isPro || state.isDesktopPro) ? "true" : "false"}
-    -> Desktop: ${state.isDesktopPro.toString()}
-    -> General: ${state.isPro.toString()}
+  -> Pro status: ${(state.settings.isPro || state.settings.isDesktopPro) ? "true" : "false"}
+    -> Desktop: ${state.settings.isDesktopPro.toString()}
+    -> General: ${state.settings.isPro.toString()}
   -> Autoexpense count: ${state.autoExpenses.length.toString()}
   -> Bank account count: ${state.bankAccounts.length.toString()}
   -> Category count: ${state.categories.length.toString()}
-  -> Currency: ${state.currency}
-  -> Language: ${state.language}
-  -> Lock app: ${state.lockApp.toString()}
+  -> Currency: ${state.settings.currency}
+  -> Language: ${state.settings.language}
+  -> Lock app: ${state.settings.lockApp.toString()}
   -> Money flow count: ${state.moneyFlows.length.toString()}
   -> Range count: ${state.budgetRanges.length.toString()}
-  -> Shared database: ${(state.sharedDbUrl != "none")? "true": "false"}
-  -> Use balance: ${state.useBalance.toString()}
+  -> Shared database: ${(state.settings.sharedDbUrl != "none")? "true": "false"}
+  -> Use balance: ${state.settings.useBalance.toString()}
 
 -----------------------------------
 APP LOG

@@ -299,14 +299,14 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                         )
                       ],
                     ),
-                    if (budgetState.filterBudget == "*" && budgetState.bankAccounts.length > 1)
+                    if (budgetState.settings.filterBudget == "*" && budgetState.bankAccounts.length > 1)
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: I18n.translate("filterBankAccount"),
                       ),
                       value: selectedIndex,
                       items: budgetState.bankAccounts.map((entry) {
-                        int index = entry.id;
+                        int index = entry.id!;
                         String displayText = entry.name;
                         return DropdownMenuItem<String>(
                           value: index.toString(),
@@ -342,8 +342,8 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                       "receiverAccountId": -1,
                       "moneyFlow": 0,
                     };
-                    if (budgetState.filterBudget != "*") {
-                      selectedIndex = budgetState.filterBudget;
+                    if (budgetState.settings.filterBudget != "*") {
+                      selectedIndex = budgetState.settings.filterBudget;
                     }
 
                     if (!ratePayment) {

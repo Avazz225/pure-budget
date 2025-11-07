@@ -1,6 +1,7 @@
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/booking_principles.dart';
+import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/models/reset_principles.dart';
 const int futureMonts = 3;
 const int futureDays = 90;
@@ -24,7 +25,7 @@ Future<bool> processAutoExpenses(String lastAutoExpenseRun, List<AutoExpense> au
 
 Future<void> processDeleteAutoExpenses(AutoExpense autoExpense) async {
   DatabaseHelper db = DatabaseHelper();
-  await db.deleteAutoExpRealizations(autoExpense.id, formatForSqlite(DateTime.now()));
+  await db.deleteAutoExpRealizations(autoExpense.id!, formatForSqlite(DateTime.now()));
 }
 
 Future<void> processUpdateAutoExpenses(AutoExpense autoExpense) async {
@@ -32,12 +33,12 @@ Future<void> processUpdateAutoExpenses(AutoExpense autoExpense) async {
   await _createBookings([autoExpense], false);
 }
 
-String bookingDate(int targetYear, int targetMonth, int offset, int day, String principle) {
+DateTime bookingDate(int targetYear, int targetMonth, int offset, int day, String principle) {
   targetMonth += offset;
   targetYear += (targetMonth - 1) ~/ 12;
   targetMonth = ((targetMonth - 1) % 12) + 1;
 
-  String result = formatForSqlite(getDateForPrinciple(principle, day, targetYear, targetMonth).add(const Duration(minutes: 1)));
+  DateTime result = getDateForPrinciple(principle, day, targetYear, targetMonth).add(const Duration(minutes: 1));
   return result;
 }
 
@@ -47,51 +48,53 @@ Future<void> _createBookings(List<AutoExpense> autoExpenses, updateSettings) asy
 
   for (AutoExpense autoExpense in autoExpenses){
     if (!autoExpense.ratePayment){
-      Map<String, dynamic> exp = {
-        "autoId": autoExpense.id,
+      Expense exp = Expense({
+        "autoId": autoExpense.id!,
         "auto": 1,
         "description": autoExpense.description,
         "categoryId": autoExpense.categoryId,
         "amount": autoExpense.amount,
         "accountId": autoExpense.accountId
-      };
+      });
 
       if (autoExpense.principleMode == "monthly"){
         for (int i = 0; i <= futureMonts; i++) {
-          exp["date"] = bookingDate(today.year, today.month, i, autoExpense.bookingDay, autoExpense.bookingPrinciple);
-          if (today.isBefore(DateTime.parse(exp["date"])) && !(await db.checkAutoExpense(autoExpense.id, autoExpense.categoryId, exp['date']))){
-            await db.insertExpense(exp);
+          exp.date = bookingDate(today.year, today.month, i, autoExpense.bookingDay, autoExpense.bookingPrinciple);
+          if (today.isBefore(exp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))){
+            await exp.save();
           }
         }
       } else if (autoExpense.principleMode == "daily"){
         for (int i = 0; i <= futureDays; i++) {
-          exp["date"] = formatForSqlite(today.add(Duration(days: i)));
-          if (today.isBefore(DateTime.parse(exp["date"])) && !(await db.checkAutoExpense(autoExpense.id, autoExpense.categoryId, (exp['date'])))){
-            await db.insertExpense(exp);
+          exp.date = today.add(Duration(days: i));
+          if (today.isBefore(exp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))){
+            await exp.save();
           }
         } 
       } else if (autoExpense.principleMode == "weekly"){
         int weekday = today.weekday;
         int diff = availableWeekDays.indexOf(autoExpense.bookingPrinciple) + 1 - weekday;
         for (int i = 0; i <= futureWeeks; i++) {
-          exp["date"] = formatForSqlite(today.add(Duration(days: diff + (i * 7))));
-          if (today.isBefore(DateTime.parse(exp["date"])) && !(await db.checkAutoExpense(autoExpense.id, autoExpense.categoryId, exp['date']))){
-            await db.insertExpense(exp);
+          exp.date = today.add(Duration(days: diff + (i * 7)));
+          if (today.isBefore(exp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))){
+            await exp.save();
           }
         }
       } else if (autoExpense.principleMode == "yearly"){
         DateTime target = DateTime.parse(autoExpense.bookingPrinciple);
         for (int i = 0; i <= futureYears; i++) {
-          exp["date"] = formatForSqlite(DateTime(today.year + i, target.month, target.day));
-          if (today.isBefore(DateTime.parse(exp["date"])) && !(await db.checkAutoExpense(autoExpense.id, autoExpense.categoryId, exp['date']))){
-            await db.insertExpense(exp);
+          exp.date = DateTime(today.year + i, target.month, target.day);
+          if (today.isBefore(exp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))){
+            await exp.save();
           }
         }
       }
     }
   }
   if (updateSettings){
-    await db.updateSettings("lastAutoExpenseRun", formatForSqlite(today));
+    final settings = await db.getSettings();
+    settings.lastAutoExpenseRun = formatForSqlite(today);
+    await settings.save();
   }
 }
 
@@ -105,14 +108,14 @@ Future<void> processCreateRates(AutoExpense autoExpense) async {
   final today = DateTime.now();
   int addition = 0;
 
-  Map<String, dynamic> exp = {
-    "autoId": autoExpense.id,
+  Expense exp = Expense({
+    "autoId": autoExpense.id!,
     "auto": 1,
     "description": autoExpense.description,
     "categoryId": autoExpense.categoryId,
     "amount": autoExpense.amount,
     "accountId": autoExpense.accountId
-  };
+  });
 
   int weekday = today.weekday;
   int diff = availableWeekDays.indexOf(autoExpense.bookingPrinciple) + 1 - weekday;
@@ -121,52 +124,54 @@ Future<void> processCreateRates(AutoExpense autoExpense) async {
     if (i == 0){
       switch (autoExpense.principleMode) {
         case "monthly":
-          exp["date"] = bookingDate(today.year, today.month, i, autoExpense.bookingDay, autoExpense.bookingPrinciple);
+          exp.date = bookingDate(today.year, today.month, i, autoExpense.bookingDay, autoExpense.bookingPrinciple);
         case "daily":
-          exp["date"] = formatForSqlite(today.add(Duration(days: i)));
+          exp.date = today.add(Duration(days: i));
         case "weekly":
-          exp["date"] = formatForSqlite(today.add(Duration(days: diff + (i * 7))));
+          exp.date = today.add(Duration(days: diff + (i * 7)));
         case "yearly":
           DateTime target = DateTime.parse(autoExpense.bookingPrinciple);
-          exp["date"] = formatForSqlite(DateTime(today.year + i, target.month, target.day));
+          exp.date = DateTime(today.year + i, target.month, target.day);
       }
 
-      if (!(today.isBefore(DateTime.parse(exp["date"])) && !(await db.checkAutoExpense(autoExpense.id, autoExpense.categoryId, exp['date'])))) {
+      if (!(today.isBefore(exp.date)) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))) {
         addition = 1;
       }
     }
 
     switch (autoExpense.principleMode) {
       case "monthly":
-        exp["date"] = bookingDate(today.year, today.month, i + addition, autoExpense.bookingDay, autoExpense.bookingPrinciple);
+        exp.date = bookingDate(today.year, today.month, i + addition, autoExpense.bookingDay, autoExpense.bookingPrinciple);
       case "daily":
-        exp["date"] = formatForSqlite(today.add(Duration(days: i + addition)));
+        exp.date = today.add(Duration(days: i + addition));
       case "weekly":
-        exp["date"] = formatForSqlite(today.add(Duration(days: diff + ((i + addition) * 7))));
+        exp.date = today.add(Duration(days: diff + ((i + addition) * 7)));
       case "yearly":
         DateTime target = DateTime.parse(autoExpense.bookingPrinciple);
-        exp["date"] = formatForSqlite(DateTime(today.year + i + addition, target.month, target.day));
+        exp.date = DateTime(today.year + i + addition, target.month, target.day);
     }
     
     if (i == 0 && autoExpense.firstRateAmount != null) {
-      Map<String, dynamic> newExp = {
-        ...exp,
+
+      Expense newExp = Expense({
+        ...exp.toMap(),
         "amount": autoExpense.firstRateAmount
-      };
-      if (today.isBefore(DateTime.parse(newExp["date"])) && !(await db.checkAutoExpense(autoExpense.id, autoExpense.categoryId, newExp['date']))){
-        await db.insertExpense(newExp);
+      });
+      if (today.isBefore(newExp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, newExp.date))){
+        await newExp.save();
       }
     } else if (i == (autoExpense.rateCount! - 1) && autoExpense.lastRateAmount != null) {
-      Map<String, dynamic> newExp = {
-        ...exp,
+      Expense newExp = Expense({
+        ...exp.toMap(),
         "amount": autoExpense.lastRateAmount
-      };
-      if (today.isBefore(DateTime.parse(newExp["date"])) && !(await db.checkAutoExpense(autoExpense.id, autoExpense.categoryId, newExp['date']))){
-        await db.insertExpense(newExp);
+      });
+      
+      if (today.isBefore(newExp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, newExp.date))){
+        await newExp.save();
       }
     } else {
-      if (today.isBefore(DateTime.parse(exp["date"])) && !(await db.checkAutoExpense(autoExpense.id, autoExpense.categoryId, exp['date']))){
-        await db.insertExpense(exp);
+      if (today.isBefore(exp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))){
+        await exp.save();
       }
     }
   }

@@ -115,7 +115,7 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
               context: context,
               category: category.category,
               categoryId: category.categoryId,
-              accountId: budgetState.filterBudget,
+              accountId: budgetState.settings.filterBudget,
               bankAccounts: budgetState.bankAccounts,
               bankAccoutCount: budgetState.bankAccounts.length,
               allowCamera: budgetState.proStatusIsSet(mobileOnly: true),
@@ -124,7 +124,7 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
             if (res) {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),
+                  builder: (context) => ReceiptPage(baseCurrency: budgetState.settings.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),
                 ),
               );
             }
@@ -221,7 +221,7 @@ Widget listTile({required context, required bool allSpent, required bool unassig
                         ),
                       ),
                       subtitle: Text(
-                        (budgetState.showAvailableBudget)
+                        (budgetState.settings.showAvailableBudget)
                             ? I18n.translate("available", placeholders: {
                                 "actual": ((!unassigned)
                                         ? (category.budget - category.spent)
@@ -260,7 +260,7 @@ Widget listTile({required context, required bool allSpent, required bool unassig
                         if (budgetState.proStatusIsSet(mobileOnly: true)) {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),
+                              builder: (context) => ReceiptPage(baseCurrency: budgetState.settings.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),
                             ),
                           );
                         }

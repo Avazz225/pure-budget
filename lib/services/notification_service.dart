@@ -121,8 +121,9 @@ class NotificationService {
     }
 
     _logger.debug("Set new reminders", tag: "notification");
-
-    await DatabaseHelper().updateSettings("reminder", settings.toString());
+    final genSettings = await DatabaseHelper().getSettings();
+    genSettings.reminder = settings.toString();
+    await genSettings.save();
   }
 
   Future<ReminderSettings?> loadReminder() async {

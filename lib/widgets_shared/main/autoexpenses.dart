@@ -68,12 +68,12 @@ Widget autoExpenseList(dynamic budgetState) {
           expenseAmount = expenseAmount.replaceAll(".", ",");
         }
 
-        if (budgetState.filterBudget == "*" || expense.accountId.toString() == budgetState.filterBudget) {
+        if (budgetState.settings.filterBudget == "*" || expense.accountId.toString() == budgetState.settings.filterBudget) {
           return Card( 
             child: ListTile(
               title: Text("${expense.description}${(expense.ratePayment) ? " (${I18n.translate("ratePayment")})" : ""}"),
               subtitle: Text(
-                '${I18n.translate("expenseAmount", placeholders: {"amount": expenseAmount, "currency": budgetState.currency})} - $principle${budgetState.filterBudget == "*" && budgetState.bankAccounts.length > 1 ? "\n${budgetState.bankAccounts.where((exp) => exp.id == expense.accountId).first.name}" : ""}'
+                '${I18n.translate("expenseAmount", placeholders: {"amount": expenseAmount, "currency": budgetState.settings.currency})} - $principle${budgetState.settings.filterBudget == "*" && budgetState.bankAccounts.length > 1 ? "\n${budgetState.bankAccounts.where((exp) => exp.id == expense.accountId).first.name}" : ""}'
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -81,7 +81,7 @@ Widget autoExpenseList(dynamic budgetState) {
                   IconButton(
                     icon: const Icon(Icons.swap_horiz_rounded),
                     onPressed: () async {
-                      await showMoveDialog(context: context, categoryId: categoryId, targetId: expense.id, autoExpense: true, accountId: expense.accountId);
+                      await showMoveDialog(context: context, categoryId: categoryId, targetId: expense.id!, autoExpense: true, accountId: expense.accountId);
                     }
                   ),
                   IconButton( icon: const Icon(Icons.edit_rounded), onPressed: () =>  addOrEditAutoExpenseDialog(context, categoryId, expenseId: expense.id))

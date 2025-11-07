@@ -108,7 +108,7 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
                             child: Text(
                               I18n.translate("accountIncome", placeholders: {
                                 "income": convertValue(bankAccount.income + bankAccount.transfers),
-                                "currency": budgetState.currency.toString(),
+                                "currency": budgetState.settings.currency.toString(),
                               }),
                               textAlign: TextAlign.center,
                               style: bodyLarge,
@@ -125,7 +125,7 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
                             child: Text(
                               I18n.translate("accountBalance", placeholders: {
                                 "balance": convertValue(bankAccount.balance),
-                                "currency": budgetState.currency.toString(),
+                                "currency": budgetState.settings.currency.toString(),
                               }),
                               textAlign: TextAlign.center,
                               style: bodyLarge,
@@ -141,7 +141,7 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
                               flex: 1,
                               child: TextButton(
                                 onPressed: () =>
-                                    moneyFlowManual(context, bankAccount.id, bankAccount.name),
+                                    moneyFlowManual(context, bankAccount.id!, bankAccount.name),
                                 style: btnNeutralStyle,
                                 child: Row(
                                   children: [
@@ -156,7 +156,7 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
                               flex: 1,
                               child: TextButton(
                                 onPressed: () =>
-                                    addOrEditMoneyFlowDialog(context, bankAccount.id),
+                                    addOrEditMoneyFlowDialog(context, bankAccount.id!),
                                 style: btnNeutralStyle,
                                 child: Row(
                                   children: [
@@ -171,7 +171,7 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
                         ExpansionTile(
                           title: Text(I18n.translate("monthlyTransfers")),
                           children: [
-                            moneyFlows(budgetState, bankAccount.id, context),
+                            moneyFlows(budgetState, bankAccount.id!, context),
                           ],
                         ),
                       ] 

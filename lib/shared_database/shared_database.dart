@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/models/settings.dart';
 import 'package:jne_household_app/services/remote/auth.dart' as auth;
 import 'package:jne_household_app/services/remote/google_drive_connector.dart';
 import 'package:jne_household_app/services/remote/one_drive_connector.dart';
@@ -126,13 +127,16 @@ class SharedDatabase {
           throw Exception("DB download failed.");
         }
 
+        Settings settings = await localDb.getSettings();
         if (newConnection) {
           await localDb.resetDatabase(true);
-          await localDb.updateSettings("lastProcessedBatchId", "-1");
+          settings.lastProcessedBatchId = -1;
+
         }
 
         List result = await syncWithRemote(sharedDbFilePath, initial: true, isPro: isPro);
-        await localDb.updateSettings("isPro", result[1] ? "1": "0");
+        settings.isPro = result[1];
+        await settings.save();
 
         return result[0];
       }

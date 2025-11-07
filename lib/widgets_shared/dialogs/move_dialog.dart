@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -36,10 +37,10 @@ Future<void> showMoveDialog({
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   Category item = categories[index];
-                  bool unassigned = item.name == "__undefined_category_name__";
-                  Color textColor = getTextColor(item.color, 0, context: context);
+                  bool unassigned = item.category.name == "__undefined_category_name__";
+                  Color textColor = getTextColor(colorFromHex(item.category.color)!, 0, context: context);
 
-                  if (categoryId != item.id) {
+                  if (categoryId != item.category.id) {
                     return Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -49,7 +50,7 @@ Future<void> showMoveDialog({
                           Positioned.fill(
                             child: Container(
                               decoration: BoxDecoration(
-                                color: item.color,
+                                color: colorFromHex(item.category.color),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
@@ -57,12 +58,12 @@ Future<void> showMoveDialog({
                           ListTile(
                             tileColor: Colors.transparent,
                             title: Text(
-                              (!unassigned) ? item.name : I18n.translate("unassigned"),
+                              (!unassigned) ? item.category.name : I18n.translate("unassigned"),
                               style: TextStyle(color: textColor),
                             ),
                             trailing: IconButton(
                               onPressed: () async {
-                                context.read<BudgetState>().moveItem(targetId, item.id, accountId, autoExpense);
+                                context.read<BudgetState>().moveItem(targetId, item.category.id!, accountId, autoExpense);
                                 Navigator.of(context).pop();
                               },
                               icon: Icon(Icons.arrow_forward_rounded, color: textColor),

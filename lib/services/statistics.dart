@@ -10,7 +10,7 @@ Map<String, List<Map<String, dynamic>>> getTableData(BudgetState state, String t
     return {"": [{}]};
   }
 
-  String currency = state.currency;
+  String currency = state.settings.currency;
   List<Map<String, dynamic>> data = state.statistics;
 
   if (type == "history_months") {
@@ -119,7 +119,7 @@ ChartData getChartData(BuildContext context, BudgetState state, String type, Str
 
   ChartOptions chartOptions = ChartOptions(
     yContainerOptions: YContainerOptions(
-      yLabelUnits: state.currency
+      yLabelUnits: state.settings.currency
     ),
     iterativeLayoutOptions: const IterativeLayoutOptions(),
     lineChartOptions: const LineChartOptions(

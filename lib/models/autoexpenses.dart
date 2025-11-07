@@ -1,5 +1,7 @@
+import 'package:jne_household_app/database_helper.dart';
+
 class AutoExpense {
-  final int id;
+  int? id;
   int categoryId;
   double amount;
   String description;
@@ -15,7 +17,7 @@ class AutoExpense {
   double? lastRateAmount;
 
   AutoExpense({
-    required this.id,
+    this.id,
     required this.categoryId,
     required this.amount,
     required this.description,
@@ -30,4 +32,37 @@ class AutoExpense {
     this.firstRateAmount,
     this.lastRateAmount
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      if (id != null) 'id': id,
+      if (rateCount != null) "rateCount": rateCount,
+      if (firstRateAmount != null) "firstRateAmount": firstRateAmount,
+      if (lastRateAmount != null) "lastRateAmount": lastRateAmount,
+
+      "categoryId": categoryId,
+      "amount": amount,
+      "description": description,
+      "bookingPrinciple": bookingPrinciple,
+      "bookingDay": bookingDay,
+      "principleMode": principleMode,
+      "receiverAccountId": receiverAccountId,
+      "moneyFlow": moneyFlow,
+      "accountId": accountId,
+      "ratePayment": ratePayment
+    };
+  }
+
+  Future<void> save() async {
+    final values = toMap();
+    if (id == null) {
+      id = await DatabaseHelper().genericInsert("autoexpenses", values);
+    } else {
+      await DatabaseHelper().genericUpdate("autoexpenses", values);
+    }
+  }
+
+  Future<void> delete() async {
+    await DatabaseHelper().genericDelete("autoexpenses", id!);
+  }
 }

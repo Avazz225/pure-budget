@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -13,13 +14,13 @@ Widget categoryList(BudgetState budgetState, Function setState) {
       final ref = budgetState.rawCategories.length;
       for (int i = 0; i < ref; i++) {
         final newPos = ref - i - 1;
-        budgetState.rawCategories[i].position = newPos;
+        budgetState.rawCategories[i].category.position = newPos;
       }
 
       budgetState.saveCategoryOrder();
     }
 
-  String currentAccount = (budgetState.bankAccounts.length == 1) ? "" : ((budgetState.filterBudget == "*") ? "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == "-1").name})" : "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == budgetState.filterBudget).name})");
+  String currentAccount = (budgetState.bankAccounts.length == 1) ? "" : ((budgetState.settings.filterBudget == "*") ? "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == "-1").name})" : "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == budgetState.settings.filterBudget).name})");
 
   if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
     ScreenshotManager().takeScreenshot(name: "categoryList");
@@ -41,10 +42,10 @@ Widget categoryList(BudgetState budgetState, Function setState) {
       },
       itemBuilder: (context, index) {
         final category = budgetState.rawCategories[index];
-        final assigned = category.id != -1;
+        final assigned = category.category.id != -1;
 
         return Align(
-          key: ValueKey(category.id),
+          key: ValueKey(category.category.id),
           alignment: Alignment.center,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -66,12 +67,12 @@ Widget categoryList(BudgetState budgetState, Function setState) {
                         child: const Icon(Icons.drag_handle_rounded),
                       ),
                       const SizedBox(width: 4),
-                      CircleAvatar(backgroundColor: category.color),
+                      CircleAvatar(backgroundColor: colorFromHex(category.category.color)!),
                     ],
                   ),
                 ),
                 title: Text(
-                  (assigned) ? category.name : I18n.translate("unassigned"),
+                  (assigned) ? category.category.name : I18n.translate("unassigned"),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
@@ -79,7 +80,7 @@ Widget categoryList(BudgetState budgetState, Function setState) {
                         "amount": assigned
                             ? category.budget.toStringAsFixed(2)
                             : budgetState.notAssignedBudget.toStringAsFixed(2),
-                        "currency": budgetState.currency.toString()
+                        "currency": budgetState.settings.currency.toString()
                       })}$currentAccount",
                 ),
                 trailing: IconButton(
