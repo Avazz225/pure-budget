@@ -5,6 +5,10 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:jne_household_app/models/category_budget_plain.dart';
 import 'package:jne_household_app/models/category_plain.dart';
 import 'package:jne_household_app/models/expense.dart';
+import 'package:jne_household_app/models/interval.dart';
+import 'package:jne_household_app/models/realized_autoexpenses.dart';
+import 'package:jne_household_app/models/realized_bankaccounts.dart';
+import 'package:jne_household_app/models/realized_categroybudgets.dart';
 import 'package:jne_household_app/models/reminder_settings.dart';
 import 'package:jne_household_app/models/reset_principles.dart';
 import 'package:jne_household_app/models/settings.dart';
@@ -14,6 +18,7 @@ import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:jne_household_app/models/category.dart';
@@ -49,7 +54,7 @@ class DatabaseHelper {
     
     return openDatabase(
       join(dbPath, (kDebugMode) ? 'debug_budget.db' : 'budget.db'),
-      version: 36,
+      version: 37,
       onCreate: (db, version) {
         db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
         db.execute('CREATE TABLE categories(id INTEGER PRIMARY KEY, name TEXT, color TEXT, position INTEGER)');
@@ -78,189 +83,7 @@ class DatabaseHelper {
         db.execute('INSERT INTO intervals (start, end) VALUES ($start, $end)');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 3) {
-          await db.execute('''
-            CREATE TABLE settings(
-              id INTEGER PRIMARY KEY,
-              totalBudget REAL
-            )
-          ''');
-          await db.execute('''INSERT INTO settings (totalBudget) VALUES (0)''');
-        }
-
-        if (oldVersion < 5) {
-          await db.execute("ALTER TABLE settings ADD COLUMN currency TEXT DEFAULT '€'");
-          await db.execute("ALTER TABLE settings ADD COLUMN budgetResetPrinciple TEXT DEFAULT 'monthStart'");
-          await db.execute("ALTER TABLE settings ADD COLUMN budgetResetDay INTEGER DEFAULT 1");
-        }
-
-        if (oldVersion < 6) {
-          await db.execute("CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY, amount REAL, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER)");
-          await db.execute('ALTER TABLE settings ADD COLUMN language TEXT DEFAULT "auto"');
-          await db.execute("ALTER TABLE expenses ADD COLUMN auto TEXT DEFAULT 0");
-          await db.execute("ALTER TABLE expenses ADD COLUMN autoId TEXT DEFAULT -1");
-        }
-
-        if (oldVersion < 7) {
-          await db.execute("ALTER TABLE expenses ADD COLUMN categoryId INTEGER DEFAULT -1");
-          await db.execute("UPDATE expenses SET categoryId = (SELECT id FROM categories WHERE name = category);");
-          await db.transaction((txn) async {
-            await txn.execute('CREATE TABLE expenses_new(id INTEGER PRIMARY KEY, date TEXT, amount REAL, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
-            await txn.execute('''
-              INSERT INTO expenses_new (id, date, amount, description, auto, autoId, categoryId)
-              SELECT id, date, amount, description, auto, autoId, categoryId FROM expenses;
-            ''');
-            await txn.execute('DROP TABLE expenses;');
-            await txn.execute('ALTER TABLE expenses_new RENAME TO expenses;');
-          });
-          await db.execute("ALTER TABLE categories ADD COLUMN position INTEGER DEFAULT 0");
-        }
-
-        if (oldVersion < 9) {
-          db.execute('''INSERT INTO categories (id, name, budget, color, position) VALUES (-1, "__undefined_category_name__", 0.0, "${colorToHex(Colors.grey[700]!)}", 0)''');
-        }
-
-        if (oldVersion < 10){
-          await db.transaction((txn) async {
-            await txn.execute('CREATE TABLE expenses_new(id INTEGER PRIMARY KEY, date TEXT, amount REAL, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
-            await txn.execute('''
-              INSERT INTO expenses_new (id, date, amount, description, auto, autoId, categoryId)
-              SELECT id, date, amount, description, auto, autoId, categoryId FROM expenses;
-            ''');
-            await txn.execute('DROP TABLE expenses;');
-          });
-        }
-
-        if (oldVersion < 11){
-          await db.execute('ALTER TABLE expenses_new RENAME TO expenses;');
-        }
-
-        if (oldVersion < 12){
-          await db.execute('ALTER TABLE settings ADD COLUMN includePlanned INTEGER DEFAULT 0');
-        }
-
-        if (oldVersion < 13){
-          await db.execute('UPDATE categories SET color = "${colorToHex(Colors.grey[700]!)}" WHERE id = -1;');
-        }
-
-        if (oldVersion < 14){
-          await db.execute('''ALTER TABLE settings ADD COLUMN lastAutoExpenseRun TEXT DEFAULT "none"''');
-        } 
-
-        if (oldVersion < 15){
-          await db.execute('''UPDATE expenses SET date = REPLACE(date, 'T', ' ')''');
-          await db.execute('''UPDATE settings SET lastAutoExpenseRun = REPLACE(lastAutoExpenseRun, 'T', ' ')''');
-        }
-
-        if (oldVersion < 16){
-          await db.execute('''ALTER TABLE settings ADD COLUMN showAvailableBudget INTEGER DEFAULT 0''');
-        }
-
-        if (oldVersion < 17){
-          await db.execute('''ALTER TABLE settings ADD COLUMN isPro INTEGER DEFAULT 0''');
-        }
-
-        if (oldVersion < 18){
-          
-          await db.execute('INSERT OR IGNORE INTO categories (id, name, budget, color, position) VALUES (-1, "__undefined_category_name__", 0, "${colorToHex(Colors.grey[700]!)}", 0)');
-        }
-
-        if (oldVersion < 19){
-          await db.execute('ALTER TABLE autoexpenses ADD COLUMN principleMode TEXT DEFAULT "monthly"');
-        }
-
-        if (oldVersion < 20){
-          await db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER)');
-          Map<String, dynamic> result = (await db.query('settings'))[0];
-          
-          await db.execute('INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, "${I18n.translate("unassignedAccount")}", 0, ?, ?, ?)', [result['totalBudget'], result['budgetResetPrinciple'], result['budgetResetDay']], );
-          await db.execute('ALTER TABLE expenses ADD COLUMN accountId INTEGER DEFAULT -1');
-          await db.execute('ALTER TABLE autoexpenses ADD COLUMN accountId INTEGER DEFAULT -1');
-          await db.execute('ALTER TABLE settings ADD COLUMN useBalance INTEGER DEFAULT 0');
-          await db.execute('ALTER TABLE settings ADD COLUMN filterBudget TEXT DEFAULT "*"');
-        }
-
-        if (oldVersion < 21) {
-          // transform data to new tables
-          await db.execute('ALTER TABLE settings ADD COLUMN lastAdFail TEXT DEFAULT "none"');
-          await db.execute('ALTER TABLE settings ADD COLUMN lastAdSuccess TEXT DEFAULT "none"');
-          await db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY, categoryId INTEGER, accountId INTEGER, budget REAL)');
-          List<Map<String, dynamic>> categories = await db.query('categories');
-          List<Map<String, dynamic>> bankaccounts = await db.query('bankaccounts');
-
-          for (Map<String, dynamic> acc in bankaccounts) {
-            for (Map<String, dynamic> cat in categories) {
-              await db.execute("INSERT INTO categoryBudgets (categoryId, accountId, budget) VALUES (?, ?, ?)", [cat['id'], acc['id'], acc['id'] == -1 ? cat['budget'] : 0]);
-            }
-          }
-
-          // remove dead columns from tables
-          // settings
-          await db.transaction((txn) async {
-            await txn.execute('CREATE TABLE settings_new (id INTEGER PRIMARY KEY, currency TEXT, language TEXT DEFAULT "auto", includePlanned INTEGER DEFAULT 0, lastAutoExpenseRun TEXT DEFAULT "none", showAvailableBudget INTEGER DEFAULT 0, isPro INTEGER DEFAULT 0, useBalance INTEGER DEFAULT 0, filterBudget TEXT DEFAULT "*", lastAdFail TEXT DEFAULT "none", lastAdSuccess TEXT DEFAULT "none")');
-            await txn.execute('''
-              INSERT INTO settings_new (id, currency, language, includePlanned, lastAutoExpenseRun, showAvailableBudget, isPro, useBalance, filterBudget, lastAdFail, lastAdSuccess)
-              SELECT id, currency, language, includePlanned, lastAutoExpenseRun, showAvailableBudget, isPro, useBalance, filterBudget, lastAdFail, lastAdSuccess FROM settings;
-            ''');
-            await txn.execute('DROP TABLE settings;');
-            await txn.execute('ALTER TABLE settings_new RENAME TO settings;');
-          });
-
-          // categories
-          await db.transaction((txn) async {
-            await txn.execute('CREATE TABLE categories_new (id INTEGER PRIMARY KEY, name TEXT, color TEXT, position INTEGER)');
-            await txn.execute('''
-              INSERT INTO categories_new (id, name, color, position)
-              SELECT id, name, color, position FROM categories;
-            ''');
-            await txn.execute('DROP TABLE categories;');
-            await txn.execute('ALTER TABLE categories_new RENAME TO categories;');
-          });
-        }
-
-        if (oldVersion < 22) {
-          await db.execute('''ALTER TABLE bankaccounts ADD COLUMN lastSavingRun TEXT DEFAULT "none"''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN receiverAccountId DEFAULT -1''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN moneyFlow INTEGER DEFAULT 0''');
-        }
-
-        if (oldVersion < 23) {
-          await db.execute('''ALTER TABLE settings ADD COLUMN lastProcessedBatchId INTEGER DEFAULT -1''');
-          await db.execute('CREATE TABLE editLog (id INTEGER PRIMARY KEY, affectedTable TEXT, affectedId INTEGER, type TEXT, sharedBatchId INTEGER DEFAULT -1)');
-          await db.execute('''ALTER TABLE settings ADD COLUMN sharedDbUrl TEXT DEFAULT "none"''');
-        }
-
-        if (oldVersion < 24) {
-          await db.execute('''ALTER TABLE settings ADD COLUMN syncMode TEXT DEFAULT "instant"''');
-          await db.execute('''ALTER TABLE settings ADD COLUMN syncFrequency INTEGER DEFAULT 1''');
-          await db.execute('''ALTER TABLE settings ADD COLUMN lastSync TEXT DEFAULT "none"''');
-        }
-
-        if (oldVersion < 25) {
-          await db.execute('''ALTER TABLE settings ADD COLUMN lockApp INTEGER DEFAULT 0''');
-        }
-
-        if (oldVersion < 26) {
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN ratePayment INTEGER DEFAULT 0''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN rateCount INTEGER''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN firstRateAmount REAL''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN lastRateAmount REAL''');
-        }
-
-        if (oldVersion < 27) {
-          await db.execute('CREATE TABLE design (id INTEGER PRIMARY KEY, layoutMainVertical INTEGER DEFAULT 1, categoryMainStyle INTEGER DEFAULT 0, addExpenseStyle INTEGER DEFAULT 1, arcStyle INTEGER DEFAULT 0, arcPercent REAL DEFAULT 50.0, arcWidth REAL DEFAULT 0.8, arcSegmentsRounded INTEGER DEFAULT 1, dialogSolidBackground INTEGER DEFAULT 1, appBackgroundSolid INTEGER DEFAULT 1, appBackground INTEGER DEFAULT 0, customBackgroundBlur INTEGER DEFAULT 0, customBackgroundPath TEXT DEFAULT "none", mainMenuStyle INTEGER DEFAULT 0)');
-          int arcStyle = (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ? 1 : 0;
-          db.execute('INSERT INTO design (id, arcStyle) VALUES (1, $arcStyle)');
-        }
-
-        if (oldVersion < 28) {
-          await db.execute('ALTER TABLE settings ADD COLUMN isDesktopPro INTEGER DEFAULT 0');
-        }
-
-        if (oldVersion < 29) {
-          await db.execute('ALTER TABLE settings ADD COLUMN selectedScanCategory INTEGER DEFAULT -1');
-        }
-
+        _logger.debug("Upgrading database from version $oldVersion to $newVersion", tag: "database");
         if (oldVersion < 30) {
           await db.execute("ALTER TABLE design ADD COLUMN blurIntensity REAL DEFAULT 0.1");
         }
@@ -304,52 +127,81 @@ class DatabaseHelper {
   }
 
   Future<void> migrateTo37(Database db) async {
-    // read first expense
-    final firstExpense = await genericSelect("expenses", onlyFirst: true, dbObj: db);
-    final firstDate = firstExpense['date'];
-
+    _logger.debug("Starting database migration", tag: "dbMigration");
     // read all necessary data
-    final bankAccounts = await genericSelect("bankaccounts", dbObj: db);
-    final categories = await genericSelect("categoryBudgets", dbObj: db);
-    final allBookedAutoExepenses = await genericSelect("expenses", filter: "autoId != ?", filterArgs: [-1],dbObj: db);
-    final autoExpenses = await genericSelect("autoexpenses", dbObj: db);
+    final List<BankAccount> bankAccounts = await getBankAccounts(null, dbObj: db);
+    final List<CategoryBudgetPlain> catgoryBudgets = await getCategoryBudgets(dbObj: db);
+    final List<dynamic> allBookedAutoExepenses = (await genericSelect("expenses", filter: "autoId != ?", filterArgs: [-1], dbObj: db)).map((exp) => Expense(exp)).toList();
+    final List<AutoExpense> autoExpenses = await getAutoExpenses(dbObj: db);
+    _logger.debug("Fetched data ${bankAccounts.length} bankAccounts, ${catgoryBudgets.length} catgoryBudgets, ${autoExpenses.length} autoExpenses, ${allBookedAutoExepenses.length} boooked autoExpenses", tag: "dbMigration");
 
+    List<PBInterval> intervals = [];
     // create all intervals
-    List intervals = [];
-    
+    _logger.debug("Starting interval migration", tag: "dbMigration");
+    for (BankAccount ba in bankAccounts) {
+      // read first expense
+      final firstExpense = await genericSelect("expenses", onlyFirst: true, dbObj: db);
+      final firstDate = DateTime.parse(firstExpense['date']);
+      final resetInfo = {
+        "principle": ba.budgetResetPrinciple,
+        "day": ba.budgetResetDay
+      };
+      List<PBInterval> rawIntervals = getMultipleRanges(resetInfo, 1000, firstDate).reversed.map((i) => PBInterval({'accountId': ba.id, 'start': i['start'], 'end': i['end']})).toList();
+      for (PBInterval r in rawIntervals) {
+        await r.save(dbObj: db);
+      }
+      intervals.addAll(rawIntervals);
+    }
+    _logger.debug("Finished interval migration", tag: "dbMigration");
+
+    _logger.debug("Starting bankaccount migration", tag: "dbMigration");
     // create all realizedBankaccounts
-    for (Map<String, dynamic> i in intervals) {
-      for (Map<String, dynamic> ba in bankAccounts) {
-        await db.insert(
-          "realizedBankaccounts", 
-          {
-            "intervalId": i['id'],
-            "accountId": ba['id'],
-            "balance": ba['balance'],
-            "income": ba['income']
-          }
-        );
+    for (PBInterval i in intervals) {
+      for (BankAccount ba in bankAccounts) {
+        final n = RealizedBankaccounts({
+          "intervalId": i.id,
+          "accountId": ba.id,
+          "balance": ba.balance,
+          "income": ba.income
+        });
+        await n.save(dbObj: db);
       }
     }
+    _logger.debug("Finished bankaccount migration", tag: "dbMigration");
 
+    _logger.debug("Starting categoryBudget migration", tag: "dbMigration");
     // create all realizedCategoryBudgets
-    for (Map<String, dynamic> i in intervals) {
-      for (Map<String, dynamic> cb in categories) {
-        await db.insert(
-          "realizedBankaccounts", 
-          {
-            "intervalId": i['id'],
-            "accountId": cb['accountId'],
-            "categoryId": cb['categoryId'],
-            "budget": cb['budget'],
-            "overrideBankAccount": cb['overrideBankAccount']
-          }
-        );
+    for (PBInterval i in intervals) {
+      for (CategoryBudgetPlain cb in catgoryBudgets) {
+        final n = RealizedCategoryBudgets({
+          "intervalId": i.id,
+          "accountId": cb.accountId,
+          "categoryId": cb.categoryId,
+          "budget": cb.budget,
+          "overrideBankAccount": cb.overrideBankAccount
+        });
+        await n.save(dbObj: db);
       }
     }
-
-    // create all realizedAutoexpenses. Here we need to have reinforced logic
-    // to assign all autoexpenses to the correct intervals
+    _logger.debug("Finished categoryBudget migration", tag: "dbMigration");
+    _logger.debug("Starting autoexpense migration", tag: "dbMigration");
+    // create all realizedAutoexpenses
+    for (Expense exp in allBookedAutoExepenses) {
+      final intervalID = intervals.firstWhere((i) => (i.accountId == exp.accountId && exp.date.isAfter(i.start) && exp.date.isBefore(i.end)), orElse: () => PBInterval({"id": -1, "start": DateTime.now(), "end": DateTime.now(), "accountId": -1}),).id;
+      if (intervalID == -1) {
+        logger.debug("Deleting expense with id ${exp.id}");
+        await exp.delete(dbObj: db);
+      } else {
+        final ae = autoExpenses.where((ae) => ae.id == exp.autoId).toList();
+        final RealizedAutoexpenses e = RealizedAutoexpenses({
+          'intervalId': intervalID,
+          'autoexpenseId': ae.isEmpty ? -1 : ae.first.id,
+          'expenseId': exp.id
+        });
+        await e.save(dbObj: db);
+      }
+    }
+    _logger.debug("Finished autoexpense migration", tag: "dbMigration");
   }
 
   Future<int> genericInsert(String table, Map<String, dynamic> values, {Database? dbObj}) async {
@@ -735,8 +587,8 @@ class DatabaseHelper {
     return result.map((exp) => CategoryPlain(exp)).toList();
   }
 
-  Future<List<CategoryBudgetPlain>> getCategoryBudgets() async {
-    final List<Map<String, dynamic>> result = await genericSelect("categoryBudgets");
+  Future<List<CategoryBudgetPlain>> getCategoryBudgets({Database? dbObj}) async {
+    final List<Map<String, dynamic>> result = await genericSelect("categoryBudgets", dbObj: dbObj);
     return result.map((exp) => CategoryBudgetPlain(exp)).toList();
   }
 
@@ -764,8 +616,8 @@ class DatabaseHelper {
     }).where((c) => (c.budget != 0.0 || c.category.id == -1)).toList();
   }
 
-  Future<List<BankAccount>> getBankAccounts(List<AutoExpense> moneyFlows) async {
-    final db = await database;
+  Future<List<BankAccount>> getBankAccounts(List<AutoExpense>? moneyFlows, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
     final List<Map<String, dynamic>> bankaccountdata = List.from(await db.query('bankaccounts'));
     return bankaccountdata.map((data) {
       return BankAccount(
@@ -777,7 +629,7 @@ class DatabaseHelper {
         budgetResetPrinciple: data['budgetResetPrinciple'] as String,
         budgetResetDay: data['budgetResetDay'] as int,
         lastSavingRun: data['lastSavingRun'] as String,
-        transfers: moneyFlows.where((mf) => mf.receiverAccountId == data['id']).fold(0, (sum, mf) => sum + mf.amount),
+        transfers: moneyFlows != null ? moneyFlows.where((mf) => mf.receiverAccountId == data['id']).fold(0, (sum, mf) => sum + mf.amount) : 0.0,
         isCreditCard: data['isCreditCard'] == 1,
         refillsFrom: data['refillsFrom'] as int,
         refillPrincipleMode: data['refillPrincipleMode'] as String
@@ -785,8 +637,8 @@ class DatabaseHelper {
     }).toList();
   }
 
-  Future<List<AutoExpense>> getAutoExpenses({bool noMoneyFlow = true}) async {
-    final db = await database;
+  Future<List<AutoExpense>> getAutoExpenses({bool noMoneyFlow = true, Database? dbObj}) async {
+    final db = dbObj ?? await database;
     final List<Map<String, dynamic>> autoExpenseList = (noMoneyFlow) ?
       List.from(await db.query('autoexpenses', where: 'moneyFlow = ?', whereArgs: [0]))
       :

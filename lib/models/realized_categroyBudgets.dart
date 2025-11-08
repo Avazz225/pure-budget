@@ -1,4 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
+import 'package:sqflite/sqflite.dart';
 
 class RealizedCategoryBudgets {
   int? id;
@@ -14,7 +15,9 @@ class RealizedCategoryBudgets {
     }
 
     if (values.keys.contains("overrideBankAccount")) {
-      id = values['overrideBankAccount'] as int;
+      if (values['overrideBankAccount'] != null) {
+        id = values['overrideBankAccount'] as int;
+      }
     }
 
     intervalId = values['intervalId'] is int ? values['intervalId'] : int.tryParse(values['intervalId']) ?? values['intervalId'];
@@ -34,12 +37,13 @@ class RealizedCategoryBudgets {
     };
   }
 
-  Future<void> save() async {
+  Future<void> save({Database? dbObj}) async {
+    final db = dbObj ?? await DatabaseHelper().database;
     final values = toMap();
     if (id == null) {
-      id = await DatabaseHelper().genericInsert("realizedCategoryBudgets", values);
+      id = await DatabaseHelper().genericInsert("realizedCategoryBudgets", values, dbObj: db);
     } else {
-      await DatabaseHelper().genericUpdate("realizedCategoryBudgets", values);
+      await DatabaseHelper().genericUpdate("realizedCategoryBudgets", values, dbObj: db);
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
+import 'package:sqflite/sqflite.dart';
 
 class RealizedBankaccounts {
   int? id;
@@ -28,12 +29,13 @@ class RealizedBankaccounts {
     };
   }
 
-  Future<void> save() async {
+  Future<void> save({Database? dbObj}) async {
+    final db = dbObj ?? await DatabaseHelper().database;
     final values = toMap();
     if (id == null) {
-      id = await DatabaseHelper().genericInsert("realizedBankaccounts", values);
+      id = await DatabaseHelper().genericInsert("realizedBankaccounts", values, dbObj: db);
     } else {
-      await DatabaseHelper().genericUpdate("realizedBankaccounts", values);
+      await DatabaseHelper().genericUpdate("realizedBankaccounts", values, dbObj: db);
     }
   }
 

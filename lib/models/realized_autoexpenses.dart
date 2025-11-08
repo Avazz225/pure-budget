@@ -1,4 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
+import 'package:sqflite/sqflite.dart';
 
 class RealizedAutoexpenses {
   int? id;
@@ -25,12 +26,13 @@ class RealizedAutoexpenses {
     };
   }
 
-  Future<void> save() async {
+  Future<void> save({Database? dbObj}) async {
+    final db = dbObj ?? await DatabaseHelper().database;
     final values = toMap();
     if (id == null) {
-      id = await DatabaseHelper().genericInsert("realizedAutoexpenses", values);
+      id = await DatabaseHelper().genericInsert("realizedAutoexpenses", values, dbObj: db);
     } else {
-      await DatabaseHelper().genericUpdate("realizedAutoexpenses", values);
+      await DatabaseHelper().genericUpdate("realizedAutoexpenses", values, dbObj: db);
     }
   }
 

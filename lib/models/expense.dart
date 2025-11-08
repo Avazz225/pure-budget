@@ -1,4 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
+import 'package:sqflite/sqflite.dart';
 
 class Expense {
   int? id;
@@ -46,7 +47,7 @@ class Expense {
     }
   }
 
-  Future<void> delete() async {
-    await DatabaseHelper().genericDelete("expenses", id!);
+  Future<void> delete({Database? dbObj}) async {
+    await DatabaseHelper().genericDelete("expenses", id!, dbObj: dbObj);
   }
 }
