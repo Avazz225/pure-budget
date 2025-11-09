@@ -180,11 +180,11 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBin
 
   Future<void> _checkAndRunJobs() async {
     final dbHelper = DatabaseHelper();
-    final settings = await dbHelper.getSettings();
-    await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
+    final settings = await dbHelper.getSettings();  
     if (settings.sharedDbUrl != "none") {
-      Provider.of<BudgetState>(context, listen: false).syncSharedDb(manual: true);
+      await Provider.of<BudgetState>(context, listen: false).syncSharedDb(manual: true);
     }
+    await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
   }
 
   Future<void> _authenticate(bool authRequired) async {
