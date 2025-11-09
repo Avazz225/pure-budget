@@ -223,9 +223,9 @@ class DatabaseHelper {
     await genericInsertLog(table, id, "delete", dbObj: db);
   }
 
-  Future<dynamic> genericSelect(String table, {bool onlyFirst = false, String? filter, List? filterArgs, String? order, Database? dbObj}) async {
+  Future<dynamic> genericSelect(String table, {bool onlyFirst = false, String? filter, List? filterArgs, String? order, Database? dbObj, int? limit}) async {
     final db = dbObj ?? await database;
-    List res = await db.query(table, where: filter, whereArgs: filterArgs, orderBy: order);
+    List res = await db.query(table, where: filter, whereArgs: filterArgs, orderBy: order, limit: limit);
     if (onlyFirst) {
       return res.first;
     } else {
@@ -693,6 +693,26 @@ class DatabaseHelper {
   Future<Map<String, dynamic>> getFirstExpense() async {
     final db = await database;
     return (await db.query('expenses', limit: 1, orderBy: "date ASC"))[0];
+  }
+
+  Future<dynamic> getIntervals({Database? dbObj, int? limit, String? filter, List<dynamic>? filterArgs, String? order, bool onlyFirst = false}) async {
+    final db = dbObj ?? await database;
+    final dynamic result = await genericSelect("intervals", limit: limit, filter: filter, filterArgs: filterArgs, order: order, onlyFirst: onlyFirst, dbObj: db);
+    if (onlyFirst){
+      return PBInterval(result);
+    } else {
+      return result.map((res) => PBInterval(res)).toList();
+    }
+  }
+
+  Future<dynamic> getRealizedBankAccounts({Database? dbObj, int? limit, String? filter, List<dynamic>? filterArgs, String? order, bool onlyFirst = false}) async {
+    final db = dbObj ?? await database;
+    final dynamic result = await genericSelect("realizedBankaccounts", limit: limit, filter: filter, filterArgs: filterArgs, order: order, onlyFirst: onlyFirst, dbObj: db);
+    if (onlyFirst){
+      return RealizedBankaccounts(result);
+    } else {
+      return result.map((res) => RealizedBankaccounts(res)).toList();
+    }
   }
 
   Future<List<Expense>> getExpenses(int categoryId, String accountId, Map<String, DateTime> range, List<BankAccount> bankAccounts) async {
