@@ -447,5 +447,11 @@
 
     "goMobile": "Unterwegs weiterplanen!",
     "mobileAd": "Lade die mobile Version und behalte dein Budget überall im Blick.",
-    "openVersion": "{platform}-Version öffnen"
+    "openVersion": "{platform}-Version öffnen",
+
+    "rateApp": "Bewerte {appName}",
+    "rateAppText": "Wenn dir {appName} gefällt, dann nimm dir doch bitte eine Minute Zeit, um uns im App Store zu bewerten",
+    "later": "Später",
+    "okay": "Ok",
+    "never": "Nie"
 }

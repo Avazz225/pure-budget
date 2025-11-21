@@ -75,6 +75,7 @@ dependencies:
   flutter_local_notifications: ^19.4.2
   timezone: ^0.10.0
   flutter_native_timezone_latest: ^1.0.0
+  rate_my_app: ^2.3.2
 
 dev_dependencies:
   flutter_test:

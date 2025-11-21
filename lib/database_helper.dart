@@ -31,6 +31,8 @@ class DatabaseHelper {
   static Database? _database;
   final _logger = Logger();
 
+  bool dbMigrationInProgress = false;
+
   factory DatabaseHelper() => _instance;
 
   DatabaseHelper._internal();
@@ -127,6 +129,7 @@ class DatabaseHelper {
   }
 
   Future<void> migrateTo37(Database db) async {
+    dbMigrationInProgress = true;
     _logger.debug("Starting database migration", tag: "dbMigration");
     // read all necessary data
     final List<BankAccount> bankAccounts = await getBankAccounts(null, dbObj: db);
@@ -202,6 +205,7 @@ class DatabaseHelper {
       }
     }
     _logger.debug("Finished autoexpense migration", tag: "dbMigration");
+    dbMigrationInProgress = false;
   }
 
   Future<int> genericInsert(String table, Map<String, dynamic> values, {Database? dbObj}) async {
@@ -252,6 +256,9 @@ class DatabaseHelper {
   }
 
   Future<void> insertEditLog(String table, int affectedId, String type, {Database? dbObj}) async {
+    if (dbMigrationInProgress) {
+      return;
+    }
     final db = dbObj ?? await database;
     Map<String, dynamic> change = {
       "affectedTable": table,
