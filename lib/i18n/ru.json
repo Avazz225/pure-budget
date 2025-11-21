@@ -447,5 +447,11 @@
 
     "goMobile": "Планируйте на ходу!",
     "mobileAd": "Загрузите мобильную версию и следите за бюджетом где угодно.",
-    "openVersion": "Открыть версию {platform}"
+    "openVersion": "Открыть версию {platform}",
+
+    "rateApp": "Оценить {appName}",
+    "rateAppText": "Если вам нравится {appName}, уделите минуту и оцените нас в App Store.",
+    "later": "Позже",
+    "okay": "Ок",
+    "never": "Никогда"
 }

@@ -447,5 +447,11 @@
 
     "goMobile": "mIghHomDaq nab yIta'!",
     "mobileAd": "naw' mach qel, HuchlIj DatDaq leghlaH.",
-    "openVersion": "{platform} pat yIpoSmoH"
+    "openVersion": "{platform} pat yIpoSmoH",
+
+    "rateApp": "{appName} yIwuq!",
+    "rateAppText": "{appName} DatIvchugh, tup wa’ yIlo’ ’ej App StoreDaq mawuq.",
+    "later": "qaSpu’DI’",
+    "okay": "luq",
+    "never": "not"
 }

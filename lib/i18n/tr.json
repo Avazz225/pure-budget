@@ -447,5 +447,11 @@
 
     "goMobile": "Yolda plan yap!",
     "mobileAd": "Mobil sürümü indir ve bütçeni her yerde takip et.",
-    "openVersion": "{platform} sürümünü aç"
+    "openVersion": "{platform} sürümünü aç",
+
+    "rateApp": "{appName} uygulamasını değerlendir",
+    "rateAppText": "{appName} hoşuna gittiyse, App Store’da bizi değerlendirmek için bir dakikanı ayır.",
+    "later": "Daha sonra",
+    "okay": "Tamam",
+    "never": "Asla"
 }

@@ -447,5 +447,11 @@
 
     "goMobile": "이동 중에도 계획하세요!",
     "mobileAd": "모바일 버전을 다운로드하고 어디서나 예산을 확인하세요.",
-    "openVersion": "{platform} 버전 열기"
+    "openVersion": "{platform} 버전 열기",
+
+    "rateApp": "{appName} 평가하기",
+    "rateAppText": "{appName}가 마음에 드셨다면, 앱 스토어에서 평가해 주세요.",
+    "later": "나중에",
+    "okay": "확인",
+    "never": "다시 보지 않기"
 }

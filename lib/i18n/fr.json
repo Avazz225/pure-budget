@@ -447,5 +447,11 @@
 
     "goMobile": "Planifiez en déplacement !",
     "mobileAd": "Téléchargez la version mobile et gardez un œil sur votre budget partout.",
-    "openVersion": "Ouvrir la version {platform}"
+    "openVersion": "Ouvrir la version {platform}",
+
+    "rateApp": "Évaluer {appName}",
+    "rateAppText": "Si vous aimez {appName}, prenez une minute pour nous évaluer sur l’App Store.",
+    "later": "Plus tard",
+    "okay": "Ok",
+    "never": "Jamais"
 }

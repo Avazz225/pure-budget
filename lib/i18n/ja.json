@@ -447,5 +447,11 @@
 
     "goMobile": "外出先でも計画を続けよう！",
     "mobileAd": "モバイル版をダウンロードして、どこでも予算を確認できます。",
-    "openVersion": "{platform} バージョンを開く"
+    "openVersion": "{platform} バージョンを開く",
+
+    "rateApp": "{appName} を評価する",
+    "rateAppText": "{appName} が気に入ったら、App Store で評価をお願いします。",
+    "later": "あとで",
+    "okay": "OK",
+    "never": "今後表示しない"
 }

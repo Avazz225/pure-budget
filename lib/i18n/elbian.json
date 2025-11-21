@@ -447,5 +447,11 @@
 
     "goMobile": "Peno na lend!",
     "mobileAd": "Haetho i versia palan na methad i gast lín bo pân.",
-    "openVersion": "Eda i versia {platform}"
+    "openVersion": "Eda i versia {platform}",
+
+    "rateApp": "Adhano {appName}",
+    "rateAppText": "Aníron, an le mel {appName}, á si dadad odhron lín mi App Store.",
+    "later": "Tolo tírad",
+    "okay": "Ma",
+    "never": "U-vail"
 }

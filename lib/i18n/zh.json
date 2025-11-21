@@ -447,5 +447,11 @@
 
     "goMobile": "随时随地规划！",
     "mobileAd": "下载手机版本，随时随地掌握您的预算。",
-    "openVersion": "打开 {platform} 版本"
+    "openVersion": "打开 {platform} 版本",
+
+    "rateApp": "评价 {appName}",
+    "rateAppText": "如果你喜欢 {appName}，请花一分钟在 App Store 上给我们评分。",
+    "later": "稍后",
+    "okay": "确定",
+    "never": "不再提示"
 }
