@@ -63,7 +63,20 @@ class HomeScreenState extends State<DesktopHomeScreen> {
       backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
       appBar: AppBar(
         backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
-        title: Text("${I18n.translate('appTitle')} ${budgetState.settings.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name}" : ""}"),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: (budgetState.settings.filterBudget != "*") ? 
+          [
+            const Image(image: AssetImage('assets/icons/logo.png'), height: 48,),
+            Text(
+              budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name,
+            )
+          ]
+          :
+          [
+            const Image(image: AssetImage('assets/icons/PureBudgetFullImage.png'), height: 48,)
+          ],
+        ),
         actions: [
           if(budgetState.settings.sharedDbUrl != "none" && budgetState.sharedDbConnected && !budgetState.syncInProgress)
           buttonBuilder(

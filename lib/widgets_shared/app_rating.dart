@@ -63,11 +63,17 @@ class _RateAppLauncherState extends State<RateAppLauncher> {
             child: Text(I18n.translate('okay')),
           ),
           ElevatedButton(
-            onPressed: () => RateMyAppEventType.laterButtonPressed,
+            onPressed: () {
+              rateMyApp.callEvent(RateMyAppEventType.laterButtonPressed);
+              Navigator.pop<RateMyAppDialogButton>(context, RateMyAppDialogButton.rate);
+            },
             child: Text(I18n.translate('later')),
           ),
           ElevatedButton(
-            onPressed: () => RateMyAppEventType.noButtonPressed,
+            onPressed: () {
+              rateMyApp.callEvent(RateMyAppEventType.noButtonPressed);
+              Navigator.pop<RateMyAppDialogButton>(context, RateMyAppDialogButton.rate);
+            },
             child: Text(I18n.translate('never')),
           )
         ];

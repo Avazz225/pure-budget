@@ -42,7 +42,21 @@ class HomeScreenState extends State<HomeScreen> {
         backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
         appBar: AppBar(
           backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
-          title: Text("${I18n.translate('appTitle')} ${budgetState.settings.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name}" : ""}"),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: (budgetState.settings.filterBudget != "*") ? 
+            [
+              const Image(image: AssetImage('assets/icons/logo.png'), height: 32,),
+              Text(
+                budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name,
+                style: Theme.of(context).textTheme.bodyLarge,
+              )
+            ]
+            :
+            [
+              const Image(image: AssetImage('assets/icons/PureBudgetFullImage.png'), height: 48,)
+            ],
+          ),
           actions: [
             if(budgetState.settings.sharedDbUrl != "none")
             ...[
