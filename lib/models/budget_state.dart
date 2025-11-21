@@ -8,8 +8,9 @@ import 'package:home_widget/home_widget.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/models/expense.dart';
+import 'package:jne_household_app/models/interval.dart';
 import 'package:jne_household_app/models/settings.dart';
-import 'package:jne_household_app/services/auto_booking.dart';
+import 'package:jne_household_app/services/background_jobs.dart';
 import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
@@ -19,7 +20,6 @@ import 'package:jne_household_app/models/category.dart';
 import 'package:jne_household_app/models/category_budget.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
-import 'package:jne_household_app/models/reset_principles.dart';
 import 'package:jne_household_app/shared_database/shared_database.dart';
 
 class BudgetState extends ChangeNotifier {
@@ -30,10 +30,10 @@ class BudgetState extends ChangeNotifier {
   List<Category> rawCategories;
   List<AutoExpense> autoExpenses;
   List<AutoExpense> moneyFlows;
-  List<Map<String, DateTime>> budgetRanges;
+  List<PBInterval> budgetRanges;
   List<BankAccount> bankAccounts;
   int range;
-  List<Map<String, dynamic>> statistics;
+  Map<String, List<Map<String, dynamic>>> statistics;
   int selectedStatisticIndex;
   bool isSetupComplete;
   bool sharedDbConnected;
@@ -79,7 +79,7 @@ class BudgetState extends ChangeNotifier {
       range: 0,
       notAssignedBudget: totalBudget,
       autoExpenses: autoExpenses,
-      statistics: [],
+      statistics: {},
       selectedStatisticIndex: 0, 
       isSetupComplete: isSetupComplete,
       bankAccounts: bankAccounts,
@@ -178,6 +178,7 @@ class BudgetState extends ChangeNotifier {
       }
       syncInProgress = false;
     }
+    backgroundJobs(dbHelper: db);
     notifyListeners();
   }
 
@@ -219,10 +220,12 @@ class BudgetState extends ChangeNotifier {
 
     categories = await Future.wait(cats.map((cat) async {
       double spent = await DatabaseHelper().getSpentForCurrentMonth(cat.category.id!, settings.filterBudget, budgetRanges[overrideRange ?? range], settings.includePlanned, bankAccounts);
+      double budget = await DatabaseHelper().getBudgetForCurrentInterval(budgetRanges[range].id!, cat.category.id!, settings.filterBudget);
+
       return CategoryBudget(
         categoryId: cat.category.id!,
         category: cat.category.name,
-        budget: cat.budget,
+        budget: budget,
         spent: spent,
         color: colorFromHex(cat.category.color)!,
         position: cat.category.position,
@@ -251,7 +254,7 @@ class BudgetState extends ChangeNotifier {
 
     int maxRange = (proStatusIsSet(simplePro: true, inverted: true)) ? maxFreeRanges : maxProRanges;
 
-    budgetRanges = getMultipleRanges(resetInfo, maxRange, firstDate);
+    budgetRanges = await DatabaseHelper().getIntervals(limit: maxRange, filter: "accountId = ?", filterArgs: [settings.filterBudget == "*" ? -1 : settings.filterBudget], order: "start DESC");
     if (budgetRanges.length - 1 < range){
       range = budgetRanges.length - 1;
     }
@@ -262,7 +265,8 @@ class BudgetState extends ChangeNotifier {
   }
 
   Future<void> _loadBankAccounts() async {
-    bankAccounts = await DatabaseHelper().getBankAccounts(moneyFlows);
+    bankAccounts = await DatabaseHelper().getBankAccounts(moneyFlows, intervalId: budgetRanges[range].id!);
+    totalBudget = bankAccounts.fold(0.0, (sum, acc) => sum + acc.income + (settings.useBalance ? acc.balance : 0.0));
   }
 
   Future<void> _loadMoneyFlows() async {
@@ -405,6 +409,7 @@ class BudgetState extends ChangeNotifier {
   // range
   Future<void> updateRangeSelection(index) async {
     range = index;
+    await _loadBankAccounts();
     await _loadBudgets(overrideRange: index);
     notifyListeners();
   }
@@ -447,6 +452,7 @@ class BudgetState extends ChangeNotifier {
       refillPrincipleMode: acc['refillPrincipleMode']
     );
 
+    await newAcc.save();
     bankAccounts.add(newAcc);
 
     Map<String, dynamic> ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
@@ -488,9 +494,8 @@ class BudgetState extends ChangeNotifier {
         settings.filterBudget = "*";
       }
     } else {
-      await DatabaseHelper().updateBankAccount(acc, id);
+      await targetAccount.save();
       bankAccounts[index] = targetAccount;
-      
     }
 
     Map<String, dynamic> ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
@@ -514,29 +519,9 @@ class BudgetState extends ChangeNotifier {
   }
 
   // ratePayments
-  void addRateAutoExpense(Map<String, dynamic> autoExp, accountId) async {
-    autoExp['accountId'] = accountId;
-    autoExp['id'] = await DatabaseHelper().insertAutoExpense(autoExp);
-    final newAutoExpense = AutoExpense(
-      id: autoExp['id'],
-      categoryId: autoExp['categoryId'],
-      amount: autoExp['amount'],
-      description: autoExp['description'],
-      bookingPrinciple: autoExp['bookingPrinciple'],
-      bookingDay: autoExp['bookingDay'],
-      principleMode: autoExp['principleMode'],
-      accountId: int.parse(accountId),
-      moneyFlow: autoExp['moneyFlow'] == 1,
-      receiverAccountId: autoExp['receiverAccountId'],
-      ratePayment: true,
-      rateCount: autoExp['rateCount'],
-      firstRateAmount: autoExp['firstRateAmount'],
-      lastRateAmount: autoExp['lastRateAmount']
-    );
-
-    processCreateRates(newAutoExpense);
-    autoExpenses.add(newAutoExpense);
-
+  Future<void> addRateAutoExpense(AutoExpense newAE) async {
+    await newAE.save(budgetRanges.first);
+    autoExpenses.add(newAE);
     await _loadBudgets();
     notifyListeners();
 
@@ -545,30 +530,14 @@ class BudgetState extends ChangeNotifier {
     }
   }
 
-  void updateOrDeleteRateAutoExpense(Map<String, dynamic> autoExp, id, accountId) async {
-    final newAutoExpense = AutoExpense(
-      id: id,
-      categoryId: autoExp['categoryId'],
-      amount: autoExp['amount'],
-      description: autoExp['description'],
-      bookingPrinciple: autoExp['bookingPrinciple'],
-      bookingDay: autoExp['bookingDay'],
-      principleMode: autoExp['principleMode'],
-      accountId: int.parse(accountId),
-      moneyFlow: autoExp['moneyFlow'] == 1,
-      receiverAccountId: autoExp['receiverAccountId'],
-      ratePayment: true,
-      rateCount: autoExp['rateCount'],
-      firstRateAmount: autoExp['firstRateAmount'],
-      lastRateAmount: autoExp['lastRateAmount']
-    );
-    // ToDo
-    if (autoExp["amount"] == 0.0) {
-      await processDeleteAutoExpenses(newAutoExpense);
-      await DatabaseHelper().deleteAutoExpense(id);
+  Future<void> updateOrDeleteRateAutoExpense(AutoExpense newAE) async {
+    if (newAE.amount == 0.0) {
+      newAE.delete();
+      autoExpenses.removeWhere((exp) => exp.id == newAE.id);
     } else {
-      await processUpdateRates(newAutoExpense);
-      await DatabaseHelper().updateAutoExpense(autoExp, id);
+      newAE.save(budgetRanges.first);
+      int index = autoExpenses.indexWhere((exp) => exp.id == newAE.id);
+      autoExpenses[index] = newAE;
     }
 
     await _loadBudgets();
@@ -580,28 +549,12 @@ class BudgetState extends ChangeNotifier {
   }
 
   // autoExpenses
-  void addAutoExpense(Map<String, dynamic> autoExp, accountId) async {
-    autoExp['accountId'] = accountId;
-    autoExp['id'] = await DatabaseHelper().insertAutoExpense(autoExp);
-    final newAutoExpense = AutoExpense(
-      id: autoExp['id'],
-      categoryId: autoExp['categoryId'],
-      amount: autoExp['amount'],
-      description: autoExp['description'],
-      bookingPrinciple: autoExp['bookingPrinciple'],
-      bookingDay: autoExp['bookingDay'],
-      principleMode: autoExp['principleMode'],
-      accountId: int.parse(accountId),
-      moneyFlow: autoExp['moneyFlow'] == 1,
-      receiverAccountId: autoExp['receiverAccountId'],
-      ratePayment: false
-    );
-
-    await processAutoExpenses("none", [newAutoExpense], updateSettings: false);
-    if (!newAutoExpense.moneyFlow) {
-      autoExpenses.add(newAutoExpense);
+  Future<void> addAutoExpense(AutoExpense autoExp) async {
+    await autoExp.save(budgetRanges.first);
+    if (!autoExp.moneyFlow) {
+      autoExpenses.add(autoExp);
     } else {
-      moneyFlows.add(newAutoExpense);
+      moneyFlows.add(autoExp);
       await _loadBankAccounts();
     }
     
@@ -613,47 +566,31 @@ class BudgetState extends ChangeNotifier {
     }
   }
 
-  void updateOrDeleteAutoExpense(Map<String, dynamic> autoExp, id, accountId) async {
-    final newAutoExpense = AutoExpense(
-      id: id,
-      categoryId: autoExp['categoryId'],
-      amount: autoExp['amount'],
-      description: autoExp['description'],
-      bookingPrinciple: autoExp['bookingPrinciple'],
-      bookingDay: autoExp['bookingDay'],
-      principleMode: autoExp['principleMode'],
-      accountId: int.parse(accountId),
-      moneyFlow: autoExp['moneyFlow'] == 1,
-      receiverAccountId: autoExp['receiverAccountId'],
-      ratePayment: false
-    );
-
+  Future<void> updateOrDeleteAutoExpense(AutoExpense autoExp) async {
     int index;
 
-    if (!newAutoExpense.moneyFlow) {
-      index = autoExpenses.indexWhere((expense) => expense.id == newAutoExpense.id);
+    if (!autoExp.moneyFlow) {
+      index = autoExpenses.indexWhere((expense) => expense.id == autoExp.id);
     } else {
-      index = moneyFlows.indexWhere((expense) => expense.id == newAutoExpense.id);
+      index = moneyFlows.indexWhere((expense) => expense.id == autoExp.id);
     }
-    if (autoExp["amount"] == 0.0) {
-      await processDeleteAutoExpenses(newAutoExpense);
-      await DatabaseHelper().deleteAutoExpense(id);
-        if (index != -1) {
-          if (!newAutoExpense.moneyFlow) {
-            autoExpenses.removeAt(index);
-          } else {
-            moneyFlows.removeAt(index);
-            await _loadBankAccounts();
-          }
-        }
-    } else {
-      await processUpdateAutoExpenses(newAutoExpense);
-      await DatabaseHelper().updateAutoExpense(autoExp, id);
+    if (autoExp.amount == 0.0) {
+      await autoExp.delete();
       if (index != -1) {
-        if (!newAutoExpense.moneyFlow) {
-          autoExpenses[index] = newAutoExpense;
+        if (!autoExp.moneyFlow) {
+          autoExpenses.removeAt(index);
         } else {
-          moneyFlows[index] = newAutoExpense;
+          moneyFlows.removeAt(index);
+          await _loadBankAccounts();
+        }
+      }
+    } else {
+      await autoExp.save(budgetRanges.first);
+      if (index != -1) {
+        if (!autoExp.moneyFlow) {
+          autoExpenses[index] = autoExp;
+        } else {
+          moneyFlows[index] = autoExp;
           await _loadBankAccounts();
         }
       }
@@ -784,14 +721,24 @@ class BudgetState extends ChangeNotifier {
   Future<void> getStatistics(String type) async {
     switch (type) {
       case "history_months":
-        statistics = (await DatabaseHelper().lastMonthsTotal(budgetRanges, settings.filterBudget));
+        statistics = {
+          "data": await DatabaseHelper().lastMonthsTotal(budgetRanges, settings.filterBudget),
+          "totalBudget": await DatabaseHelper().lastTotalBudgets(budgetRanges, settings.filterBudget)
+        };
       case "month_by_cat":
-        statistics = (await DatabaseHelper().statisticMonthTotalByCat(budgetRanges[range], settings.filterBudget));
+        statistics = {
+          "data": await DatabaseHelper().statisticMonthTotalByCat(budgetRanges[range], settings.filterBudget)
+        };
       case "history_by_cat":
-        statistics = (await DatabaseHelper().lastMonthsByCat(budgetRanges, settings.filterBudget));
+        statistics = {
+          "data": await DatabaseHelper().lastMonthsByCat(budgetRanges, settings.filterBudget),
+          "totalBudget": await DatabaseHelper().lastMonthsCatBudget(budgetRanges, settings.filterBudget)
+        };
       // month_total
       default:
-        statistics = (await DatabaseHelper().statisticMonthTotal(budgetRanges[range], settings.filterBudget));
+        statistics = {
+          "data": (await DatabaseHelper().statisticMonthTotal(budgetRanges[range], settings.filterBudget))
+        };
     }
   }
 

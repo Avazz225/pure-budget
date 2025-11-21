@@ -36,7 +36,6 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   // initialize logger
   final logger = Logger();
   await logger.init(minLevel: (kDebugMode) ? LogLevel.debug : LogLevel.error);
@@ -156,6 +155,7 @@ class HouseholdBudgetApp extends StatefulWidget {
 class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBindingObserver {
   final LocalAuthentication auth = LocalAuthentication();
   bool _isAuthenticated = false;
+  bool _didExecuteJobs = false;
 
   @override
   void initState() {
@@ -174,17 +174,22 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBin
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       // App kommt aus dem Hintergrund in den Vordergrund
-      await _checkAndRunJobs();
+      _didExecuteJobs = false;
+      _checkAndRunJobs();
     }
   }
 
   Future<void> _checkAndRunJobs() async {
-    final dbHelper = DatabaseHelper();
-    final settings = await dbHelper.getSettings();  
-    if (settings.sharedDbUrl != "none") {
-      await Provider.of<BudgetState>(context, listen: false).syncSharedDb(manual: true);
+    if (!_didExecuteJobs) {
+      _didExecuteJobs = true;
+      final dbHelper = DatabaseHelper();
+      final settings = await dbHelper.getSettings();  
+      if (settings.sharedDbUrl != "none") {
+        await Provider.of<BudgetState>(context, listen: false).syncSharedDb();
+      } else {
+        await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
+      }
     }
-    await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
   }
 
   Future<void> _authenticate(bool authRequired) async {

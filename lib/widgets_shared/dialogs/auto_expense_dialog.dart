@@ -328,44 +328,45 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                   child: Text(I18n.translate("cancel")),
                 ),
                 TextButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (principleWithoutDay.contains(bookingPrinciple)){
                       bookingDay = 1;
                     }
-                    Map<String, dynamic> newAutoExpense = {
-                      "categoryId": categoryId,
-                      "amount": double.parse(amountController.text.replaceAll(",", ".")),
-                      "description": descriptionController.text,
-                      "bookingPrinciple": bookingPrinciple,
-                      "bookingDay": bookingDay,
-                      "principleMode": principleMode,
-                      "receiverAccountId": -1,
-                      "moneyFlow": 0,
-                    };
-                    if (budgetState.settings.filterBudget != "*") {
-                      selectedIndex = budgetState.settings.filterBudget;
-                    }
 
+
+                    final newAE = AutoExpense(
+                        categoryId: categoryId,
+                        amount: double.parse(amountController.text.replaceAll(",", ".")),
+                        description: descriptionController.text,
+                        bookingPrinciple: bookingPrinciple, 
+                        bookingDay: bookingDay,
+                        principleMode: principleMode,
+                        accountId: (budgetState.settings.filterBudget != "*") ? int.parse(budgetState.settings.filterBudget) : -1,
+                        moneyFlow: false,
+                        receiverAccountId: -1,
+                        ratePayment: ratePayment
+                      );
+                      
                     if (!ratePayment) {
                       if (expenseId == null) {
-                        budgetState.addAutoExpense(newAutoExpense, selectedIndex);
+                        await budgetState.addAutoExpense(newAE);
                       } else {
-                        budgetState.updateOrDeleteAutoExpense(newAutoExpense, expenseId, selectedIndex);
+                        budgetState.updateOrDeleteAutoExpense(newAE);
                       }
                     } else {
-                      newAutoExpense['rateCount'] = int.parse(rateAmountController.text);
-                      newAutoExpense['ratePayment'] = 1;
+                      newAE.rateCount = int.parse(rateAmountController.text);
+                      newAE.ratePayment = true;
                       if (firstRateDifferent) {
-                        newAutoExpense['firstRateAmount'] = double.parse(firstRateAmountController.text.replaceAll(",", "."));
+                        newAE.firstRateAmount = double.parse(firstRateAmountController.text.replaceAll(",", "."));
                       }
                       if (lastRateDifferent) {
-                        newAutoExpense['lastRateAmount'] = double.parse(lastRateAmountController.text.replaceAll(",", "."));
+                        newAE.lastRateAmount = double.parse(lastRateAmountController.text.replaceAll(",", "."));
                       }
 
                       if (expenseId == null) {
-                        budgetState.addRateAutoExpense(newAutoExpense, selectedIndex);
+                        await budgetState.addRateAutoExpense(newAE);
                       } else {
-                        budgetState.updateOrDeleteRateAutoExpense(newAutoExpense, expenseId, selectedIndex);
+                        await budgetState.updateOrDeleteRateAutoExpense(newAE);
                       }
                     }
                     Navigator.of(context).pop();

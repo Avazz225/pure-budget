@@ -37,7 +37,7 @@ Future<bool> checkRemoteDbExists(String sharedDbFilePath) async {
 class SharedDatabase {
   final DatabaseHelper localDb;
   late final File tempRemoteDbCopyFile;
-  final int remoteDbVersion = 8;
+  final int remoteDbVersion = 9;
   final _logger = Logger();
   int totalChanges = 0;
 
@@ -82,6 +82,12 @@ class SharedDatabase {
     }
     if (oldVersion < 8) {
       await db.execute('ALTER TABLE categoryBudgets ADD COLUMN overrideBankAccount INTEGER DEFAULT null');
+    }
+    if (oldVersion < 9) {
+      await db.execute('CREATE TABLE intervals (id INTEGER PRIMARY KEY, start TEXT, end TEXT, accountId INTEGER)');
+      await db.execute('CREATE TABLE realizedCategoryBudgets (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, categoryId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
+      await db.execute('CREATE TABLE realizedBankaccounts (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, balance REAL, income REAL)');
+      await db.execute('CREATE TABLE realizedAutoexpenses (id INTEGER PRIMARY KEY, intervalId INTEGER, autoexpenseId INTEGER, expenseId INTEGER)');
     }
   }
 

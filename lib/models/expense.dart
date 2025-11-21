@@ -38,12 +38,13 @@ class Expense {
     };
   }
 
-  Future<void> save() async {
+  Future<void> save({Database? dbObj}) async {
+    final db = dbObj ?? await DatabaseHelper().database;
     final values = toMap();
     if (id == null) {
-      id = await DatabaseHelper().genericInsert("expenses", values);
+      id = await DatabaseHelper().genericInsert("expenses", values, dbObj: db);
     } else {
-      await DatabaseHelper().genericUpdate("expenses", values);
+      await DatabaseHelper().genericUpdate("expenses", values, dbObj: db);
     }
   }
 

@@ -143,28 +143,30 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                   child: Text(I18n.translate("cancel")),
                 ),
                 TextButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (principleWithoutDay.contains(bookingPrinciple)){
                       bookingDay = 1;
                     }
 
-                    final newAutoExpense = {
-                      "categoryId": -1,
-                      "amount": double.parse(amountController.text.replaceAll(",", ".")),
-                      "description": descriptionController.text,
-                      "bookingPrinciple": bookingPrinciple,
-                      "bookingDay": bookingDay,
-                      "principleMode": principleMode,
-                      "receiverAccountId": receiverAccountId,
-                      "moneyFlow": 1,
-                    };
+                    final newAutoExpense = AutoExpense(
+                      categoryId: -1,
+                      amount: double.parse(amountController.text.replaceAll(",", ".")),
+                      description: descriptionController.text,
+                      bookingPrinciple: bookingPrinciple,
+                      bookingDay: bookingDay,
+                      principleMode: principleMode,
+                      receiverAccountId: receiverAccountId,
+                      moneyFlow: true,
+                      accountId: spenderId,
+                      ratePayment: false
+                    );
 
                     Logger().debug(newAutoExpense.toString(), tag: "autoExpense");
                     
                     if (expenseId == null) {
-                      budgetState.addAutoExpense(newAutoExpense, spenderId.toString());
+                      await budgetState.addAutoExpense(newAutoExpense);
                     } else {
-                      budgetState.updateOrDeleteAutoExpense(newAutoExpense, expenseId, spenderId.toString());
+                      await budgetState.updateOrDeleteAutoExpense(newAutoExpense);
                     }
 
                     Navigator.of(context).pop();

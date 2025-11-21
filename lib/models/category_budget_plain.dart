@@ -1,4 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/models/realized_categroybudgets.dart';
 
 class CategoryBudgetPlain {
   int? id;
@@ -24,6 +25,15 @@ class CategoryBudgetPlain {
     budget = values['budget'] is double ? values['budget'] : double.tryParse(values['budget']) ?? values['budget'];
   }
 
+  Future<double> getBudgetForInterval(int intervalId) async {
+    final rcb = await DatabaseHelper().genericSelect('realizedCategoryBudgets', limit: 1, filter: 'categoryId = ? AND accountId = ? AND intervalId = ?', filterArgs: [categoryId, accountId, intervalId]);
+    if (rcb.isNotEmpty) {
+      return rcb.first['budget'] is double ? rcb.first['budget'] : double.tryParse(rcb.first['budget'].toString()) ?? 0.0;
+    } else {
+      return 0.0;
+    }
+  }
+
   Map<String, dynamic> toMap() {
     return {
       if (overrideBankAccount != null) 'overrideBankAccount': overrideBankAccount,
@@ -40,6 +50,17 @@ class CategoryBudgetPlain {
       id = await DatabaseHelper().genericInsert("categoryBudgets", values);
     } else {
       await DatabaseHelper().genericUpdate("categoryBudgets", values);
+
+      // get latest realized category budget and update its budget as well
+      final rcb = RealizedCategoryBudgets((await DatabaseHelper().genericSelect(
+        'realizedCategoryBudgets',
+        filter: 'categoryId = ? AND accountId = ?',
+        filterArgs: [categoryId, accountId],
+        order: 'intervalId DESC',
+        limit: 1
+      )).first);
+      rcb.budget = budget;
+      await rcb.save();
     }
   }
 

@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:jne_household_app/models/category_budget.dart';
 import 'package:jne_household_app/screens_mobile/mobile_receipt_scanner.dart';
 import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/models/budget_state.dart';
-import 'package:jne_household_app/models/category_budget.dart';
 import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/widgets_shared/buttons.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/expense_dialog.dart';
@@ -144,6 +144,8 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
 }
 
 Widget listTile({required context, required bool allSpent, required bool unassigned, required CategoryBudget category, required Color textColor, required BudgetState budgetState, required String currency, required DesignState designState, required Function buttonBuilder, required VoidCallback showExpensesBottomSheet, required VoidCallback onPressed}) {  
+  final budget = (!unassigned) ? category.budget : budgetState.notAssignedBudget;
+  
   return Card(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8),
@@ -196,7 +198,7 @@ Widget listTile({required context, required bool allSpent, required bool unassig
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: FractionallySizedBox(
-                            widthFactor: (!unassigned) ? (category.spent / category.budget).clamp(0.0, 1.0) : (category.spent / budgetState.notAssignedBudget).clamp(0.0, 1.0),
+                            widthFactor:(category.spent / budget).clamp(0.0, 1.0),
                             child: Container(
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: (allSpent)? 0 : 0.5),
@@ -224,12 +226,12 @@ Widget listTile({required context, required bool allSpent, required bool unassig
                         (budgetState.settings.showAvailableBudget)
                             ? I18n.translate("available", placeholders: {
                                 "actual": ((!unassigned)
-                                        ? (category.budget - category.spent)
+                                        ? (budget - category.spent)
                                         : (budgetState.notAssignedBudget -
                                             category.spent))
                                     .toStringAsFixed(2),
                                 "planned": (!unassigned)
-                                    ? category.budget.toStringAsFixed(2)
+                                    ? budget.toStringAsFixed(2)
                                     : budgetState.notAssignedBudget
                                         .toStringAsFixed(2),
                                 "currency": currency.toString()
@@ -237,7 +239,7 @@ Widget listTile({required context, required bool allSpent, required bool unassig
                             : I18n.translate("spent", placeholders: {
                                 "actual": category.spent.toStringAsFixed(2),
                                 "planned": (!unassigned)
-                                    ? category.budget.toStringAsFixed(2)
+                                    ? budget.toStringAsFixed(2)
                                     : budgetState.notAssignedBudget
                                         .toStringAsFixed(2),
                                 "currency": currency.toString()

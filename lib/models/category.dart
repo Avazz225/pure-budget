@@ -13,6 +13,14 @@ class Category {
     required this.category
   });
 
+  Future<double> getBudget(int intervalId) async {
+    double totalBudget = 0.0;
+    for (CategoryBudgetPlain cb in categoryBudgetsPlain) {
+      totalBudget += await cb.getBudgetForInterval(intervalId);
+    }
+    return totalBudget;
+  }
+
   save() {
     category.save();
     for (CategoryBudgetPlain c in categoryBudgetsPlain) {

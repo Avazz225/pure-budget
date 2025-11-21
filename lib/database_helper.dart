@@ -146,7 +146,7 @@ class DatabaseHelper {
         "principle": ba.budgetResetPrinciple,
         "day": ba.budgetResetDay
       };
-      List<PBInterval> rawIntervals = getMultipleRanges(resetInfo, 1000, firstDate).reversed.map((i) => PBInterval({'accountId': ba.id, 'start': i['start'], 'end': i['end']})).toList();
+      List<PBInterval> rawIntervals = getMultipleRanges(resetInfo, 1000, firstDate, ba.id!).reversed.map((i) => PBInterval({'accountId': ba.id, 'start': i.start, 'end': i.end})).toList();
       for (PBInterval r in rawIntervals) {
         await r.save(dbObj: db);
       }
@@ -364,10 +364,10 @@ class DatabaseHelper {
     }
   }
 
-  Future<double> getSpentForCurrentMonth(int categoryId, String accountId, Map<String, DateTime> range, bool includePlanned, List<BankAccount> bankAccounts)async {
+  Future<double> getSpentForCurrentMonth(int categoryId, String accountId, PBInterval range, bool includePlanned, List<BankAccount> bankAccounts)async {
     final db = await database;
     final now = DateTime.now();
-    final nowAfterEnd = range['end']!.isBefore(now);
+    final nowAfterEnd = range.end.isBefore(now);
     String query;
     List params = [];
     double result = 0.0;
@@ -380,20 +380,39 @@ class DatabaseHelper {
 
     for (final account in bankAccounts.where((acc) => (accountId == "*") ? true : (acc.isCreditCard) ? (acc.refillsFrom.toString() == accountId) : (acc.id.toString() == accountId))) {
       if (!account.isCreditCard) {
-        params = [categoryId, account.id.toString(), formatForSqlite(range['start']!), (includePlanned || nowAfterEnd) ? formatForSqlite(range['end']!) : formatForSqlite(now)];
+        params = [categoryId, account.id.toString(), formatForSqlite(range.start), (includePlanned || nowAfterEnd) ? formatForSqlite(range.end) : formatForSqlite(now)];
       } else {
-        Map<String, DateTime> adaptRange = getDateRangeForCreditCard({"principle": account.budgetResetPrinciple, "day": account.budgetResetDay}, rangeToMeet: range);
-        _logger.debug("Calculated adapted range start: ${adaptRange['start'].toString()}; end: ${adaptRange['end'].toString()} for bankAccount ${account.name} (${account.id.toString()}) ", tag: "database");
-        if (dateAfterRange(range, adaptRange['end']!)) {
+        PBInterval adaptRange = await getIntervals(dbObj: db, onlyFirst: true, filter: "accountId = ?", filterArgs: [account.id], order: "id DESC");
+        if (dateAfterRange(range, adaptRange.end)) {
           _logger.debug("Skipping this account as the range is in the future", tag: "database");
           continue;
         }
-        params = [categoryId, account.id.toString(), formatForSqlite(adaptRange['start']!), (includePlanned || nowAfterEnd) ? formatForSqlite(adaptRange['end']!) : formatForSqlite(now)];
+        params = [categoryId, account.id.toString(), formatForSqlite(adaptRange.start), (includePlanned || nowAfterEnd) ? formatForSqlite(adaptRange.end) : formatForSqlite(now)];
       }
       result += (await db.rawQuery(query, params)).first['totalSpent'] as double? ?? 0.0;
     }
 
     return result;
+  }
+
+  Future<double> getBudgetForCurrentInterval(int intervalId, int categoryId, String accountId) async {
+    if (accountId == "*") {
+      accountId = "-1";
+    }
+
+    _logger.debug("Getting budget for interval $intervalId, category $categoryId, account $accountId", tag: "database");
+
+    final db = await database;
+    final data = await genericSelect(
+      "realizedCategoryBudgets",
+      filter: "intervalId = ? AND categoryId = ? AND accountId = ?",
+      filterArgs: [intervalId, categoryId, accountId],
+      dbObj: db
+    );
+    if (data.isEmpty) {
+      return 0.0;
+    }
+    return data.first['budget'] as double? ?? 0.0;
   }
 
   Future<Map<String, dynamic>> getSpentForLastMonth(String accountId, BankAccount account, int catId)async {
@@ -408,9 +427,9 @@ class DatabaseHelper {
         AND date >= ?
         AND date < ?''';
 
-    Map<String, DateTime> adaptRange = getDateRangeForCreditCard({"principle": account.budgetResetPrinciple, "day": account.budgetResetDay}, lastMonth: true);
-    _logger.debug("Calculated adapted range start: ${adaptRange['start'].toString()}; end: ${adaptRange['end'].toString()} for bankAccount ${account.name} (${account.id.toString()}) ", tag: "database");
-    params = [account.id.toString(), catId.toString(), formatForSqlite(adaptRange['start']!), formatForSqlite(adaptRange['end']!)];
+    PBInterval adaptRange = getDateRangeForCreditCard({"principle": account.budgetResetPrinciple, "day": account.budgetResetDay}, account.id!,lastMonth: true);
+    _logger.debug("Calculated adapted range start: ${adaptRange.start.toString()}; end: ${adaptRange.end.toString()} for bankAccount ${account.name} (${account.id.toString()}) ", tag: "database");
+    params = [account.id.toString(), catId.toString(), formatForSqlite(adaptRange.start), formatForSqlite(adaptRange.end)];
     
     result += (await db.rawQuery(query, params)).first['totalSpent'] as double? ?? 0.0;
     
@@ -616,15 +635,31 @@ class DatabaseHelper {
     }).where((c) => (c.budget != 0.0 || c.category.id == -1)).toList();
   }
 
-  Future<List<BankAccount>> getBankAccounts(List<AutoExpense>? moneyFlows, {Database? dbObj}) async {
+  Future<List<BankAccount>> getBankAccounts(List<AutoExpense>? moneyFlows, {Database? dbObj, int? intervalId}) async {
     final db = dbObj ?? await database;
     final List<Map<String, dynamic>> bankaccountdata = List.from(await db.query('bankaccounts'));
-    return bankaccountdata.map((data) {
-      return BankAccount(
+    List<BankAccount> result = [];
+
+    for (Map<String, dynamic> data in bankaccountdata) {
+      double income = data['income'] as double;
+      double balance = data['balance'] as double;
+      if (intervalId != null) {
+        final result = (await genericSelect(
+          "realizedBankaccounts",
+          filter: "intervalId = ? AND accountId = ?",
+          filterArgs: [intervalId, data['id']],
+          dbObj: db
+        ));
+        if (result.isNotEmpty) {
+          income = result.first['income'] as double;
+          balance = result.first['balance'] as double;
+        }
+      }
+      result.add(BankAccount(
         id: data['id'] as int,
         name: data['name'] as String,
-        income: data['income'] as double,
-        balance: data['balance'] as double,
+        income: income,
+        balance: balance,
         description: data['description'] != null ? data['description'] as String : "",
         budgetResetPrinciple: data['budgetResetPrinciple'] as String,
         budgetResetDay: data['budgetResetDay'] as int,
@@ -633,8 +668,9 @@ class DatabaseHelper {
         isCreditCard: data['isCreditCard'] == 1,
         refillsFrom: data['refillsFrom'] as int,
         refillPrincipleMode: data['refillPrincipleMode'] as String
-      );
-    }).toList();
+      ));
+    }
+    return result;
   }
 
   Future<List<AutoExpense>> getAutoExpenses({bool noMoneyFlow = true, Database? dbObj}) async {
@@ -697,9 +733,9 @@ class DatabaseHelper {
 
   Future<dynamic> getIntervals({Database? dbObj, int? limit, String? filter, List<dynamic>? filterArgs, String? order, bool onlyFirst = false}) async {
     final db = dbObj ?? await database;
-    final dynamic result = await genericSelect("intervals", limit: limit, filter: filter, filterArgs: filterArgs, order: order, onlyFirst: onlyFirst, dbObj: db);
+    final List<Map<String, dynamic>> result = await genericSelect("intervals", limit: limit, filter: filter, filterArgs: filterArgs, order: order, dbObj: db);
     if (onlyFirst){
-      return PBInterval(result);
+      return PBInterval(result.first);
     } else {
       return result.map((res) => PBInterval(res)).toList();
     }
@@ -715,22 +751,22 @@ class DatabaseHelper {
     }
   }
 
-  Future<List<Expense>> getExpenses(int categoryId, String accountId, Map<String, DateTime> range, List<BankAccount> bankAccounts) async {
+  Future<List<Expense>> getExpenses(int categoryId, String accountId, PBInterval range, List<BankAccount> bankAccounts) async {
     String where;
     List whereParams = [];
 
     if (accountId == "*") {
       where = "categoryId = ? AND date >= ? AND date <= ?";
-      whereParams = [categoryId, formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
+      whereParams = [categoryId, formatForSqlite(range.start), formatForSqlite(range.end)];
     } else {
       whereParams = [categoryId];
       String inlay = "";
       for (BankAccount acc in bankAccounts.where((acc) => (acc.isCreditCard) ? (acc.refillsFrom.toString() == accountId) : (acc.id.toString() == accountId))) {
         inlay += "(date >= ? AND date <= ? AND accountId = ?) OR ";
         if (acc.isCreditCard) {
-          whereParams.addAll([formatForSqlite(getCreditCardStartDayLastMonth({"principle": acc.budgetResetPrinciple, "day": acc.budgetResetDay})), formatForSqlite(range['end']!), acc.id]);
+          whereParams.addAll([formatForSqlite(getCreditCardStartDayLastMonth({"principle": acc.budgetResetPrinciple, "day": acc.budgetResetDay}, acc.id!)), formatForSqlite(range.end), acc.id]);
         } else {
-          whereParams.addAll([formatForSqlite(range['start']!), formatForSqlite(range['end']!), acc.id]);
+          whereParams.addAll([formatForSqlite(range.start), formatForSqlite(range.end), acc.id]);
         }
       }
       where = "categoryId = ? AND (${inlay.substring(0, inlay.length - 3)})";
@@ -880,37 +916,37 @@ class DatabaseHelper {
     await insertEditLog("creditCardRefills", id, "insert", dbObj: db);
   }
 
-  Future<List<Map<String, dynamic>>> statisticMonthTotal(Map<String, DateTime> range, dynamic filter) async {
+  Future<List<Map<String, dynamic>>> statisticMonthTotal(PBInterval range, dynamic filter) async {
     final db = await database;
     String query;
     List<dynamic> params = [];
 
     if (filter == "*") {
       query = "SELECT SUM(amount) as amount, date FROM expenses WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL GROUP BY DATE(date)";
-      params = [formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
+      params = [formatForSqlite(range.start), formatForSqlite(range.end)];
     } else {
       query = "SELECT SUM(amount) as amount, date FROM expenses WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL AND accountId = ? GROUP BY DATE(date)";
-      params = [formatForSqlite(range['start']!), formatForSqlite(range['end']!), filter];
+      params = [formatForSqlite(range.start), formatForSqlite(range.end), filter];
     }
     return await db.rawQuery(query, params);
   }
 
-  Future<List<Map<String, dynamic>>> statisticMonthTotalByCat(Map<String, DateTime> range, dynamic filter) async {
+  Future<List<Map<String, dynamic>>> statisticMonthTotalByCat(PBInterval range, dynamic filter) async {
     final db = await database;
     String query;
     List<dynamic> params = [];
 
     if (filter == "*") {
       query = "SELECT SUM(amount) as amount, date, name as category, color FROM expenses LEFT JOIN categories ON expenses.categoryId = categories.id WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL GROUP BY DATE(date), category";
-      params = [formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
+      params = [formatForSqlite(range.start), formatForSqlite(range.end)];
     } else {
       query = "SELECT SUM(amount) as amount, date, name as category, color FROM expenses LEFT JOIN categories ON expenses.categoryId = categories.id WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL AND accountId = ? GROUP BY DATE(date), category";
-      params = [formatForSqlite(range['start']!), formatForSqlite(range['end']!), filter];
+      params = [formatForSqlite(range.start), formatForSqlite(range.end), filter];
     }
     return await db.rawQuery(query, params);
   }
 
-  Future<List<Map<String, dynamic>>> lastMonthsTotal(List<Map<String, DateTime>> ranges, dynamic filter) async {
+  Future<List<Map<String, dynamic>>> lastMonthsTotal(List<PBInterval> ranges, dynamic filter) async {
     final db = await database;
     String query;
     List<String> params = [];
@@ -923,15 +959,35 @@ class DatabaseHelper {
     }
 
     List<Map<String, dynamic>> result = [];
-    for (Map<String, DateTime> range in ranges) {
+    for (PBInterval range in ranges) {
       String label = createLabel(range);
-      result.add({"date": label, "amount": (await db.rawQuery(query, [formatForSqlite(range['start']!), formatForSqlite(range['end']!)] + params))[0]['amount'] ?? 0.0});
+      result.add({"date": label, "amount": (await db.rawQuery(query, [formatForSqlite(range.start), formatForSqlite(range.end)] + params))[0]['amount'] ?? 0.0});
     }
 
     return result.reversed.toList();
   }
 
-  Future<List<Map<String, dynamic>>> lastMonthsByCat(List<Map<String, DateTime>> ranges, dynamic filter) async {
+  Future<List<Map<String, dynamic>>> lastTotalBudgets(List<PBInterval> ranges, dynamic filter) async {
+    final db = await database;
+    String query;
+    List<String> params = [];
+
+    if (filter == "*") {
+      query = "SELECT SUM(income) as income FROM realizedBankaccounts WHERE intervalId = ?";
+    } else {
+      query = "SELECT SUM(income) as income FROM realizedBankaccounts WHERE intervalId = ? AND accountId = ?";
+      params = [filter.toString()];
+    }
+
+    List<Map<String, dynamic>> result = [];
+    for (PBInterval range in ranges) {
+      String label = createLabel(range);
+      result.add({"date": label, "income": (await db.rawQuery(query, [range.id, ...params]))[0]['income'] ?? 0.0});
+    }
+    return result.reversed.toList();
+  }
+
+  Future<List<Map<String, dynamic>>> lastMonthsByCat(List<PBInterval> ranges, dynamic filter) async {
     final db = await database;
     String query;
     List<String> params = [];
@@ -944,14 +1000,37 @@ class DatabaseHelper {
     }
 
     List<Map<String, dynamic>> result = [];
-    for (Map<String, DateTime> range in ranges) {
+    for (PBInterval range in ranges) {
       String label = createLabel(range);
-      List<Map<String, dynamic>> rows = await db.rawQuery(query, [formatForSqlite(range['start']!), formatForSqlite(range['end']!)] + params);
+      List<Map<String, dynamic>> rows = await db.rawQuery(query, [formatForSqlite(range.start), formatForSqlite(range.end)] + params);
       for (Map<String, dynamic> row in rows) {
         result.add({"date": label, "amount": row['amount'], "category": row['category'], "color": row['color']});
       }
     }
 
+    return result.reversed.toList();
+  }
+
+  Future<List<Map<String, dynamic>>> lastMonthsCatBudget(List<PBInterval> ranges, dynamic filter) async {
+    final db = await database;
+    String query;
+    List<String> params = [];
+
+    if (filter == "*") {
+      query = "SELECT SUM(budget) as budget, name as category FROM realizedCategoryBudgets LEFT JOIN categories ON realizedCategoryBudgets.categoryId = categories.id WHERE intervalId = ? GROUP BY category";
+    } else {
+      query = "SELECT SUM(budget) as budget, name as category FROM realizedCategoryBudgets LEFT JOIN categories ON realizedCategoryBudgets.categoryId = categories.id WHERE intervalId = ? AND accountId = ? GROUP BY category";
+      params = [filter.toString()];
+    }
+
+    List<Map<String, dynamic>> result = [];
+    for (PBInterval range in ranges) {
+      String label = createLabel(range);
+      List<Map<String, dynamic>> rows = await db.rawQuery(query, [range.id, ...params]);
+      for (Map<String, dynamic> row in rows) {
+        result.add({"date": label, "income": row['budget'], "category": row['category']});
+      }
+    }
     return result.reversed.toList();
   }
 
@@ -985,11 +1064,11 @@ class DatabaseHelper {
   }
 }
 
-String createLabel(Map<String, DateTime> range) {
-  if (range['start']!.day == 1 && range['end']!.day == 1) {
-    return shortMonthYr(range['start']!);
+String createLabel(PBInterval range) {
+  if (range.start.day == 1 && range.end.day == 1) {
+    return shortMonthYr(range.start);
   } else {
-    return "${shortMonthYr(range['start']!)} / ${shortMonthYr(range['end']!)}";
+    return "${shortMonthYr(range.start)} / ${shortMonthYr(range.end)}";
   }
 }
 

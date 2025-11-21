@@ -1,4 +1,9 @@
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/models/category_plain.dart';
+import 'package:jne_household_app/models/interval.dart';
+import 'package:jne_household_app/models/realized_bankaccounts.dart';
+import 'package:jne_household_app/models/realized_categroybudgets.dart';
+import 'package:jne_household_app/models/reset_principles.dart';
 
 class BankAccount {
   int? id;
@@ -39,8 +44,7 @@ class BankAccount {
       'budgetResetPrinciple': budgetResetPrinciple,
       'budgetResetDay': budgetResetDay,
       'lastSavingRun': lastSavingRun,
-      'transfers': transfers,
-      'isCreditCard': isCreditCard,
+      'isCreditCard': isCreditCard ? 1 : 0,
       'refillsFrom': refillsFrom,
       'refillPrincipleMode': refillPrincipleMode
     };
@@ -48,10 +52,41 @@ class BankAccount {
 
   Future<void> save() async {
     final values = toMap();
+    final dbObj = await DatabaseHelper().database;
     if (id == null) {
-      id = await DatabaseHelper().genericInsert("bankaccounts", values);
+      id = await DatabaseHelper().genericInsert("bankaccounts", values, dbObj: dbObj);
+      final PBInterval currentInterval = getDateRangeForPrinciple({"principle": budgetResetPrinciple, "day": budgetResetDay}, id!);
+      await currentInterval.save(dbObj: dbObj);
+
+      final List<CategoryPlain> cats = await DatabaseHelper().getCategoriesPlain();
+      for (CategoryPlain c in cats) {
+        final newRCB = RealizedCategoryBudgets({
+          'intervalId': currentInterval.id!,
+          'accountId': id!,
+          'budget': 0,
+          'categoryId': c.id!
+        });
+        await newRCB.save(dbObj: dbObj);
+      }
     } else {
-      await DatabaseHelper().genericUpdate("bankaccounts", values);
+      await DatabaseHelper().genericUpdate("bankaccounts", values, dbObj: dbObj);
+      
+      // update current interval
+      final PBInterval currentInterval = await DatabaseHelper().getIntervals(dbObj: dbObj, onlyFirst: true, filter: "accountId = ?", filterArgs: [id], order: "id DESC");
+      currentInterval.end = getDateRangeForPrinciple({"principle": budgetResetPrinciple, "day": budgetResetDay}, id!).end;
+      await currentInterval.save(dbObj: dbObj);
+
+      // update latest realized bankaccount
+      final rba = RealizedBankaccounts((await DatabaseHelper().genericSelect(
+        'realizedBankaccounts',
+        filter: 'accountId = ? and intervalId = ?',
+        filterArgs: [id, currentInterval.id],
+        order: 'intervalId DESC',
+        limit: 1
+      )).first);
+
+      rba.income = income;
+      await rba.save(dbObj: dbObj);
     }
   }
 

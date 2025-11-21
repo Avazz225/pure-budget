@@ -2,11 +2,13 @@ import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/category.dart';
+import 'package:jne_household_app/models/category_budget_plain.dart';
 import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/models/interval.dart';
 import 'package:jne_household_app/models/realized_bankaccounts.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
+import 'package:jne_household_app/models/realized_categroybudgets.dart';
 import 'package:jne_household_app/models/reset_principles.dart';
 
 Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoExpenses, dynamic lastAutoExpenseRun, dynamic lastSavingRun, List<BankAccount> ?bankAccounts, dynamic lastCreditCardRefillRun, List<Category> ?categories}) async {
@@ -20,21 +22,23 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
   DateTime today = DateTime.now();
   bankAccounts ??= await dbHelper.getBankAccounts(autoExpenses);
 
+  final List<CategoryBudgetPlain> rawCategoryBudgets = await dbHelper.getCategoryBudgets(dbObj: db);
+
   for (BankAccount ba in bankAccounts) {
-    final PBInterval lastInterval = dbHelper.getIntervals(filter: "accountId = ?", filterArgs: [ba.id], order: "end DESC", onlyFirst: true, dbObj: db) as PBInterval;
+    final PBInterval lastInterval = await dbHelper.getIntervals(filter: "accountId = ?", filterArgs: [ba.id], order: "id DESC", onlyFirst: true, dbObj: db);
     if (today.isAfter(lastInterval.end)){
-      final rawInterval = getMultipleRanges({'principle': ba.budgetResetPrinciple, 'day': ba.budgetResetDay}, 1, today)[0];
+      final rawInterval = getMultipleRanges({'principle': ba.budgetResetPrinciple, 'day': ba.budgetResetDay}, 1, today, ba.id!)[0];
       PBInterval newInterval = PBInterval({
         'accountId': ba.id,
-        'start': rawInterval['start'],
-        'end': rawInterval['end']
+        'start': rawInterval.start,
+        'end': rawInterval.end
       });
       await newInterval.save(dbObj: db);
 
       // process realized bank accounts
-      final lastRealizedBankAccount = dbHelper.getRealizedBankAccounts(filter: "id = ?", filterArgs: [ba.id], order: "intervalId DESC", onlyFirst: true, dbObj: db) as RealizedBankaccounts;
+      final lastRealizedBankAccount = (await dbHelper.getRealizedBankAccounts(filter: "accountId = ?", filterArgs: [ba.id], order: "intervalId DESC", onlyFirst: true, dbObj: db)) as RealizedBankaccounts;
       double balance;
-      List res = await dbHelper.genericSelect("expenses", filter: 'accountId = ? AND date > ? and date < ? and categoryId = ?', filterArgs: [ba.id, formatForSqlite(lastInterval.start), formatForSqlite(lastInterval.end), ], dbObj: db);
+      List res = await dbHelper.genericSelect("expenses", filter: 'accountId = ? AND date > ? AND date < ?', filterArgs: [ba.id, formatForSqlite(lastInterval.start), formatForSqlite(lastInterval.end)], dbObj: db);
       List<Expense> expenses = res.map((e) => Expense(e)).toList();
       if (ba.isCreditCard) {
         for (Category cat in categories){
@@ -61,7 +65,11 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
         balance = 0;
       } else {
         double spent = expenses.fold<double>(0.0, (previousValue, e) => previousValue + e.amount);
-        balance = lastRealizedBankAccount.balance + (ba.income - spent);
+        balance = lastRealizedBankAccount.balance + (lastRealizedBankAccount.income - spent);
+        await dbHelper.genericUpdate("bankaccounts", {
+          "id": ba.id,
+          "balance": balance
+        }, dbObj: db);
       }
 
       final newBankAccount = RealizedBankaccounts({
@@ -72,9 +80,25 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
       });
       await newBankAccount.save(dbObj: db);
 
+      Logger().debug("Created new realizedBankAccount with id ${newBankAccount.id}", tag: "background jobs");
+
       // process realizedCategory budgets for new interval
+      for (CategoryBudgetPlain cat in rawCategoryBudgets.where((c) => c.accountId == ba.id)) {
+        final newRealizedCategoryBudget = RealizedCategoryBudgets({
+          "overrideBankAccount": cat.overrideBankAccount,
+          "intervalId": newInterval.id,
+          "accountId": ba.id,
+          "budget": cat.budget,
+          "categoryId": cat.categoryId
+        });
+        await newRealizedCategoryBudget.save();
+      }
       
       // process autoExpenses for new interval
+      final autoExpenses = await dbHelper.getAutoExpenses(dbObj: db);
+      for (final ae in autoExpenses) {
+        await ae.processUpcomingAE(newInterval, db, true);
+      }
     }
   }
   logger.debug("Finished background jobs", tag: "background jobs");
