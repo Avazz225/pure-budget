@@ -10,7 +10,6 @@ import 'package:jne_household_app/keys.dart';
 import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/models/interval.dart';
 import 'package:jne_household_app/models/settings.dart';
-import 'package:jne_household_app/services/background_jobs.dart';
 import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
@@ -178,7 +177,6 @@ class BudgetState extends ChangeNotifier {
       }
       syncInProgress = false;
     }
-    backgroundJobs(dbHelper: db);
     notifyListeners();
   }
 

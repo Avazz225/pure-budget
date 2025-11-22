@@ -29,12 +29,10 @@ class InitializationService {
     // get settings
     Settings settings = await dbHelper.getSettings();
 
-    // execute asnyc jobs only if no shared db is connected to prevent duplicate entries
-    if (settings.sharedDbUrl == "none") {
-      Logger().debug("Processing background jobs immediately. No shared Database", tag: "initialization Service");
-      await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
-      Logger().debug("Processing background jobs done.", tag: "initialization Service");
-    }
+    // execute asnyc jobs
+    Logger().debug("Processing background jobs", tag: "initialization Service");
+    await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
+    Logger().debug("Processing background jobs done.", tag: "initialization Service");
 
     // refresh settings
     settings = await dbHelper.getSettings();

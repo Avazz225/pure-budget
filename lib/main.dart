@@ -183,11 +183,12 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBin
     if (!_didExecuteJobs) {
       _didExecuteJobs = true;
       final dbHelper = DatabaseHelper();
-      final settings = await dbHelper.getSettings();  
+      final settings = await dbHelper.getSettings();
+
+      await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
+
       if (settings.sharedDbUrl != "none") {
-        await Provider.of<BudgetState>(context, listen: false).syncSharedDb();
-      } else {
-        await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
+        Provider.of<BudgetState>(context, listen: false).syncSharedDb();
       }
     }
   }
