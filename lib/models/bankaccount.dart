@@ -86,6 +86,7 @@ class BankAccount {
       )).first);
 
       rba.income = income;
+      rba.balance = balance;
       await rba.save(dbObj: dbObj);
     }
   }

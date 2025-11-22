@@ -491,6 +491,7 @@ class BudgetState extends ChangeNotifier {
       if (settings.filterBudget == targetAccount.id.toString()) {
         settings.filterBudget = "*";
       }
+      targetAccount.delete();
     } else {
       await targetAccount.save();
       bankAccounts[index] = targetAccount;

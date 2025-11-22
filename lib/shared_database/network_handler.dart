@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart';
 import 'package:jne_household_app/services/remote/google_drive_connector.dart';
 import 'package:jne_household_app/services/remote/one_drive_connector.dart';
 import 'package:jne_household_app/services/remote/smb_server.dart';
@@ -102,7 +104,15 @@ Future<void> uploadToLocal(String remotePath, File encryptedFile) async {
 Future<void> _downloadFromLocal(String remotePath, File encryptedFile) async {
   final nasFile = File(remotePath + sharedDbName);
   if (await nasFile.exists()) {
-    await encryptedFile.writeAsString(await nasFile.readAsString());
+    try {
+      await encryptedFile.writeAsString(await nasFile.readAsString());
+    } catch (e) {
+      try {
+        await encryptedFile.writeAsString(await nasFile.readAsString(encoding: latin1));
+      } catch (e) {
+        throw Exception("Fehler beim Kopieren der NAS-Datei: $e");
+      }
+    }
   } else {
     throw Exception("NAS-Datei nicht gefunden: $remotePath");
   }
