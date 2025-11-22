@@ -816,7 +816,6 @@ class DatabaseHelper {
     await resetDatabase();
 
     for (Map<String, dynamic> expense in data['expenses']){
-
       await genericInsert("expenses", expense, dbObj: db);
     }
 
@@ -824,89 +823,47 @@ class DatabaseHelper {
       await insertAutoExpense(autoexpenses, dbObj: db);
     }
 
-    if (data.keys.contains('bankaccounts')) {
-      for (Map<String, dynamic> settings in data['settings']){
-        settings.remove("isPro");
-        await insertSettings(settings, dbObj: db);
-      }
-
-      for (Map<String, dynamic> bankaccount in data['bankaccounts']){
-        await insertBankAccount(bankaccount, dbObj: db);
-      }
-    } else {
-      Map<String, dynamic> setting = {
-        "id": data['settings'][0]['id'],
-        "currency": data['settings'][0]['currency'],
-        "language": data['settings'][0]['language'],
-        "includePlanned": data['settings'][0]['includePlanned'],
-        "lastAutoExpenseRun": data['settings'][0]['lastAutoExpenseRun'],
-        "showAvailableBudget": data['settings'][0]['showAvailableBudget'],
-        "isPro": data['settings'][0]['isPro'],
-        "useBalance": data['settings'][0]['useBalance'], 
-        "filterBudget": data['settings'][0]['filterBudget'], 
-        "lastAdFail": data['settings'][0]['lastAdFail'], 
-        "lastAdSuccess": data['settings'][0]['lastAdSuccess'],
-        "lastSavingRun": data['settings'][0]['lastSavingRun'], 
-        "lastProcessedBatchId": data['settings'][0]['lastProcessedBatchId'], 
-        "isDesktopPro": data['settings'][0]['isDesktopPro'],
-        "selectedScanCategory": data['settings'][0]['selectedScanCategory'],
-        "reminder": data['settings'][0]['reminder'], 
-        "lastCreditCardRefillRun": data['settings'][0]['lastCreditCardRefillRun']
-      };
-      await insertSettings(setting, dbObj: db);
-
-      Map<String, dynamic> bank = {
-        "id": -1,
-        "name": "__undefined_account_name__",
-        "balance": 0,
-        "income": data['settings'][0]['totalBudget'],
-        "budgetResetPrinciple": data['settings'][0]['budgetResetPrinciple'],
-        "budgetResetDay": data['settings'][0]['budgetResetDay']
-      };
-      await insertBankAccount(bank, dbObj: db);
+    for (Map<String, dynamic> settings in data['settings']){
+      settings.remove("isPro");
+      await insertSettings(settings, dbObj: db);
     }
 
-    final moneyFlows = await getMoneyFlows();
+    for (Map<String, dynamic> bankaccount in data['bankaccounts']){
+      await insertBankAccount(bankaccount, dbObj: db);
+    }
+
+    for (Map<String, dynamic> categoryBudgets in data['categoryBudgets']){
+      await insertCategoryBudget(categoryBudgets, dbObj: db);
+    }
+
+    for (Map<String, dynamic> categories in data['categories']){
+      await insertCategoryFlat(categories, dbObj: db);
+    }
+
+    for (Map<String, dynamic> refill in data['creditCardRefills']){
+      await insertRefill(refill, dbObj: db);
+    }
+
+    for (Map<String, dynamic> intervals in data['intervals']){
+      await genericInsert("intervals", intervals, dbObj: db);
+    }
+
+    for (Map<String, dynamic> realizedBankaccounts in data['realizedBankaccounts']){
+      await genericInsert("realizedBankaccounts", realizedBankaccounts, dbObj: db);
+    }
+
+    for (Map<String, dynamic> realizedCategoryBudgets in data['realizedCategoryBudgets']){
+      await genericInsert("realizedCategoryBudgets", realizedCategoryBudgets, dbObj: db);
+    }
+
+    for (Map<String, dynamic> realizedAutoExpenses in data['realizedAutoExpenses']){
+      await genericInsert("realizedAutoExpenses", realizedAutoExpenses, dbObj: db);
+    }
     
-    if (data.keys.contains('categoryBudgets')) {
-      for (Map<String, dynamic> categoryBudgets in data['categoryBudgets']){
-        await insertCategoryBudget(categoryBudgets, dbObj: db);
-      }
-
-      for (Map<String, dynamic> categories in data['categories']){
-        await insertCategoryFlat(categories, dbObj: db);
-      }
-    } else {
-      List<BankAccount> bankAccounts = await getBankAccounts(moneyFlows);
-      for (BankAccount bankAcc in bankAccounts){
-        for (Map<String, dynamic> cat in data['categories']){
-          Map<String, dynamic> catBudget = {
-            "accountId": bankAcc.id,
-            "categoryId": cat['id'],
-            "budget": bankAcc.id == -1 && cat.keys.contains('budget') ? cat['budget'] : 0
-          };
-          await insertCategoryBudget(catBudget, dbObj: db);
-        }
-      }
-
-      for (Map<String, dynamic> cat in data['categories']){
-        cat.remove('budget');
-        await insertCategoryFlat(cat, dbObj: db);
-      }
-    }
-
-    if (data.keys.contains('creditCardRefills')) {
-      for (Map<String, dynamic> refill in data['creditCardRefills']){
-        await insertRefill(refill, dbObj: db);
-      }
-    }
-
     db.delete("editLog");
 
-    if (data.keys.contains('editLog')) {
-      for (Map<String, dynamic> editLog in data['editLog']){
+    for (Map<String, dynamic> editLog in data['editLog']){
       await insertEditLogFlat(editLog, dbObj: db);
-    }
     }
   }
 

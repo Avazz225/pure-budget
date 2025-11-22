@@ -49,6 +49,11 @@ class BackupManager {
     final bankaccounts = await db.exportTable("bankaccounts");
     final categoryBudgets = await db.exportTable("categoryBudgets");
     final creditCardRefills = await db.exportTable("creditCardRefills");
+    final intervals = await db.exportTable("intervals");
+    final realizedBankaccounts = await db.exportTable("realized_bankaccounts");
+    final realizedCategoryBudgets = await db.exportTable("realized_categorybudgets");
+    final realizedAutoexpenses = await db.exportTable("realized_autoexpenses");
+
 
     final fullBackup = {
       "autoexpenses": autoexpenses,
@@ -58,7 +63,11 @@ class BackupManager {
       "bankaccounts": bankaccounts,
       "categoryBudgets": categoryBudgets,
       "creditCardRefills": creditCardRefills,
-      "editLog": editLog
+      "editLog": editLog,
+      "intervals": intervals,
+      "realized_bankaccounts": realizedBankaccounts,
+      "realized_categorybudgets": realizedCategoryBudgets,
+      "realized_autoexpenses": realizedAutoexpenses,
     };
 
     final json = jsonEncode(fullBackup);
