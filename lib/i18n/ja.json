@@ -453,5 +453,8 @@
     "rateAppText": "{appName} が気に入ったら、App Store で評価をお願いします。",
     "later": "あとで",
     "okay": "OK",
-    "never": "今後表示しない"
+    "never": "今後表示しない",
+
+    "selectInterval": "間隔を選択",
+    "intervalSelection": "コンパクトな間隔選択"
 }

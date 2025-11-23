@@ -38,6 +38,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
 
     return Column(
       children: [
+        if (designState.intervalStyle == 0)
         BudgetDropdown(
           budgetRanges: budgetState.budgetRanges,
           updateRangeSelection: budgetState.updateRangeSelection,

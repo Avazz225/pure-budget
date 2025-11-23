@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:image/image.dart';
 import 'package:jne_household_app/services/remote/google_drive_connector.dart';
 import 'package:jne_household_app/services/remote/one_drive_connector.dart';
 import 'package:jne_household_app/services/remote/smb_server.dart';

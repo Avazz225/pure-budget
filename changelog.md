@@ -15,7 +15,15 @@ Integration of mobile payment apps is impossible due to privacy reasons maybe pu
 
 ## Changelog
 
-### 3.2.3 in doing
+### 3.3.0 bundle 35
+
+- support for change history in budgets and income for statistics
+- option for more compact interval selection
+- make remote services available in free version
+- new background task handling to improve reliability and consitency
+- reminder for rating the app
+
+### 3.2.3 bundle 34
 
 - report issue button to submit error reports from within the app
 - custom background gradients

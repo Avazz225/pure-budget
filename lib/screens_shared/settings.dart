@@ -259,7 +259,6 @@ class SettingsScreenState extends State<SettingsScreen> {
               ]
             ],
             const SizedBox(height: 8,),
-            if (budgetState.proStatusIsSet() || Platform.isLinux || Platform.isWindows || Platform.isMacOS)
             ElevatedButton(
               style: btnNeutralStyle,
               onPressed: () => Navigator.of(context).push(
@@ -327,12 +326,17 @@ class SettingsScreenState extends State<SettingsScreen> {
                 await launchUrl(Uri.parse(url));
               }
             },
-            child: Text(
-              I18n.translate("privacyPolicy"),
-              style: const TextStyle(
-                color: Colors.blue,
-                decoration: TextDecoration.underline,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  I18n.translate("privacyPolicy"),
+                  style: const TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+                const Icon(Icons.open_in_new_rounded, size: 12, color: Colors.blue,)
+              ]
             ),
           )
         ]

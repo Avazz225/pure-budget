@@ -9,6 +9,7 @@ import 'package:jne_household_app/widgets_desktop/go_mobile_banner.dart';
 import 'package:jne_household_app/widgets_desktop/home/statistics.dart';
 import 'package:jne_household_app/widgets_shared/background_painter.dart';
 import 'package:jne_household_app/widgets_shared/buttons.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/interval_picker.dart';
 import 'package:jne_household_app/widgets_shared/main/autoexpenses.dart';
 import 'package:jne_household_app/widgets_shared/home/budget_summary.dart';
 import 'package:jne_household_app/screens_shared/settings.dart';
@@ -100,6 +101,17 @@ class HomeScreenState extends State<DesktopHomeScreen> {
             () {},
             icon: Icons.cloud_sync_rounded
           ),
+          if(designState.intervalStyle == 1)
+          ... [
+            const SizedBox(width: 8,),
+            buttonBuilder(
+              context,
+              () {
+                selectInterval(context, budgetState);
+              },
+              icon: budgetState.range == 0 ? Icons.calendar_month_rounded : Icons.history_rounded,
+            ),
+          ],
           const SizedBox(width: 16,)
         ],
       ),

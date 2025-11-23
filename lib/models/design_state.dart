@@ -19,6 +19,7 @@ class DesignState extends ChangeNotifier {
   int mainMenuStyle; // button style for main menu
   double blurIntensity; // blur of background image
   Map<String, dynamic> customGradient; // custom gradient for background
+  int intervalStyle; // style for interval display
 
   DesignState._({
     required this.layoutMainVertical,
@@ -35,7 +36,8 @@ class DesignState extends ChangeNotifier {
     required this.customBackgroundPath,
     required this.mainMenuStyle,
     required this.blurIntensity,
-    required this.customGradient
+    required this.customGradient,
+    required this.intervalStyle
   });
 
   factory DesignState({
@@ -53,7 +55,8 @@ class DesignState extends ChangeNotifier {
     required String customBackgroundPath,
     required int mainMenuStyle,
     required double blurIntensity,
-    required String customGradient
+    required String customGradient,
+    required int intervalStyle
   }) {
     return DesignState._(
       layoutMainVertical: layoutMainVertical,
@@ -70,7 +73,8 @@ class DesignState extends ChangeNotifier {
       customBackgroundPath: customBackgroundPath,
       mainMenuStyle: mainMenuStyle,
       blurIntensity: blurIntensity,
-      customGradient: decodeCustomGradient(customGradient)
+      customGradient: decodeCustomGradient(customGradient),
+      intervalStyle: intervalStyle
     );
   }
 
@@ -89,7 +93,8 @@ class DesignState extends ChangeNotifier {
     required String customBackgroundPath,
     required int mainMenuStyle,
     required double blurIntensity,
-    required String customGradient
+    required String customGradient,
+    required int intervalStyle
   }) {
     final instance = DesignState(
       layoutMainVertical: layoutMainVertical,
@@ -106,7 +111,8 @@ class DesignState extends ChangeNotifier {
       customBackgroundPath: customBackgroundPath,
       mainMenuStyle: mainMenuStyle,
       blurIntensity: blurIntensity,
-      customGradient: customGradient
+      customGradient: customGradient,
+      intervalStyle: intervalStyle
     );
 
     return instance;
@@ -240,6 +246,12 @@ class DesignState extends ChangeNotifier {
   Future<void> updateBlurIntensity(double blur) async {
     blurIntensity = blur;
     await DatabaseHelper().updateDesign("blurIntensity", blur);
+    notifyListeners();
+  }
+
+  Future<void> updateIntervalStyle(int index) async {
+    intervalStyle = index;
+    await DatabaseHelper().updateDesign("intervalStyle", index);
     notifyListeners();
   }
 }

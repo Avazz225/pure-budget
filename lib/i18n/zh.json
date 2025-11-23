@@ -453,5 +453,8 @@
     "rateAppText": "如果你喜欢 {appName}，请花一分钟在 App Store 上给我们评分。",
     "later": "稍后",
     "okay": "确定",
-    "never": "不再提示"
+    "never": "不再提示",
+
+    "selectInterval": "选择区间",
+    "intervalSelection": "紧凑的区间选择"
 }

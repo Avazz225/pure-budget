@@ -453,5 +453,8 @@
     "rateAppText": "Aníron, an le mel {appName}, á si dadad odhron lín mi App Store.",
     "later": "Tolo tírad",
     "okay": "Ma",
-    "never": "U-vail"
+    "never": "U-vail",
+
+    "selectInterval": "Edadad trî aphado",
+    "intervalSelection": "Edadad trî pechui"
 }

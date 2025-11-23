@@ -46,6 +46,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
   late String _customBackgroundPath;
   late int _appBackground;
   late Map<String,dynamic> _customGradient;
+  late bool _intervalStyle;
 
   @override
   void initState() {
@@ -68,6 +69,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
     _customBackgroundPath = designState.customBackgroundPath;
     _appBackground = designState.appBackground;
     _customGradient = designState.customGradient;
+    _intervalStyle = designState.intervalStyle == 1;
 
     if (_customGradient.isEmpty || _customGradient['colors'].isEmpty) {
       _customGradient['colors'] = [Colors.blue, Colors.purple];
@@ -375,6 +377,31 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                   )
                 ),
               ],
+              Card(
+                child: Padding(
+                  padding: const EdgeInsetsGeometry.all(8),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(I18n.translate("intervalSelection"), style: smallHeadline),
+                          Switch(
+                            value: _intervalStyle,
+                            onChanged: (value) {
+                              designState.updateIntervalStyle(value ? 1 : 0);
+                              setState(() {
+                                _intervalStyle = value;
+                              });
+                            },
+                            activeColor: Colors.green,
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               if (isDesktop()) ...[
                 Card(
                   child: Padding(

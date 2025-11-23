@@ -453,5 +453,8 @@
     "rateAppText": "Si vous aimez {appName}, prenez une minute pour nous évaluer sur l’App Store.",
     "later": "Plus tard",
     "okay": "Ok",
-    "never": "Jamais"
+    "never": "Jamais",
+
+    "selectInterval": "Sélectionner l’intervalle",
+    "intervalSelection": "Sélection compacte d’intervalle"
 }

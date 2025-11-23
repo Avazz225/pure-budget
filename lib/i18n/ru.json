@@ -453,5 +453,8 @@
     "rateAppText": "Если вам нравится {appName}, уделите минуту и оцените нас в App Store.",
     "later": "Позже",
     "okay": "Ок",
-    "never": "Никогда"
+    "never": "Никогда",
+
+    "selectInterval": "Выбрать интервал",
+    "intervalSelection": "Компактный выбор интервала"
 }

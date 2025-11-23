@@ -453,5 +453,8 @@
     "rateAppText": "Jeśli podoba ci się {appName}, poświęć chwilę, aby ocenić nas w App Store.",
     "later": "Później",
     "okay": "Ok",
-    "never": "Nigdy"
+    "never": "Nigdy",
+
+    "selectInterval": "Wybierz przedział",
+    "intervalSelection": "Kompaktowy wybór przedziału"
 }

@@ -453,5 +453,8 @@
     "rateAppText": "{appName} DatIvchugh, tup wa’ yIlo’ ’ej App StoreDaq mawuq.",
     "later": "qaSpu’DI’",
     "okay": "luq",
-    "never": "not"
+    "never": "not",
+
+    "selectInterval": "poH nagh yIwIv",
+    "intervalSelection": "poH nagh wIv mach"
 }

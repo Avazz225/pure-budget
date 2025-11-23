@@ -7,6 +7,7 @@ import 'package:jne_household_app/screens_shared/help_screen.dart';
 import 'package:jne_household_app/screens_mobile/mobile_in_app_purchase.dart';
 import 'package:jne_household_app/widgets_mobile/home/statistics.dart';
 import 'package:jne_household_app/widgets_shared/app_rating.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/interval_picker.dart';
 import 'package:jne_household_app/widgets_shared/home/budget_summary.dart';
 import 'package:jne_household_app/widgets_shared/main/autoexpenses.dart';
 import 'package:jne_household_app/widgets_mobile/banner_ad.dart';
@@ -75,7 +76,16 @@ class HomeScreenState extends State<HomeScreen> {
               ]
               else
               const Icon(Icons.cloud_sync_rounded),
-            ], 
+            ],
+            if(designState.intervalStyle == 1)
+            ... [
+              IconButton(
+                icon: Icon(budgetState.range == 0 ? Icons.calendar_month_rounded : Icons.history_rounded),
+                onPressed: () {
+                  selectInterval(context, budgetState);
+                },
+              ),
+            ],
             if (budgetState.proStatusIsSet())
             IconButton(
               icon: const Icon(Icons.camera_alt_rounded),

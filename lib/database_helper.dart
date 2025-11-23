@@ -54,7 +54,7 @@ class DatabaseHelper {
     
     return openDatabase(
       join(dbPath, (kDebugMode) ? 'debug_budget.db' : 'budget.db'),
-      version: 37,
+      version: 38,
       onCreate: (db, version) {
         db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
         db.execute('CREATE TABLE categories(id INTEGER PRIMARY KEY, name TEXT, color TEXT, position INTEGER)');
@@ -63,7 +63,7 @@ class DatabaseHelper {
         db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none", isCreditCard INTEGER DEFAULT 0, refillsFrom INTEGER DEFAULT -1, refillPrincipleMode TEXT DEFAULT "monthly")');
         db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY, categoryId INTEGER, accountId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
         db.execute('CREATE TABLE editLog (id INTEGER PRIMARY KEY, affectedTable TEXT, affectedId INTEGER, type TEXT, sharedBatchId INTEGER DEFAULT -1)');
-        db.execute('CREATE TABLE design (id INTEGER PRIMARY KEY, layoutMainVertical INTEGER DEFAULT 1, categoryMainStyle INTEGER DEFAULT 0, addExpenseStyle INTEGER DEFAULT 1, arcStyle INTEGER DEFAULT 0, arcPercent REAL DEFAULT 50.0, arcWidth REAL DEFAULT 0.8, arcSegmentsRounded INTEGER DEFAULT 1, dialogSolidBackground INTEGER DEFAULT 1, appBackgroundSolid INTEGER DEFAULT 1, appBackground INTEGER DEFAULT 0, customBackgroundBlur INTEGER DEFAULT 0, customBackgroundPath TEXT DEFAULT "none", mainMenuStyle INTEGER DEFAULT 0, blurIntensity REAL DEFAULT 0.1, customGradient TEXT DEFAULT "{}")');
+        db.execute('CREATE TABLE design (id INTEGER PRIMARY KEY, layoutMainVertical INTEGER DEFAULT 1, categoryMainStyle INTEGER DEFAULT 0, addExpenseStyle INTEGER DEFAULT 1, arcStyle INTEGER DEFAULT 0, arcPercent REAL DEFAULT 50.0, arcWidth REAL DEFAULT 0.8, arcSegmentsRounded INTEGER DEFAULT 1, dialogSolidBackground INTEGER DEFAULT 1, appBackgroundSolid INTEGER DEFAULT 1, appBackground INTEGER DEFAULT 0, customBackgroundBlur INTEGER DEFAULT 0, customBackgroundPath TEXT DEFAULT "none", mainMenuStyle INTEGER DEFAULT 0, blurIntensity REAL DEFAULT 0.1, customGradient TEXT DEFAULT "{}", intervalStyle INTEGER DEFAULT 0)');
         db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT, categoryId INTEGER)');
         db.execute('CREATE TABLE intervals (id INTEGER PRIMARY KEY, start TEXT, end TEXT, accountId INTEGER)');
         db.execute('CREATE TABLE realizedCategoryBudgets (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, categoryId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
@@ -121,6 +121,10 @@ class DatabaseHelper {
           await db.execute('CREATE TABLE realizedBankaccounts (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, balance REAL, income REAL)');
           await db.execute('CREATE TABLE realizedAutoexpenses (id INTEGER PRIMARY KEY, intervalId INTEGER, autoexpenseId INTEGER, expenseId INTEGER)');
           await migrateTo37(db);
+        }
+
+        if (oldVersion < 38) {
+          await db.execute('ALTER TABLE design ADD COLUMN intervalStyle INTEGER DEFAULT 0');
         }
       },
     );

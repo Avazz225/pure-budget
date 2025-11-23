@@ -453,5 +453,8 @@
     "rateAppText": "{appName}가 마음에 드셨다면, 앱 스토어에서 평가해 주세요.",
     "later": "나중에",
     "okay": "확인",
-    "never": "다시 보지 않기"
+    "never": "다시 보지 않기",
+
+    "selectInterval": "간격 선택",
+    "intervalSelection": "압축된 간격 선택"
 }

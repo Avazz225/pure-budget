@@ -453,5 +453,8 @@
     "rateAppText": "{appName} hoşuna gittiyse, App Store’da bizi değerlendirmek için bir dakikanı ayır.",
     "later": "Daha sonra",
     "okay": "Tamam",
-    "never": "Asla"
+    "never": "Asla",
+
+    "selectInterval": "Aralık seç",
+    "intervalSelection": "Kompakt aralık seçimi"
 }
