@@ -162,6 +162,9 @@ class DatabaseHelper {
     // create all realizedBankaccounts
     for (PBInterval i in intervals) {
       for (BankAccount ba in bankAccounts) {
+        if (i.accountId != ba.id) {
+          continue;
+        }
         final n = RealizedBankaccounts({
           "intervalId": i.id,
           "accountId": ba.id,
@@ -177,6 +180,9 @@ class DatabaseHelper {
     // create all realizedCategoryBudgets
     for (PBInterval i in intervals) {
       for (CategoryBudgetPlain cb in catgoryBudgets) {
+        if (i.accountId != cb.accountId) {
+          continue;
+        }
         final n = RealizedCategoryBudgets({
           "intervalId": i.id,
           "accountId": cb.accountId,
@@ -205,6 +211,7 @@ class DatabaseHelper {
         await e.save(dbObj: db);
       }
     }
+
     _logger.debug("Finished autoexpense migration", tag: "dbMigration");
   }
 

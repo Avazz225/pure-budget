@@ -16,13 +16,13 @@ class Expense {
       id = values['id'] as int;
     }
 
-    accountId = values['accountId'] is int ? values['accountId'] : int.tryParse(values['accountId']) ?? values['accountId'];
-    categoryId = values['categoryId'] is int ? values['categoryId'] : int.tryParse(values['categoryId']) ?? values['categoryId'];
+    accountId = values['accountId'] is int ? values['accountId'] : int.tryParse(values['accountId'] ?? "-1") ?? -1;
+    categoryId = values['categoryId'] is int ? values['categoryId'] : int.tryParse(values['categoryId'] ?? "-1") ?? -1;
     description = values['description'] as String;
     date = DateTime.parse(values['date']);
-    amount = values['amount'] is double ? values['amount'] : double.tryParse(values['amount']) ?? 0.0;
+    amount = values['amount'] is double ? values['amount'] : double.tryParse(values['amount'] ?? "0.0") ?? 0.0;
     auto = values['auto'] == 1 || values['auto'] == "1";
-    autoId = values['autoId'] is int ? values['autoId'] : int.tryParse(values['autoId']) ?? values['autoId'];
+    autoId = values['autoId'] is int ? values['autoId'] : int.tryParse(values['autoId'] ?? "-1") ?? -1;
   }
 
   Map<String, dynamic> toMap() {

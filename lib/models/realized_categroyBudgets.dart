@@ -16,7 +16,7 @@ class RealizedCategoryBudgets {
 
     if (values.keys.contains("overrideBankAccount")) {
       if (values['overrideBankAccount'] != null) {
-        id = values['overrideBankAccount'] as int;
+        overrideBankAccount = values['overrideBankAccount'] as int;
       }
     }
 
