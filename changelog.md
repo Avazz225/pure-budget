@@ -2,20 +2,13 @@
 
 ## Roadmap
 
-### 3.2.0
-
-```txt
-Developer Info:
-Integration of mobile payment apps is impossible due to privacy reasons maybe push notificaations could be utilized
-```
-
 ### planned (depends on need)
 
 - add connection to iCloud
 
 ## Changelog
 
-### 3.3.0 bundle 35
+### 3.3.1 bundle 36
 
 - support for change history in budgets and income for statistics
 - option for more compact interval selection
