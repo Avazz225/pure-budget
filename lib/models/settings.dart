@@ -35,7 +35,7 @@ class Settings {
     lastAdFail = values['lastAdFail'] as String;
     lastAdSuccess = values['lastAdSuccess'] as String;
     lastSavingRun = values['lastSavingRun'] as String;
-    sharedDbUrl = values['lastSavingRun'] as String;
+    sharedDbUrl = values['sharedDbUrl'] as String;
     syncMode = values['syncMode'] as String;
     lastSync = values['lastSync'] as String;
     reminder = values['reminder'] as String;

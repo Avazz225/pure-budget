@@ -8,7 +8,7 @@
 
 ## Changelog
 
-### 3.3.1 bundle 36
+### 3.3.3 bundle 36
 
 - support for change history in budgets and income for statistics
 - option for more compact interval selection
