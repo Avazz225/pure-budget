@@ -54,7 +54,7 @@ class DatabaseHelper {
     
     return openDatabase(
       join(dbPath, (kDebugMode) ? 'debug_budget.db' : 'budget.db'),
-      version: 38,
+      version: 39,
       onCreate: (db, version) {
         db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
         db.execute('CREATE TABLE categories(id INTEGER PRIMARY KEY, name TEXT, color TEXT, position INTEGER)');
@@ -126,8 +126,43 @@ class DatabaseHelper {
         if (oldVersion < 38) {
           await db.execute('ALTER TABLE design ADD COLUMN intervalStyle INTEGER DEFAULT 0');
         }
+
+        if (oldVersion < 39) {
+          await cleanupData(db);
+        }
+
+        if (oldVersion < newVersion) {
+          _logger.debug("Database upgraded to version $newVersion", tag: "database");
+        }
       },
     );
+  }
+
+  Future<void> cleanupData(Database db) async {
+    List<Expense> expenses = (await db.query("expenses")).map((e) => Expense(e)).toList();
+    final Map<String, List<Expense>> groups = {};
+
+    for (final exp in expenses) {
+      final key = [
+        exp.date,
+        exp.amount,
+        exp.accountId,
+        exp.categoryId,
+        exp.description,
+        exp.auto,
+        exp.autoId
+      ].join("|");
+
+      groups.putIfAbsent(key, () => []).add(exp);
+    }
+
+    for (final group in groups.values) {
+      if (group.length <= 1) continue;
+      group.sort((a, b) => a.id!.compareTo(b.id!));
+      for (int i = 1; i < group.length; i++) {
+        await group[i].delete(dbObj: db);
+      }
+    }
   }
 
   Future<void> migrateTo37(Database db) async {
