@@ -114,10 +114,6 @@ class BudgetState extends ChangeNotifier {
 
     await instance.sharedDb.initialize();
 
-    if (instance.settings.sharedDbUrl != "none") {
-      instance.syncSharedDb();
-    }
-
     instance.saveWidgetData("totalBudget", totalBudget);
     instance.saveWidgetData("currency", settings.currency);
     instance.saveWidgetData("totalConnector", (settings.showAvailableBudget) ? I18n.translate("availableStr") : I18n.translate("spentStr"));
