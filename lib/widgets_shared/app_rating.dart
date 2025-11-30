@@ -55,6 +55,7 @@ class _RateAppLauncherState extends State<RateAppLauncher> {
       context,
       title: I18n.translate('rateApp', placeholders: {'appName': I18n.translate('appTitle')}),
       message: I18n.translate('rateAppText', placeholders: {'appName': I18n.translate('appTitle')}),
+      starRatingOptions: const StarRatingOptions(),
       actionsBuilder: (context, stars) {
         return [
           ElevatedButton(
@@ -83,21 +84,21 @@ class _RateAppLauncherState extends State<RateAppLauncher> {
                 }
               }
 
-              Navigator.pop<RateMyAppDialogButton>(context, RateMyAppDialogButton.rate);
+              Navigator.pop<RateMyAppDialogButton>(context);
             },
             child: Text(I18n.translate('okay')),
           ),
           ElevatedButton(
             onPressed: () {
               rateMyApp.callEvent(RateMyAppEventType.laterButtonPressed);
-              Navigator.pop<RateMyAppDialogButton>(context, RateMyAppDialogButton.rate);
+              Navigator.pop<RateMyAppDialogButton>(context);
             },
             child: Text(I18n.translate('later')),
           ),
           ElevatedButton(
             onPressed: () {
               rateMyApp.callEvent(RateMyAppEventType.noButtonPressed);
-              Navigator.pop<RateMyAppDialogButton>(context, RateMyAppDialogButton.rate);
+              Navigator.pop<RateMyAppDialogButton>(context);
             },
             child: Text(I18n.translate('never')),
           )
@@ -109,7 +110,6 @@ class _RateAppLauncherState extends State<RateAppLauncher> {
         messageAlign: TextAlign.center,
         messagePadding: EdgeInsets.only(bottom: 20),
       ),
-      starRatingOptions: const StarRatingOptions(),
       onDismissed: () => rateMyApp.callEvent(RateMyAppEventType.laterButtonPressed),
     );
   }
