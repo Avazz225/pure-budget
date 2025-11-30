@@ -36,7 +36,9 @@ class _RateAppLauncherState extends State<RateAppLauncher> {
       minDays: ratingMinDays,
       minLaunches: ratingMinLaunches,
       remindDays: ratingRemindDays,
-      remindLaunches: ratingRemindLaunches
+      remindLaunches: ratingRemindLaunches,
+      googlePlayIdentifier: androidQualifiedName,
+      appStoreIdentifier: iosStoreIdentifier,
     );
 
     rateMyApp.init().then((_) {
