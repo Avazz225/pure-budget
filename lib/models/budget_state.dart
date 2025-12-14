@@ -206,6 +206,12 @@ class BudgetState extends ChangeNotifier {
     await _loadBudgets();
 
     notifyListeners();
+    
+    if (kDebugMode) {
+      for (PBInterval range in budgetRanges) {
+        logger.debug("Rangeid: ${range.id}, start: ${range.start}, end: ${range.end}", tag: "PresentRanges");
+      }
+    }
     saveWidgetData("totalBudget", totalBudget);
   }
 

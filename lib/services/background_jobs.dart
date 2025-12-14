@@ -25,7 +25,22 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
   final List<CategoryBudgetPlain> rawCategoryBudgets = await dbHelper.getCategoryBudgets(dbObj: db);
 
   for (BankAccount ba in bankAccounts) {
-    final PBInterval lastInterval = await dbHelper.getIntervals(filter: "accountId = ?", filterArgs: [ba.id], order: "id DESC", onlyFirst: true, dbObj: db);
+    PBInterval lastInterval;
+    try {
+      lastInterval = await dbHelper.getIntervals(filter: "accountId = ?", filterArgs: [ba.id], order: "id DESC", onlyFirst: true, dbObj: db);
+    } catch (e) {
+      logger.error(e.toString());
+      logger.debug("Didn't find interval", tag: "background jobs");
+
+      final today = DateTime.now();
+      lastInterval = PBInterval({
+        'start': DateTime(today.year, today.month),
+        'end': DateTime(today.year, today.month + 1),
+        'accountId': ba.id
+      });
+      await lastInterval.save();
+    }
+
     if (today.isAfter(lastInterval.end)){
       final rawInterval = getMultipleRanges({'principle': ba.budgetResetPrinciple, 'day': ba.budgetResetDay}, 1, today, ba.id!)[0];
       PBInterval newInterval = PBInterval({
@@ -95,8 +110,8 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
       }
       
       // process autoExpenses for new interval
-      final autoExpenses = await dbHelper.getAutoExpenses(dbObj: db);
-      for (final ae in autoExpenses) {
+      final List<AutoExpense> autoExpenses = await dbHelper.getAutoExpenses(dbObj: db);
+      for (final AutoExpense ae in autoExpenses) {
         await ae.processUpcomingAE(newInterval, db, true);
       }
     }

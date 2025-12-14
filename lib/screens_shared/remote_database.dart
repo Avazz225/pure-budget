@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/services/remote/auth.dart';
@@ -330,6 +331,13 @@ List<Widget> connected(BuildContext context, BudgetState budgetState, bool loadi
       }, 
     ),
     const SizedBox(height: 8,),
+    if (kDebugMode)
+    ElevatedButton(
+      onPressed: () async {
+        await budgetState.initSharedDb();
+      }, 
+      child: const Text("DEBUG: Force reinit")
+    )
   ];
 }
 

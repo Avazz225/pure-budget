@@ -77,16 +77,34 @@ class BankAccount {
       await currentInterval.save(dbObj: dbObj);
 
       // update latest realized bankaccount
-      final rba = RealizedBankaccounts((await DatabaseHelper().genericSelect(
+      RealizedBankaccounts rba;
+      final result = await DatabaseHelper().genericSelect(
         'realizedBankaccounts',
         filter: 'accountId = ? and intervalId = ?',
         filterArgs: [id, currentInterval.id],
         order: 'intervalId DESC',
         limit: 1
-      )).first);
+      );
 
-      rba.income = income;
-      rba.balance = balance;
+      if (result.isNotEmpty) {
+        rba = RealizedBankaccounts(result.first);
+        rba.income = income;
+        rba.balance = balance;
+      } else {
+        final currentIntervalId = (await DatabaseHelper().genericSelect(
+          'intervals',
+          filter: "accountId = ?",
+          filterArgs: [id],
+          order: "id DESC",
+          limit: 1
+        )).first['id'];
+        rba = RealizedBankaccounts({
+          'intervalId': currentIntervalId,
+          'accountId': id,
+          'balance': balance,
+          'income': income
+        });
+      }
       await rba.save(dbObj: dbObj);
     }
   }

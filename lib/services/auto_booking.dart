@@ -33,14 +33,14 @@ Future<void> createBookings(List<AutoExpense> autoExpenses, bool updateSettings,
 
       if (autoExpense.principleMode == "monthly"){
         exp.date = bookingDate(today.year, today.month, autoExpense.bookingDay, autoExpense.bookingPrinciple);
-        if (inRange(interval, exp.date) && today.isBefore(exp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))){
+        if (inRange(interval, exp.date) && today.isBefore(exp.date)){
           await exp.save(dbObj: dbObj);
           didExecute = true;
         }
       } else if (autoExpense.principleMode == "daily"){
         for (int i = 0; i <= 31; i++) {
           exp.date = today.add(Duration(days: i));
-          if (inRange(interval, exp.date) && today.isBefore(exp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))){
+          if (inRange(interval, exp.date) && today.isBefore(exp.date)){
             await exp.save(dbObj: dbObj);
             didExecute = true;
           }
@@ -50,7 +50,7 @@ Future<void> createBookings(List<AutoExpense> autoExpenses, bool updateSettings,
         int diff = availableWeekDays.indexOf(autoExpense.bookingPrinciple) + 1 - weekday;
         for (int i = 0; i <= 5; i++) {
           exp.date = today.add(Duration(days: diff + (i * 7)));
-          if (inRange(interval, exp.date) && today.isBefore(exp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))){
+          if (inRange(interval, exp.date) && today.isBefore(exp.date)){
             await exp.save(dbObj: dbObj);
             didExecute = true;
           }
@@ -58,7 +58,7 @@ Future<void> createBookings(List<AutoExpense> autoExpenses, bool updateSettings,
       } else if (autoExpense.principleMode == "yearly"){
         DateTime target = DateTime.parse(autoExpense.bookingPrinciple);
         exp.date = DateTime(today.year, target.month, target.day);
-        if (inRange(interval, exp.date) && today.isBefore(exp.date) && !(await db.checkAutoExpense(autoExpense.id!, autoExpense.categoryId, exp.date))){
+        if (inRange(interval, exp.date) && today.isBefore(exp.date)){
           await exp.save(dbObj: dbObj);
           didExecute = true;
         }

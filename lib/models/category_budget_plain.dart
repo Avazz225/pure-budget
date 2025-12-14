@@ -52,14 +52,34 @@ class CategoryBudgetPlain {
       await DatabaseHelper().genericUpdate("categoryBudgets", values);
 
       // get latest realized category budget and update its budget as well
-      final rcb = RealizedCategoryBudgets((await DatabaseHelper().genericSelect(
+
+      RealizedCategoryBudgets rcb;
+      final result = await DatabaseHelper().genericSelect(
         'realizedCategoryBudgets',
         filter: 'categoryId = ? AND accountId = ?',
         filterArgs: [categoryId, accountId],
         order: 'intervalId DESC',
         limit: 1
-      )).first);
-      rcb.budget = budget;
+      );
+
+      if (result.isNotEmpty) {
+        rcb = RealizedCategoryBudgets(result.first);
+        rcb.budget = budget;
+      } else {
+        final currentIntervalId = (await DatabaseHelper().genericSelect(
+          'intervals',
+          filter: "accountId = ?",
+          filterArgs: [accountId],
+          order: "id DESC",
+          limit: 1
+        )).first['id'];
+        rcb = RealizedCategoryBudgets({
+          'intervalId': currentIntervalId,
+          'accountId': accountId,
+          'budget': budget,
+          'categoryId': categoryId
+        });
+      }
       await rcb.save();
     }
   }

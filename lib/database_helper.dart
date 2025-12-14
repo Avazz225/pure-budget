@@ -72,15 +72,15 @@ class DatabaseHelper {
 
         int arcStyle = (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ? 1 : 0;
         DateTime tdy = DateTime.now();
-        String start = formatForSqlite(tdy);
-        String end = formatForSqlite(tdy.add(const Duration(days: 30)));
+        String start = formatForSqlite(DateTime(tdy.year, tdy.month));
+        String end = formatForSqlite(DateTime(tdy.year, tdy.month + 1));
 
         db.execute('INSERT INTO design (id, arcStyle) VALUES (1, $arcStyle)');
         db.execute('INSERT INTO settings (currency) VALUES ("€")');
         db.execute('INSERT INTO categories (id, name, color, position) VALUES (-1, "__undefined_category_name__", "${colorToHex(Colors.grey[700]!)}", 0)');
         db.execute('INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, "${I18n.translate("unassignedAccount")}", 0, 0, "monthStart", 1)');
         db.execute('INSERT INTO categoryBudgets (categoryId, accountId, budget) VALUES (-1, -1, 0)');
-        db.execute('INSERT INTO intervals (start, end) VALUES ($start, $end)');
+        db.execute('INSERT INTO intervals (start, end, accountId) VALUES ("$start", "$end", -1)');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         _logger.debug("Upgrading database from version $oldVersion to $newVersion", tag: "database");
@@ -279,16 +279,6 @@ class DatabaseHelper {
     }
   }
 
-  Future<dynamic> rawSelect(String query, List params, {bool onlyFirst = false, Database? dbObj}) async {
-    final db = dbObj ?? await database;
-    List res = await db.rawQuery(query, params);
-    if (onlyFirst) {
-      return res.first;
-    } else {
-      return res;
-    }
-  }
-
   Future<void> genericInsertLog(table, id, method, {Database? dbObj}) async {
     final db = dbObj ?? await database;
     if (["settings", "design", "editLog"].contains(table)) {
@@ -392,7 +382,6 @@ class DatabaseHelper {
 
       dynamic extra = (await db.rawQuery("SELECT SUM(amount) AS addition FROM autoexpenses WHERE moneyFlow = ? AND receiverAccountId = ?", [1, filterBudget]))[0]["addition"];
       extra ??= 0.0;
-
       return {"totalIncome": result['totalIncome'] + extra, "totalBalance": result['totalBalance']};
     }
   }
@@ -461,33 +450,6 @@ class DatabaseHelper {
     return data.first['budget'] as double? ?? 0.0;
   }
 
-  Future<Map<String, dynamic>> getSpentForLastMonth(String accountId, BankAccount account, int catId)async {
-    final db = await database;
-    String query;
-    List params = [];
-    double result = 0.0;
-    query  = '''SELECT SUM(amount) as totalSpent
-      FROM expenses
-      WHERE accountID = ?
-        AND categoryId = ?
-        AND date >= ?
-        AND date < ?''';
-
-    PBInterval adaptRange = getDateRangeForCreditCard({"principle": account.budgetResetPrinciple, "day": account.budgetResetDay}, account.id!,lastMonth: true);
-    _logger.debug("Calculated adapted range start: ${adaptRange.start.toString()}; end: ${adaptRange.end.toString()} for bankAccount ${account.name} (${account.id.toString()}) ", tag: "database");
-    params = [account.id.toString(), catId.toString(), formatForSqlite(adaptRange.start), formatForSqlite(adaptRange.end)];
-    
-    result += (await db.rawQuery(query, params)).first['totalSpent'] as double? ?? 0.0;
-    
-    return {"result": result, "range": adaptRange};
-  }
-
-  Future<Map<String, dynamic>> getLastRefill(int accountId, int catId) async {
-    final db = await database;
-    List res = await db.query("creditCardRefills", where: "creditAccountId = ? AND categoryId = ?", whereArgs: [accountId, catId], orderBy: "date DESC", limit: 1);
-    return (res.isNotEmpty) ? res.first : {};
-  }
-
   Future<void> insertCategoryBudget(Map<String, dynamic> catBudget, {Database? dbObj}) async {
     final db = dbObj ?? await database;
     int id = await db.insert('categoryBudgets', catBudget);
@@ -541,12 +503,6 @@ class DatabaseHelper {
     return id;
   }
 
-  Future<void> updateAutoExpense(Map<String, dynamic> autoExpense, int id) async {
-    final db = await database;
-    await db.update('autoexpenses', autoExpense, where: "id = ?", whereArgs: [id]);
-    await insertEditLog("autoexpenses", id, "update", dbObj: db);
-  }
-
   Future<void> deleteAutoExpense(int id) async {
     final db = await database;
 
@@ -566,13 +522,6 @@ class DatabaseHelper {
     }
 
     return id;
-  }
-
-  Future<void> updateBankAccount(Map<String, dynamic> bankAccount, id) async {
-    final db = await database;
-    bankAccount['isCreditCard'] = bankAccount['isCreditCard'] ? 1 : 0;
-    await db.update('bankaccounts', bankAccount, where: "id = ?", whereArgs: [id]);
-    await insertEditLog("bankaccounts", id, "update", dbObj: db);
   }
 
   Future<void> deleteBankAccount(int id) async {
@@ -614,36 +563,6 @@ class DatabaseHelper {
     await db.delete('autoexpenses', where: "receiverAccountId = ? AND moneyFlow = ?", whereArgs: [id, 1]);
     for (Map<String, dynamic> entry in affected) {
       await insertEditLog("autoexpenses", entry['id'], "delete", dbObj: db);
-    }
-  }
-
-  Future<void> deleteCategory(int id) async {
-    final db = await database;
-    await db.delete('categories', where: 'id = ?', whereArgs: [id]);
-    await insertEditLog("categories", id, "delete", dbObj: db);
-
-    List<Map<String, dynamic>> affected = await db.query('categoryBudgets', where: 'categoryId = ?', whereArgs: [id]);
-    await db.delete('categoryBudgets', where: 'categoryId = ?', whereArgs: [id]);
-    for (Map<String, dynamic> entry in affected) {
-      await insertEditLog("categoryBudgets", entry['id'], "delete", dbObj: db);
-    }
-
-    affected = await db.query('expenses', where: 'categoryId = ?', whereArgs: [id]);
-    await db.update('expenses', {'categoryId': "-1"}, where: 'categoryId = ?', whereArgs: [id]);
-    for (Map<String, dynamic> entry in affected) {
-      await insertEditLog("expenses", entry['id'], "update", dbObj: db);
-    }
-
-    List<Map<String, dynamic>> autoexpensesId = await db.query("autoexpenses", columns: ["id"], where: 'categoryId = ?', whereArgs: [id]);
-    await db.update("autoexpenses", {"categoryId": -1}, where: 'categoryId = ?', whereArgs: [id]);
-    for (Map<String, dynamic> id in autoexpensesId) {
-      await insertEditLog("autoexpenses", id['id'], "update", dbObj: db);
-
-      affected = await db.query("expenses", where: "autoId = ?", whereArgs: [id['id']]);
-      await db.update("expenses", {"categoryId": -1}, where: "autoId = ?", whereArgs: [id['id']]);
-      for (Map<String, dynamic> entry in affected) {
-        await insertEditLog("expenses", entry['id'], "update", dbObj: db);
-      }
     }
   }
 
@@ -767,11 +686,6 @@ class DatabaseHelper {
     }).toList();
   }
 
-  Future<bool> checkAutoExpense(int autoId, int categoryId, DateTime date) async {
-    final db = await database;
-    return (await db.query("expenses", where: "autoId = ? AND categoryId = ? AND date = ?", whereArgs: [autoId, categoryId, formatForSqlite(date)])).isNotEmpty;
-  }
-
   Future<Map<String, dynamic>> getFirstExpense() async {
     final db = await database;
     return (await db.query('expenses', limit: 1, orderBy: "date ASC"))[0];
@@ -822,20 +736,6 @@ class DatabaseHelper {
     return result.map((exp) => Expense(exp)).toList();
   }
 
-  Future<Map<String, dynamic>> getExpense(int id) async {
-    final db = await database;
-    return (await db.query('expenses', where: 'id = ?', whereArgs: [id]))[0];
-  }
-
-  Future<void> deleteAutoExpRealizations(int autoId, String date) async {
-    final db = await database;
-    List<Map<String, dynamic>> affected = await db.query("expenses", where: 'autoId = ? AND date > ?', whereArgs: [autoId, formatForSqliteFromStr(date)]);
-    await db.delete('expenses', where: 'autoId = ? AND date > ?', whereArgs: [autoId, formatForSqliteFromStr(date)]);
-    for (Map<String, dynamic> entry in affected) {
-      await insertEditLog("expenses", entry['id'], "delete", dbObj: db);
-    }
-  }
-
   Future<List<Map<String, dynamic>>> exportTable(String table) async {
     final db = await database;
     return await db.query(table);
@@ -846,9 +746,9 @@ class DatabaseHelper {
     List<String> tables;
 
     if (keepSettings) {
-      tables = ['expenses', 'categories', 'autoexpenses', 'bankaccounts', 'categoryBudgets', 'editLog'];
+      tables = ['expenses', 'categories', 'autoexpenses', 'bankaccounts', 'categoryBudgets', 'editLog', 'intervals', 'realizedCategoryBudgets', 'realizedBankaccounts', 'realizedAutoexpenses'];
     } else {
-      tables = ['expenses', 'categories', 'settings', 'autoexpenses', 'bankaccounts', 'categoryBudgets', 'editLog'];
+      tables = ['expenses', 'categories', 'settings', 'autoexpenses', 'bankaccounts', 'categoryBudgets', 'editLog', 'intervals', 'realizedCategoryBudgets', 'realizedBankaccounts', 'realizedAutoexpenses'];
     }
 
     for (final table in tables) {
