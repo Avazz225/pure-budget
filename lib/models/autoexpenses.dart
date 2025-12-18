@@ -1,4 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/models/interval.dart';
 import 'package:jne_household_app/services/auto_booking.dart';
@@ -72,8 +73,13 @@ class AutoExpense {
 
   Future<void> delete() async {
     final dbObj = await DatabaseHelper().database;
-    await DatabaseHelper().genericDelete("autoexpenses", id!, dbObj: dbObj);
-    await deleteUpcomingAE(dbObj);
+    if (id == null) {
+      Logger().error("Didn't delete autoexpense. No id", tag: "autoexpense");
+      return;
+    } else {
+      await DatabaseHelper().genericDelete("autoexpenses", id!, dbObj: dbObj);
+      await deleteUpcomingAE(dbObj);
+    }
   }
 
   Future<void> deleteUpcomingAE(Database dbObj) async {

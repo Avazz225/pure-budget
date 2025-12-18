@@ -452,7 +452,8 @@ class SharedDatabase {
           // query for similar entry in remoteDB
           _logger.debug("Found blocking change of type INSERT. Checking...", tag:"sharedDatabase");
 
-          Map<String, dynamic> localEntry = (await localDatabase.query(change['affectedTable'], where: "id = ?", whereArgs: [change['affectedId']])).first;
+          Map<String, dynamic> result = (await localDatabase.query(change['affectedTable'], where: "id = ?", whereArgs: [change['affectedId']])).first;
+          Map<String, dynamic> localEntry = {...result};
           final localEntryKeys = localEntry.keys;
           final keysToRemove = ['id', 'end', 'balance', 'income', 'expenseId', 'budget', 'overrideBankAccount', 'balance', 'income'];
 
@@ -714,7 +715,7 @@ class SharedDatabase {
         reducedChanges.addAll(changes);
       }
     }
-
+    reducedChanges.sort((a, b) => a['id'].compareTo(b['id']));
     return reducedChanges;
   }
 }

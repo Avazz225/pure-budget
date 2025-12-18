@@ -42,6 +42,7 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
     }
 
     if (today.isAfter(lastInterval.end)){
+      logger.debug("Creating new interval for bankaccount ${ba.id}", tag: "background jobs");
       final rawInterval = getMultipleRanges({'principle': ba.budgetResetPrinciple, 'day': ba.budgetResetDay}, 1, today, ba.id!)[0];
       PBInterval newInterval = PBInterval({
         'accountId': ba.id,
@@ -110,7 +111,8 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
       }
       
       // process autoExpenses for new interval
-      final List<AutoExpense> autoExpenses = await dbHelper.getAutoExpenses(dbObj: db);
+      final List<AutoExpense> autoExpenses = await dbHelper.getAutoExpenses(noMoneyFlow: false, dbObj: db);
+      logger.debug("Processing ${autoExpenses.length} autoexpenses", tag: "background jobs");
       for (final AutoExpense ae in autoExpenses) {
         await ae.processUpcomingAE(newInterval, db, true);
       }

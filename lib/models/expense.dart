@@ -1,4 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/logger.dart';
 import 'package:sqflite/sqflite.dart';
 
 class Expense {
@@ -42,6 +43,7 @@ class Expense {
     final db = dbObj ?? await DatabaseHelper().database;
     final values = toMap();
     if (id == null) {
+      Logger().debug("inserting new expense");
       id = await DatabaseHelper().genericInsert("expenses", values, dbObj: db);
     } else {
       await DatabaseHelper().genericUpdate("expenses", values, dbObj: db);

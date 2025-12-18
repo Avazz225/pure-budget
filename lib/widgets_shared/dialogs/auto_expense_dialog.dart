@@ -351,6 +351,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                       if (expenseId == null) {
                         await budgetState.addAutoExpense(newAE);
                       } else {
+                        newAE.id = expenseId;
                         budgetState.updateOrDeleteAutoExpense(newAE);
                       }
                     } else {
@@ -366,6 +367,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                       if (expenseId == null) {
                         await budgetState.addRateAutoExpense(newAE);
                       } else {
+                        newAE.id = expenseId;
                         await budgetState.updateOrDeleteRateAutoExpense(newAE);
                       }
                     }

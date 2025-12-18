@@ -166,6 +166,7 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                     if (expenseId == null) {
                       await budgetState.addAutoExpense(newAutoExpense);
                     } else {
+                      newAutoExpense.id = expenseId;
                       await budgetState.updateOrDeleteAutoExpense(newAutoExpense);
                     }
 

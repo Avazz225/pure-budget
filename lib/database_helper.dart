@@ -250,8 +250,20 @@ class DatabaseHelper {
     _logger.debug("Finished autoexpense migration", tag: "dbMigration");
   }
 
+  Map<String, dynamic> cleanupMap(Map<String, dynamic> values) {
+    for (final key in values.keys) {
+      if (values[key] == true) {
+        values[key] = 1;
+      } else if (values[key] == false) {
+        values[key] = 0;
+      }
+    }
+    return values;
+  }
+
   Future<int> genericInsert(String table, Map<String, dynamic> values, {Database? dbObj}) async {
     final db = dbObj ?? await database;
+    values = cleanupMap(values);
     int id = (await db.insert(table, values));
     await genericInsertLog(table, id, "insert", dbObj: db);
     return id;
@@ -259,6 +271,7 @@ class DatabaseHelper {
 
   Future<void> genericUpdate(String table, Map<String, dynamic> values, {Database? dbObj}) async {
     final db = dbObj ?? await database;
+    values = cleanupMap(values);
     await db.update(table, values, where: "id = ?", whereArgs: [values['id']]);
     await genericInsertLog(table, values['id'],"update", dbObj: db);
   }
@@ -284,7 +297,7 @@ class DatabaseHelper {
     if (["settings", "design", "editLog"].contains(table)) {
       return;
     }
-    await insertEditLog(table, id, "update", dbObj: db);
+    await insertEditLog(table, id, method, dbObj: db);
   }
 
   Future<void> insertEditLog(String table, int affectedId, String type, {Database? dbObj}) async {
