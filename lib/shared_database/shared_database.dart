@@ -441,7 +441,7 @@ class SharedDatabase {
     try {
       // get all relevant changes from remote and local which require handling
       final List<Map<String, dynamic>> relevantLocalChanges = await localDatabase.rawQuery(
-        'SELECT * FROM editLog WHERE affectedTable IN ("realizedBankaccounts", "realizedCategoryBudgets", "realizedAutoexpenses", "intervals") AND sharedBatchId = -1'
+        "SELECT * FROM editLog WHERE affectedTable IN ('realizedBankaccounts', 'realizedCategoryBudgets', 'realizedAutoexpenses', 'intervals') AND sharedBatchId = -1"
       );
 
       // process local changes (only inserts need special treatment)

@@ -29,6 +29,8 @@ import 'package:jne_household_app/screens_mobile/mobile_home_screen.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/services/initialization_service.dart';
 import 'package:tray_manager/tray_manager.dart';
+import 'package:age_signals_flutter/age_signals_flutter.dart';
+import 'package:age_signals_flutter/age_signal_result.dart';
 
 // automatically take screenshots by using --dart-define=SCREENS=t
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -160,9 +162,40 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBin
   @override
   void initState() {
     super.initState();
+    if (Platform.isAndroid || Platform.isIOS) {
+      _initUserStatus();
+    }
     _authenticate(widget.lockApp);
     WidgetsBinding.instance.addObserver(this);
   }
+
+  Future<void> _initUserStatus() async {
+    AgeSignalResult result;
+    try {
+      // Call static method on the class, not the instance
+      result = await AgeSignalsFlutter.getUserStatus();
+    } on PlatformException catch (e) {
+      result = AgeSignalResult(error: e.message);
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      if (result.error != null) {
+        Logger().error('Error: ${result.error}', tag: "age_signals");
+      } else {
+        Logger().debug(
+          'User Status: ${result.userStatus}\n'
+          'Age Range: ${result.ageLower ?? '-'} - ${result.ageUpper ?? '-'}\n'
+          'Install ID: ${result.installId ?? '-'}\n'
+          'Approved On: ${result.mostRecentApprovalDate ?? '-'}\n'
+          'Verified: ${result.isVerified}',
+          tag: "age_signals"
+        );
+      }
+    });
+  }
+
 
   @override
   void dispose() {
