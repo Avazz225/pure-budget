@@ -456,5 +456,9 @@
     "never": "Never",
 
     "selectInterval": "Select interval",
-    "intervalSelection": "Compact interval selection"
+    "intervalSelection": "Compact interval selection",
+
+    "ageVerification": "Age verification",
+    "ageVerificationDeniedMessage": "Access to this app has been restricted by your guardians.",
+    "ageVerificationRequiredMessage": "Your guardians must allow access to this app. Please contact them."
 }

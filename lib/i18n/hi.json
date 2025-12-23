@@ -456,5 +456,9 @@
     "never": "कभी नहीं",
 
     "selectInterval": "अंतराल चुनें",
-    "intervalSelection": "संक्षिप्त अंतराल चयन"
+    "intervalSelection": "संक्षिप्त अंतराल चयन",
+
+    "ageVerification": "आयु सत्यापन",
+    "ageVerificationDeniedMessage": "इस ऐप तक पहुंच आपके अभिभावकों द्वारा प्रतिबंधित कर दी गई है।",
+    "ageVerificationRequiredMessage": "आपके अभिभावकों को इस ऐप तक पहुंच की अनुमति देनी होगी। कृपया उनसे संपर्क करें।"
 }

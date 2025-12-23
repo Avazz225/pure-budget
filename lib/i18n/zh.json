@@ -456,5 +456,9 @@
     "never": "不再提示",
 
     "selectInterval": "选择区间",
-    "intervalSelection": "紧凑的区间选择"
+    "intervalSelection": "紧凑的区间选择",
+
+    "ageVerification": "年龄验证",
+    "ageVerificationDeniedMessage": "此应用的访问已被您的监护人限制。",
+    "ageVerificationRequiredMessage": "您的监护人必须允许访问此应用。请联系他们。"
 }

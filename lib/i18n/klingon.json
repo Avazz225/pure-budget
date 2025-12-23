@@ -456,5 +456,9 @@
     "never": "not",
 
     "selectInterval": "poH nagh yIwIv",
-    "intervalSelection": "poH nagh wIv mach"
+    "intervalSelection": "poH nagh wIv mach",
+
+    "ageVerification": "DIS poH laj",
+    "ageVerificationDeniedMessage": "Daqvam lo'lu'meH ngoQmey wIvpu' qochpu'lI'.",
+    "ageVerificationRequiredMessage": "Daqvam lo'lu'meH ngoQmey chaw'laH qochpu'lI'. tugh yIja'."
 }

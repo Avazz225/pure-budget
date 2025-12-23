@@ -456,5 +456,9 @@
     "never": "다시 보지 않기",
 
     "selectInterval": "간격 선택",
-    "intervalSelection": "압축된 간격 선택"
+    "intervalSelection": "압축된 간격 선택",
+
+    "ageVerification": "연령 확인",
+    "ageVerificationDeniedMessage": "이 앱에 대한 접근이 보호자에 의해 제한되었습니다.",
+    "ageVerificationRequiredMessage": "이 앱에 접근하려면 보호자의 허가가 필요합니다. 보호자에게 문의하세요."
 }

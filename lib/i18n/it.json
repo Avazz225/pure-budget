@@ -456,5 +456,9 @@
     "never": "Mai",
 
     "selectInterval": "Seleziona intervallo",
-    "intervalSelection": "Selezione intervallo compatta"
+    "intervalSelection": "Selezione intervallo compatta",
+
+    "ageVerification": "Verifica dell’età",
+    "ageVerificationDeniedMessage": "L’accesso a questa app è stato limitato dai tuoi tutori.",
+    "ageVerificationRequiredMessage": "I tuoi tutori devono consentire l’accesso a questa app. Contattali."
 }

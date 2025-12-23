@@ -456,5 +456,9 @@
     "never": "Jamais",
 
     "selectInterval": "Sélectionner l’intervalle",
-    "intervalSelection": "Sélection compacte d’intervalle"
+    "intervalSelection": "Sélection compacte d’intervalle",
+
+    "ageVerification": "Vérification de l’âge",
+    "ageVerificationDeniedMessage": "L’accès à cette application a été restreint par vos responsables légaux.",
+    "ageVerificationRequiredMessage": "Vos responsables légaux doivent autoriser l’accès à cette application. Veuillez les contacter."
 }

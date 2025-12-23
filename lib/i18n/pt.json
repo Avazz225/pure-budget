@@ -456,5 +456,9 @@
     "never": "Nunca",
 
     "selectInterval": "Selecionar intervalo",
-    "intervalSelection": "Seleção compacta de intervalo"
+    "intervalSelection": "Seleção compacta de intervalo",
+
+    "ageVerification": "Verificação de idade",
+    "ageVerificationDeniedMessage": "O acesso a esta aplicação foi restringido pelos seus responsáveis.",
+    "ageVerificationRequiredMessage": "Os seus responsáveis devem permitir o acesso a esta aplicação. Por favor, contacte-os."
 }

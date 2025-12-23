@@ -456,5 +456,9 @@
     "never": "Asla",
 
     "selectInterval": "Aralık seç",
-    "intervalSelection": "Kompakt aralık seçimi"
+    "intervalSelection": "Kompakt aralık seçimi",
+
+    "ageVerification": "Yaş doğrulama",
+    "ageVerificationDeniedMessage": "Bu uygulamaya erişim ebeveynleriniz tarafından kısıtlandı.",
+    "ageVerificationRequiredMessage": "Bu uygulamaya erişim için ebeveynlerinizin izin vermesi gerekiyor. Lütfen onlarla iletişime geçin."
 }

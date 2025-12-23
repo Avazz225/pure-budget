@@ -456,5 +456,9 @@
     "never": "Nie",
 
     "selectInterval": "Intervall auswählen",
-    "intervalSelection": "Kompakte Intervallauswahl"
+    "intervalSelection": "Kompakte Intervallauswahl",
+
+    "ageVerification": "Altersüberprüfung",
+    "ageVerificationDeniedMessage": "Der Zugriff auf diese App wurde von deinen Erziehungsberechtigten eingeschränkt.",
+    "ageVerificationRequiredMessage": "Deine Erziehungsberechtigten müssen den Zugriff auf diese App erlauben. Bitte kontaktiere sie."
 }

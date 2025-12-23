@@ -456,5 +456,9 @@
     "never": "今後表示しない",
 
     "selectInterval": "間隔を選択",
-    "intervalSelection": "コンパクトな間隔選択"
+    "intervalSelection": "コンパクトな間隔選択",
+
+    "ageVerification": "年齢確認",
+    "ageVerificationDeniedMessage": "このアプリへのアクセスは保護者によって制限されています。",
+    "ageVerificationRequiredMessage": "このアプリへのアクセスには保護者の許可が必要です。保護者に連絡してください。"
 }

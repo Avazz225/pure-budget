@@ -456,5 +456,9 @@
     "never": "Никогда",
 
     "selectInterval": "Выбрать интервал",
-    "intervalSelection": "Компактный выбор интервала"
+    "intervalSelection": "Компактный выбор интервала",
+
+    "ageVerification": "Проверка возраста",
+    "ageVerificationDeniedMessage": "Доступ к этому приложению был ограничен вашими опекунами.",
+    "ageVerificationRequiredMessage": "Ваши опекуны должны разрешить доступ к этому приложению. Пожалуйста, свяжитесь с ними."
 }

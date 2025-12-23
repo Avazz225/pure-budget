@@ -456,5 +456,9 @@
     "never": "Nigdy",
 
     "selectInterval": "Wybierz przedział",
-    "intervalSelection": "Kompaktowy wybór przedziału"
+    "intervalSelection": "Kompaktowy wybór przedziału",
+
+    "ageVerification": "Weryfikacja wieku",
+    "ageVerificationDeniedMessage": "Dostęp do tej aplikacji został ograniczony przez Twoich opiekunów.",
+    "ageVerificationRequiredMessage": "Twoi opiekunowie muszą zezwolić na dostęp do tej aplikacji. Skontaktuj się z nimi."
 }

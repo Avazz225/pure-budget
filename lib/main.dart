@@ -10,6 +10,7 @@ import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/services/background_jobs.dart';
 import 'package:jne_household_app/services/notification_service.dart';
 import 'package:jne_household_app/services/uri_handler.dart';
+import 'package:jne_household_app/widgets_mobile/dialogs/age_verification_popup.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jne_household_app/services/quick_actions_service.dart';
 import 'package:jne_household_app/services/debug_screenshot_manager.dart';
@@ -29,8 +30,7 @@ import 'package:jne_household_app/screens_mobile/mobile_home_screen.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/services/initialization_service.dart';
 import 'package:tray_manager/tray_manager.dart';
-import 'package:age_signals_flutter/age_signals_flutter.dart';
-import 'package:age_signals_flutter/age_signal_result.dart';
+import 'package:play_age_signals/play_age_signals.dart';
 
 // automatically take screenshots by using --dart-define=SCREENS=t
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -170,30 +170,31 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBin
   }
 
   Future<void> _initUserStatus() async {
-    AgeSignalResult result;
-    try {
-      // Call static method on the class, not the instance
-      result = await AgeSignalsFlutter.getUserStatus();
-    } on PlatformException catch (e) {
-      result = AgeSignalResult(error: e.message);
+    final playAgeSignalsPlugin = PlayAgeSignals();
+    if (kDebugMode) {
+      await playAgeSignalsPlugin.setTestMode(true);
+      await playAgeSignalsPlugin.setMockResult(
+        AgeSignalsResult(status: AgeSignalsVerificationStatus.verified)
+      );
     }
-
-    if (!mounted) return;
-
-    setState(() {
-      if (result.error != null) {
-        Logger().error('Error: ${result.error}', tag: "age_signals");
+    try {
+      final result = await playAgeSignalsPlugin.checkAgeSignals();
+      Logger().debug('Status: ${result.status}', tag: 'age_signals');
+      if (result.status == AgeSignalsVerificationStatus.supervisedApprovalDenied) {
+        Logger().warning('User is underage. Blocking app.', tag: 'age_signals');
+        ageVerificationStatus(navigatorKey.currentContext!, true);
+      } else if (result.status == AgeSignalsVerificationStatus.supervisedApprovalPending) {
+        Logger().info('Supervised approval is pending. Blocking app.', tag: 'age_signals');
+        ageVerificationStatus(navigatorKey.currentContext!, false);
+      } else if (result.status == AgeSignalsVerificationStatus.verified || 
+                result.status == AgeSignalsVerificationStatus.supervised) {
+        Logger().debug('User is verified', tag: 'age_signals');
       } else {
-        Logger().debug(
-          'User Status: ${result.userStatus}\n'
-          'Age Range: ${result.ageLower ?? '-'} - ${result.ageUpper ?? '-'}\n'
-          'Install ID: ${result.installId ?? '-'}\n'
-          'Approved On: ${result.mostRecentApprovalDate ?? '-'}\n'
-          'Verified: ${result.isVerified}',
-          tag: "age_signals"
-        );
+        Logger().error('Unhandeled age verification status: ${result.status}', tag: 'age_signals');
       }
-    });
+    } on PlatformException catch (e) {
+      Logger().error('Error: ${e.message}', tag: 'age_signals');
+    }
   }
 
 

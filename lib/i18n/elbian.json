@@ -456,5 +456,9 @@
     "never": "U-vail",
 
     "selectInterval": "Edadad trî aphado",
-    "intervalSelection": "Edadad trî pechui"
+    "intervalSelection": "Edadad trî pechui",
+
+    "ageVerification": "Tirith nîn loch",
+    "ageVerificationDeniedMessage": "Edlen i ‘lam hen nestannen ned i thíwín gín.",
+    "ageVerificationRequiredMessage": "I thíwín gín bôl danna i ‘lam hen. Pado aní."
 }

@@ -17,14 +17,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "91.0.0"
-  age_signals_flutter:
-    dependency: "direct main"
-    description:
-      name: age_signals_flutter
-      sha256: "01e59334ce825bc1a8bf8ec266059fe339ed1ea56e2bc77c6754b03b0e6e04e8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.2"
   analyzer:
     dependency: transitive
     description:
@@ -1157,6 +1149,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.6"
+  play_age_signals:
+    dependency: "direct main"
+    description:
+      name: play_age_signals
+      sha256: f21525cb200c5b23b76ba99f8987e26fff7b189c7395aff3c0575bf7ed104319
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   plugin_platform_interface:
     dependency: transitive
     description:
