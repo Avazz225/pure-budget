@@ -314,33 +314,43 @@ class SettingsScreenState extends State<SettingsScreen> {
           ]
         )
       ),
-      bottomNavigationBar: Row(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.center,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(I18n.translate("appVersion", placeholders: {"version": appVersion})),
-          GestureDetector(
-            onTap: () async {
-              const url = privacyNoticeUrl;
-              if (await canLaunchUrl(Uri.parse(url))) {
-                await launchUrl(Uri.parse(url));
-              }
-            },
-            child: Row(
-              children: [
-                Text(
-                  I18n.translate("privacyPolicy"),
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
-                  ),
+          Row(
+            spacing: 8,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(I18n.translate("appVersion", placeholders: {"version": appVersion})),
+              GestureDetector(
+                onTap: () async {
+                  const url = privacyNoticeUrl;
+                  if (await canLaunchUrl(Uri.parse(url))) {
+                    await launchUrl(Uri.parse(url));
+                  }
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      I18n.translate("privacyPolicy"),
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    const Icon(Icons.open_in_new_rounded, size: 12, color: Colors.blue,)
+                  ]
                 ),
-                const Icon(Icons.open_in_new_rounded, size: 12, color: Colors.blue,)
-              ]
-            ),
+              )
+            ]
+          ),
+          if (Platform.isIOS)
+          const SizedBox(
+            width: 1,
+            height: 12,
           )
         ]
-      ),
+      )
     );
   }
 } 

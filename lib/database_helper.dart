@@ -180,7 +180,13 @@ class DatabaseHelper {
     for (BankAccount ba in bankAccounts) {
       // read first expense
       final firstExpense = await genericSelect("expenses", onlyFirst: true, dbObj: db);
-      final firstDate = DateTime.parse(firstExpense['date']);
+      DateTime firstDate;
+      if (firstExpense != null) {
+        firstDate = DateTime.parse(firstExpense['date']);
+      } else {
+        firstDate = DateTime.now();
+      }
+      
       final resetInfo = {
         "principle": ba.budgetResetPrinciple,
         "day": ba.budgetResetDay
@@ -286,7 +292,11 @@ class DatabaseHelper {
     final db = dbObj ?? await database;
     List res = await db.query(table, where: filter, whereArgs: filterArgs, orderBy: order, limit: limit);
     if (onlyFirst) {
-      return res.first;
+      try {
+        return res.first;
+      } catch (e) {
+        return null;
+      }
     } else {
       return res;
     }
