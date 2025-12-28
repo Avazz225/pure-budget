@@ -44,8 +44,15 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     String dbPath;
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
+      if (!Platform.isMacOS) {
+        // IMPORTANT:
+        // Do NOT call sqfliteFfiInit() on macOS.
+        // It forces sqlite3 FFI which bundles sqlite3arm64macos.framework
+        // -> rejected by Mac App Store.
+        sqfliteFfiInit();
+        databaseFactory = databaseFactoryFfi;
+      }
+
       final dir = await getApplicationSupportDirectory();
       dbPath = dir.path;
     } else {

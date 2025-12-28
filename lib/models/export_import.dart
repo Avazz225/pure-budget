@@ -50,9 +50,9 @@ class BackupManager {
     final categoryBudgets = await db.exportTable("categoryBudgets");
     final creditCardRefills = await db.exportTable("creditCardRefills");
     final intervals = await db.exportTable("intervals");
-    final realizedBankaccounts = await db.exportTable("realized_bankaccounts");
-    final realizedCategoryBudgets = await db.exportTable("realized_categorybudgets");
-    final realizedAutoexpenses = await db.exportTable("realized_autoexpenses");
+    final realizedBankaccounts = await db.exportTable("realizedBankaccounts");
+    final realizedCategoryBudgets = await db.exportTable("realizedCategoryBudgets");
+    final realizedAutoexpenses = await db.exportTable("realizedAutoexpenses");
 
 
     final fullBackup = {
