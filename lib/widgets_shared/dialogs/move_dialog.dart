@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:jne_household_app/services/brightness.dart';
@@ -63,8 +61,9 @@ Future<void> showMoveDialog({
                             ),
                             trailing: IconButton(
                               onPressed: () async {
-                                context.read<BudgetState>().moveItem(targetId, item.category.id!, accountId, autoExpense);
-                                Navigator.of(context).pop();
+                                final navigator = Navigator.of(context);
+                                await context.read<BudgetState>().moveItem(targetId, item.category.id!, accountId, autoExpense);
+                                navigator.pop();
                               },
                               icon: Icon(Icons.arrow_forward_rounded, color: textColor),
                             ),

@@ -5,6 +5,7 @@ import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/booking_principles.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/decimal_amount_field.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/main/datepicker.dart';
 import 'package:provider/provider.dart';
@@ -154,89 +155,50 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                         return null;
                       },
                     ),
-                    TextFormField(
+                    DecimalAmountField(
                       controller: amountController,
                       focusNode: amountFocusNode,
-                      decoration: InputDecoration(labelText: I18n.translate((ratePayment) ? "rate" : "budget")),
-                      textInputAction: (ratePayment) ?  TextInputAction.next : TextInputAction.done,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
+                      labelKey: ratePayment ? "rate" : "budget",
+                      textInputAction: ratePayment ? TextInputAction.next : TextInputAction.done,
+                      setState: setState,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return I18n.translate("numberRequired");
                         }
                         return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          if (I18n.comma()){
-                            amountController.text = value.replaceAll('.', ",");
-                          }
-                          amountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: amountController.text.length),
-                          );
-                        });
                       },
                     ),
                     if (ratePayment && firstRateDifferent)
-                    TextFormField(
+                    DecimalAmountField(
                       controller: firstRateAmountController,
                       focusNode: firstRateAmountFocusNode,
-                      decoration: InputDecoration(labelText: I18n.translate("firstRate")),
-                      textInputAction: lastRateDifferent ?  TextInputAction.next : TextInputAction.done,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
+                      labelKey: "firstRate",
+                      textInputAction: lastRateDifferent ? TextInputAction.next : TextInputAction.done,
+                      setState: setState,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return I18n.translate("numberRequired");
                         }
                         return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          if (I18n.comma()){
-                            firstRateAmountController.text = value.replaceAll('.', ",");
-                          }
-                          firstRateAmountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: firstRateAmountController.text.length),
-                          );
-                        });
                       },
                     ),
                     if (ratePayment && lastRateDifferent)
-                    TextFormField(
+                    DecimalAmountField(
                       controller: lastRateAmountController,
                       focusNode: lastRateAmountFocusNode,
-                      decoration: InputDecoration(labelText: I18n.translate("lastRate")),
+                      labelKey: "lastRate",
                       textInputAction: TextInputAction.done,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
+                      setState: setState,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return I18n.translate("numberRequired");
                         }
                         return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          if (I18n.comma()){
-                            lastRateAmountController.text = value.replaceAll('.', ",");
-                          }
-                          lastRateAmountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: lastRateAmountController.text.length),
-                          );
-                        });
                       },
                     ),
                     const Divider(),
                     DropdownButtonFormField<String>(
-                      value: principleMode, // ignore: deprecated_member_use
+                      initialValue: principleMode,
                       onChanged: (String? newValue) {
                         if (newValue != null) {
 
@@ -256,24 +218,28 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                         labelText: I18n.translate("interval"),
                       ),
                     ),
-                    if (principleMode == "weekly" || principleMode == "monthly" )
-                    DropdownButtonFormField<String>(
-                      value: bookingPrinciple, // ignore: deprecated_member_use
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            bookingPrinciple = newValue;
-                          });
-                        }
-                      },
-                      items: (principleMode == "monthly" ? availablePrinciples : availableWeekDays).map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(I18n.translate(value, placeholders: {"day": "x"})),
-                        );
-                      }).toList(),
+                    if (principleMode == "weekly" || principleMode == "monthly")
+                    InputDecorator(
                       decoration: InputDecoration(
                         labelText: I18n.translate("principle"),
+                      ),
+                      child: DropdownButton<String>(
+                        value: bookingPrinciple,
+                        isExpanded: true,
+                        underline: const SizedBox(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              bookingPrinciple = newValue;
+                            });
+                          }
+                        },
+                        items: (principleMode == "monthly" ? availablePrinciples : availableWeekDays).map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(I18n.translate(value, placeholders: {"day": "x"})),
+                          );
+                        }).toList(),
                       ),
                     ),
                     if (principleMode == "monthly" && !principleWithoutDay.contains(bookingPrinciple))
@@ -304,7 +270,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                       decoration: InputDecoration(
                         labelText: I18n.translate("filterBankAccount"),
                       ),
-                      value: selectedIndex, // ignore: deprecated_member_use
+                      initialValue: selectedIndex,
                       items: budgetState.bankAccounts.map((entry) {
                         int index = entry.id!;
                         String displayText = entry.name;

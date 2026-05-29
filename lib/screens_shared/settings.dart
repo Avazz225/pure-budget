@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -76,9 +74,10 @@ class SettingsScreenState extends State<SettingsScreen> {
             ),
             TextButton(
               onPressed: () async {
+                final navigator = Navigator.of(context);
                 final settingsState = Provider.of<BudgetState>(context, listen: false);
                 await settingsState.updateCurrency(currencyController.text);
-                Navigator.of(context).pop();
+                navigator.pop();
               },
               child: Text(I18n.translate("save")),
             ),
@@ -230,10 +229,10 @@ class SettingsScreenState extends State<SettingsScreen> {
                           }
                         } catch (e) {
                           Logger().warning("User authentication failed: $e", tag: "auth");
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text( I18n.translate("authFailed", placeholders: {'error': e.toString()}))),
+                            SnackBar(content: Text(I18n.translate("authFailed", placeholders: {'error': e.toString()}))),
                           );
-                          Navigator.of(context).pop();
                         }
                       },
                       activeThumbColor: Colors.green,

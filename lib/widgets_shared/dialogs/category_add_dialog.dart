@@ -5,20 +5,20 @@ import 'package:jne_household_app/models/category.dart';
 import 'package:jne_household_app/models/category_budget_plain.dart';
 import 'package:jne_household_app/models/category_plain.dart';
 import 'package:jne_household_app/services/brightness.dart';
-import 'package:jne_household_app/services/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/screens_shared/settings.dart';
+import 'package:jne_household_app/widgets_shared/decimal_amount_field.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/color_picker_dialog.dart';
 import 'package:provider/provider.dart';
 
 Future<void> addCategory(context, List<BankAccount> bankAccounts) async {
     String name = '';
-    double budget = 0.0;
     Color selectedColor = availableColors.first;
     final FocusNode descriptionFocusNode = FocusNode();
     final FocusNode amountFocusNode = FocusNode();
+    final TextEditingController amountController = TextEditingController();
     int? overrideBankAccount;
 
     await showDialog(
@@ -40,23 +40,18 @@ Future<void> addCategory(context, List<BankAccount> bankAccounts) async {
                         name = value;
                       },
                     ),
-                    TextField(
-                      decoration: InputDecoration(labelText: I18n.translate("budget")),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    DecimalAmountField(
+                      controller: amountController,
                       focusNode: amountFocusNode,
+                      labelKey: "budget",
                       textInputAction: TextInputAction.done,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
-                      onChanged: (value) {
-                        budget = double.tryParse(value.replaceAll(",", ".")) ?? 0.0;
-                      },
+                      setState: setState,
                     ),
                     if (bankAccounts.length > 1)
                     ...[
                       const SizedBox(height: 10),
                       DropdownButtonFormField<int?>(
-                        value: overrideBankAccount, // ignore: deprecated_member_use
+                        initialValue: overrideBankAccount,
                         decoration: InputDecoration(
                           labelText: I18n.translate("overrideAccount"),
                         ),
@@ -124,7 +119,8 @@ Future<void> addCategory(context, List<BankAccount> bankAccounts) async {
                 ),
                 TextButton(
                   onPressed: () {
-                    if (name.isNotEmpty && budget > 0) {
+                    final v = double.tryParse(amountController.text.replaceAll(",", ".")) ?? 0.0;
+                    if (name.isNotEmpty && v > 0) {
                       Navigator.of(context).pop(true);
                     }
                   },
@@ -137,6 +133,7 @@ Future<void> addCategory(context, List<BankAccount> bankAccounts) async {
       }
     );
 
+    final double budget = double.tryParse(amountController.text.replaceAll(",", ".")) ?? 0.0;
     if (name.isNotEmpty && budget > 0) {
       final budgetState = Provider.of<BudgetState>(context, listen: false);
       CategoryPlain c = CategoryPlain({

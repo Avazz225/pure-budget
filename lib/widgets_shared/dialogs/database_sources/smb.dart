@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/services/remote/smb_server.dart';
@@ -37,6 +35,7 @@ class SmbFolderSelectorState extends State<SmbFolderSelector> {
       final initialFolder = folderController.text;
 
       if (host.isEmpty || username.isEmpty || password.isEmpty) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(I18n.translate("error_allRequiredFields"))),
         );
@@ -52,12 +51,14 @@ class SmbFolderSelectorState extends State<SmbFolderSelector> {
           List<SmbFile> files = await smbServer.readDirectory(folderPath);
 
           if (files.isEmpty) {
+            if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(I18n.translate("error_noFolders", placeholders: {'path': folderPath}))),
             );
             return;
           }
 
+          if (!mounted) return;
           showDialog(
             context: context,
             builder: (BuildContext dialogContext) {
@@ -116,6 +117,7 @@ class SmbFolderSelectorState extends State<SmbFolderSelector> {
           );
         } catch (e) {
           Logger().info("Could not browse folder: $e", tag: "smbServer");
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(I18n.translate("error_folderBrowse", placeholders: {"error": e.toString()}))),
           );
@@ -125,6 +127,7 @@ class SmbFolderSelectorState extends State<SmbFolderSelector> {
       await browseFolder(initialFolder.isNotEmpty ? initialFolder : "/");
     } catch (e) {
       Logger().error("Connection failed: $e", tag: "smbServer");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(I18n.translate("error_connection", placeholders: {"type": "SMB Server", "error": e.toString()}))),
       );

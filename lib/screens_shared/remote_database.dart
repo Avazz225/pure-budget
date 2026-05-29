@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -63,11 +61,12 @@ class RemoteDatabaseState extends State<RemoteDatabase> {
     "manual"
   ];
 
-  void handleConnect(String selectedPath) async {
+  Future<void> handleConnect(String selectedPath) async {
     if (selectedPath != "none") {
       await EncryptionHelper.generateKey();
     }
     bool sharedDbExists = await checkRemoteDbExists(selectedPath);
+    if (!mounted) return;
     await connectSharedDbDialog(context, widget.budgetState, selectedPath, sharedDbExists);
   }
 
@@ -246,14 +245,15 @@ List<Widget> connected(BuildContext context, BudgetState budgetState, bool loadi
     ElevatedButton(
       style: btnPositiveStyle,
       onPressed: () async {
+        final navigator = Navigator.of(context);
         updateState("loading", true);
         List<Map<String, dynamic>> regDev = await budgetState.getRegisteredRemoteDevices();
         String uuid = await loadKey("pureBudgetDeviceId");
         updateState("loading", false);
-        Navigator.of(context).push(MaterialPageRoute(
+        navigator.push(MaterialPageRoute(
           builder: (context) => RemoteRegisteredDevices(budgetState: budgetState, registeredDevices: regDev, uuid: uuid),
-        ),);
-      }, 
+        ));
+      },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -268,11 +268,12 @@ List<Widget> connected(BuildContext context, BudgetState budgetState, bool loadi
       style: btnNeutralStyle,
       onPressed: () async {
         String encryptionKey = await EncryptionHelper.loadKey();
+        if (!context.mounted) return;
         showDialog(
           context: context,
           builder: (context) => KeySharingDialog(encryptionKey: encryptionKey),
         );
-      }, 
+      },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

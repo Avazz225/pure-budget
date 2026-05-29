@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -49,12 +47,14 @@ class OneDriveSelectorState extends State<OneDriveSelector> {
         final folders = await connector!.readDirectory(currentFolderId ?? "");
 
         if (folders.isEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(I18n.translate("error_noFolders", placeholders: {"path": currentFolderName!}))),
           );
           return;
         }
 
+        if (!mounted) return;
         final selected = await showDialog<Map<String, dynamic>>(
           context: context,
           builder: (BuildContext dialogContext) {
@@ -129,6 +129,7 @@ class OneDriveSelectorState extends State<OneDriveSelector> {
       }
     } catch (e) {
       Logger().info("Could not browse folder: $e", tag: "oneDrive");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(I18n.translate("error_folderBrowse", placeholders: {"error": e.toString()}))),
       );

@@ -55,7 +55,7 @@ void editCategory(context, Category category, bool assigned, Function setState, 
                     const SizedBox.shrink(),
                     if (bankAccounts.length > 1)
                     DropdownButtonFormField<int?>(
-                      value: overrideBankAccount, // ignore: deprecated_member_use
+                      initialValue: overrideBankAccount,
                       decoration: InputDecoration(
                         labelText: I18n.translate("overrideAccount"),
                       ),

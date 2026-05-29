@@ -150,7 +150,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                   else if ((existingAccounts.isNotEmpty && accountId == null) || (accountId != null && existingAccounts.length > 1))
                   ...[
                     DropdownButtonFormField<int>(
-                      value: refillsFrom, // ignore: deprecated_member_use
+                      initialValue: refillsFrom,
                       onChanged: (int? newValue) {
                         if (newValue != null) {
                           setState(() {
@@ -170,7 +170,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                     ),
                   ],
                   DropdownButtonFormField<String>(
-                    value: budgetResetPrinciple, // ignore: deprecated_member_use
+                    initialValue: budgetResetPrinciple,
                     onChanged: (String? newValue) {
                       if (newValue != null) {
                         setState(() {
