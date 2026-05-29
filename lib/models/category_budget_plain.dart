@@ -1,5 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
-import 'package:jne_household_app/models/realized_categroybudgets.dart';
+import 'package:jne_household_app/models/realized_category_budgets.dart';
 
 class CategoryBudgetPlain {
   int? id;

@@ -48,6 +48,7 @@ class GoogleDriveSelectorState extends State<GoogleDriveSelector> {
         final folders = await connector!.readDirectory(currentFolderId ?? "");
 
         if (folders.isEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(I18n.translate("error_noFolders", placeholders: {"path": currentFolderName!}))),
           );
@@ -55,6 +56,7 @@ class GoogleDriveSelectorState extends State<GoogleDriveSelector> {
         }
 
         // Dialog anzeigen, um Ordner auszuwählen
+        if (!mounted) return;
         final selected = await showDialog<Map<String, String?>>(
           context: context,
           builder: (BuildContext dialogContext) {
@@ -129,6 +131,7 @@ class GoogleDriveSelectorState extends State<GoogleDriveSelector> {
       }
     } catch (e) {
       Logger().info("Could not browse folder: $e", tag: "googleDrive");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(I18n.translate("error_folderBrowse", placeholders: {"error": e.toString()}))),
       );

@@ -8,15 +8,41 @@ import 'package:jne_household_app/models/interval.dart';
 import 'package:jne_household_app/models/realized_bankaccounts.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
-import 'package:jne_household_app/models/realized_categroybudgets.dart';
+import 'package:jne_household_app/models/realized_category_budgets.dart';
 import 'package:jne_household_app/models/reset_principles.dart';
 
-Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoExpenses, dynamic lastAutoExpenseRun, dynamic lastSavingRun, List<BankAccount> ?bankAccounts, dynamic lastCreditCardRefillRun, List<Category> ?categories}) async {
+Future<bool> checkNewInterval({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoExpenses, List<BankAccount> ?bankAccounts}) async {
+  final logger = Logger();
+  logger.debug("Checking if new interval has started", tag: "background jobs");
+  dbHelper ??= DatabaseHelper();
+  final db = await dbHelper.database;
+  DateTime today = DateTime.now();
+  bankAccounts ??= await dbHelper.getBankAccounts(autoExpenses);
+  autoExpenses ??= await dbHelper.getAutoExpenses(noMoneyFlow: false, dbObj: db);
+
+  for (BankAccount ba in bankAccounts) {
+    PBInterval lastInterval;
+    try {
+      lastInterval = await dbHelper.getIntervals(filter: "accountId = ?", filterArgs: [ba.id], order: "id DESC", onlyFirst: true, dbObj: db);
+    } catch (e) {
+      logger.warning("Could not load interval for account ${ba.id}, assuming new interval needed: $e", tag: "background jobs");
+      return true;
+    }
+    if (today.isAfter(lastInterval.end)){
+      return true;
+    }
+  }
+  return false;
+}
+
+Future<bool> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoExpenses, dynamic lastAutoExpenseRun, dynamic lastSavingRun, List<BankAccount> ?bankAccounts, dynamic lastCreditCardRefillRun, List<Category> ?categories}) async {
   final logger = Logger();
   logger.debug("Starting background jobs", tag: "background jobs");
   dbHelper ??= DatabaseHelper();
   final db = await dbHelper.database;
+  bool didChanges = false;
   categories ??= await dbHelper.getCategories('*');
+  autoExpenses ??= await dbHelper.getAutoExpenses(noMoneyFlow: false, dbObj: db);
   
   // check if new interval needs to be created
   DateTime today = DateTime.now();
@@ -39,6 +65,7 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
         'accountId': ba.id
       });
       await lastInterval.save();
+      didChanges = true;
     }
 
     if (today.isAfter(lastInterval.end)){
@@ -116,9 +143,12 @@ Future<void> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
       for (final AutoExpense ae in autoExpenses) {
         await ae.processUpcomingAE(newInterval, db, true);
       }
+
+      didChanges = true;
     }
   }
   logger.debug("Finished background jobs", tag: "background jobs");
+  return didChanges;
 }
 
 bool wasToday(String lastRun) {

@@ -104,7 +104,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                             }
                           }
                         },
-                        activeColor: Colors.green,
+                        activeThumbColor: Colors.green,
                       )
                     ],
                   ),

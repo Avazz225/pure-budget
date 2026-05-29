@@ -28,26 +28,28 @@ class ScreenshotManager {
   void enableHotkeyListener({bool debugOnly = true}) {
     if (_isListening) return;
 
-    RawKeyboard.instance.addListener(_handleKeyPress);
+    HardwareKeyboard.instance.addHandler(_handleKeyPress);
     _isListening = true;
   }
 
   void disableHotkeyListener() {
     if (!_isListening) return;
-    RawKeyboard.instance.removeListener(_handleKeyPress);
+    HardwareKeyboard.instance.removeHandler(_handleKeyPress);
     _isListening = false;
   }
 
-  void _handleKeyPress(RawKeyEvent event) {
+  bool _handleKeyPress(KeyEvent event) {
     if (HardwareKeyboard.instance.isControlPressed &&
         event.logicalKey == LogicalKeyboardKey.keyS &&
         event is KeyDownEvent) {
       takeScreenshot();
+      return true;
     }
+    return false;
   }
 
   Future<void> takeScreenshot({String? name}) async {
-    await Future.delayed(Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 1500));
     String language = I18n.getLocaleString();
     final image = await controller.capture();
     if (image == null) return;
@@ -77,7 +79,7 @@ class ScreenshotManager {
     return Screenshot(
       controller: controller,
       child: FutureBuilder(
-        future: Future.delayed(Duration(milliseconds: 1500)),
+        future: Future.delayed(const Duration(milliseconds: 1500)),
         builder: (context, snapshot) {
           if (_autoCaptureNext && snapshot.connectionState == ConnectionState.done) {
             takeScreenshot(name: _customScreenshotName);

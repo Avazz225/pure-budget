@@ -30,9 +30,10 @@ class ExportImport extends StatelessWidget {
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () async {
+                        final navigator = Navigator.of(context);
                         await BackupManager.importDataFromFile();
                         await budgetState.reloadData();
-                        Navigator.of(context).pop();
+                        navigator.pop();
                       },
                       child: Text(I18n.translate("confirmImportData")),
                     ),

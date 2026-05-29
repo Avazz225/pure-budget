@@ -17,9 +17,10 @@ Future<void> disconnectDialog(BuildContext context, BudgetState budgetState) asy
           ElevatedButton(
             style: btnNeutralStyle,
             onPressed: () async {
+              final navigator = Navigator.of(context);
               await budgetState.updateSharedDbUrl("none");
-              Navigator.of(context).pop();
-            }, 
+              navigator.pop();
+            },
             child: Text(I18n.translate("reallyDisconnect"))
           ),
           const SizedBox(height: 16,),

@@ -8,7 +8,7 @@ import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/models/interval.dart';
 import 'package:jne_household_app/models/realized_autoexpenses.dart';
 import 'package:jne_household_app/models/realized_bankaccounts.dart';
-import 'package:jne_household_app/models/realized_categroybudgets.dart';
+import 'package:jne_household_app/models/realized_category_budgets.dart';
 import 'package:jne_household_app/models/reminder_settings.dart';
 import 'package:jne_household_app/models/reset_principles.dart';
 import 'package:jne_household_app/models/settings.dart';
@@ -836,7 +836,7 @@ class DatabaseHelper {
       await genericInsert("realizedAutoExpenses", realizedAutoExpenses, dbObj: db);
     }
     
-    db.delete("editLog");
+    await db.delete("editLog");
 
     for (Map<String, dynamic> editLog in data['editLog']){
       await insertEditLogFlat(editLog, dbObj: db);
@@ -967,13 +967,13 @@ class DatabaseHelper {
     return result.reversed.toList();
   }
 
-  Future<void> moveExpense(id, newCatid, newAccountId) async {
+  Future<void> moveExpense(int id, int newCatid, int newAccountId) async {
     final db = await database;
     await db.update("expenses", {"categoryId": newCatid, "accountId": newAccountId}, where: "id = ?", whereArgs: [id]);
     await insertEditLog("expenses", id, "update", dbObj: db);
   }
 
-  Future<void> moveAutoExpense(id, newCatid, newAccountId) async {
+  Future<void> moveAutoExpense(int id, int newCatid, int newAccountId) async {
     final db = await database;
     final now = DateTime.now();
 
@@ -1006,7 +1006,7 @@ String createLabel(PBInterval range) {
 }
 
 String colorToHex(Color color) {
-  return color.value.toRadixString(16).padLeft(8, '0');
+  return color.toARGB32().toRadixString(16).padLeft(8, '0');
 }
 
 Color hexToColor(String hex) {
@@ -1015,8 +1015,4 @@ Color hexToColor(String hex) {
 
 String formatForSqlite(DateTime dt) {
   return dt.toIso8601String().replaceFirst("T", " ").split(".").first;
-}
-
-String formatForSqliteFromStr(String dt) {
-  return dt.replaceFirst("T", " ").split(".").first;
 }

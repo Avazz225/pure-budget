@@ -76,7 +76,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                           )
                         ),
                         Switch(
-                          activeColor: Colors.green,
+                          activeThumbColor: Colors.green,
                           value: ratePayment, 
                           onChanged: (value) {
                             setState(() {
@@ -95,7 +95,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                           )
                         ),
                         Switch(
-                          activeColor: Colors.green,
+                          activeThumbColor: Colors.green,
                           value: firstRateDifferent, 
                           onChanged: (value) {
                             setState(() {
@@ -114,7 +114,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                           )
                         ),
                         Switch(
-                          activeColor: Colors.green,
+                          activeThumbColor: Colors.green,
                           value: lastRateDifferent, 
                           onChanged: (value) {
                             setState(() {
@@ -236,10 +236,10 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                     ),
                     const Divider(),
                     DropdownButtonFormField<String>(
-                      value: principleMode,
+                      value: principleMode, // ignore: deprecated_member_use
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          
+
                           setState(() {
                             principleMode = newValue;
                             bookingPrinciple = newValue == "weekly" ? availableWeekDays[0] : (newValue == "yearly" ? DateTime.now().toIso8601String(): availablePrinciples[0]);
@@ -258,7 +258,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                     ),
                     if (principleMode == "weekly" || principleMode == "monthly" )
                     DropdownButtonFormField<String>(
-                      value: bookingPrinciple,
+                      value: bookingPrinciple, // ignore: deprecated_member_use
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           setState(() {
@@ -304,7 +304,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                       decoration: InputDecoration(
                         labelText: I18n.translate("filterBankAccount"),
                       ),
-                      value: selectedIndex,
+                      value: selectedIndex, // ignore: deprecated_member_use
                       items: budgetState.bankAccounts.map((entry) {
                         int index = entry.id!;
                         String displayText = entry.name;
@@ -329,6 +329,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                 ),
                 TextButton(
                   onPressed: () async {
+                    final navigator = Navigator.of(context);
                     if (principleWithoutDay.contains(bookingPrinciple)){
                       bookingDay = 1;
                     }
@@ -371,11 +372,11 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                         await budgetState.updateOrDeleteRateAutoExpense(newAE);
                       }
                     }
-                    Navigator.of(context).pop();
+                    navigator.pop();
                   },
-                  child: (amountController.text.isNotEmpty) ? Text((double.parse(amountController.text.replaceAll(",", ".")) == 0.0 && expenseId != null) 
-                  ? I18n.translate("delete") 
-                  : I18n.translate("save")) 
+                  child: (amountController.text.isNotEmpty) ? Text((double.parse(amountController.text.replaceAll(",", ".")) == 0.0 && expenseId != null)
+                  ? I18n.translate("delete")
+                  : I18n.translate("save"))
                   : Text(I18n.translate("save")),
                 ),
               ],

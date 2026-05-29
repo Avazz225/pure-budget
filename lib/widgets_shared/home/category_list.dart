@@ -121,7 +121,7 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
               allowCamera: budgetState.proStatusIsSet(mobileOnly: true),
               overrideBankAccount: budgetState.categories.where((c) => c.categoryId == category.categoryId).first.overrideBankAccount,
             );
-            if (res) {
+            if (res && context.mounted) {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => ReceiptPage(baseCurrency: budgetState.settings.currency, budgetState: budgetState, designState: designState, overrideCatId: category.categoryId, closeAfterSuccess: true),

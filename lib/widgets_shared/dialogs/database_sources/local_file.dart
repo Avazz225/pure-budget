@@ -11,7 +11,7 @@ Padding localFile (BuildContext context, BudgetState budgetState, Function handl
   void openFilePicker() async {
     String? selectedPath = (await FilePicker.platform.getDirectoryPath()).toString();
     bool sharedDbExists = await checkRemoteDbExists(selectedPath);
-    if (selectedPath != "none") {
+    if (selectedPath != "none" && context.mounted) {
       await connectSharedDbDialog(context, budgetState, selectedPath, sharedDbExists);
     }
   }

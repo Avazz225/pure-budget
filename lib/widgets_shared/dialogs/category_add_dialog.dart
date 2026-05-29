@@ -56,7 +56,7 @@ Future<void> addCategory(context, List<BankAccount> bankAccounts) async {
                     ...[
                       const SizedBox(height: 10),
                       DropdownButtonFormField<int?>(
-                        value: overrideBankAccount,
+                        value: overrideBankAccount, // ignore: deprecated_member_use
                         decoration: InputDecoration(
                           labelText: I18n.translate("overrideAccount"),
                         ),

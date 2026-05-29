@@ -5,8 +5,14 @@
 ### planned (depends on need)
 
 - add connection to iCloud
+- export to pdf and csv
 
 ## Changelog
+
+### 3.3.8 bundle 43
+
+- fix incorrectly or not displayed autoexpenses
+- fix multiple realizations of one autoexpense
 
 ### 3.3.6 bundle 40
 

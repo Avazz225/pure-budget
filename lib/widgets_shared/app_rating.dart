@@ -63,13 +63,10 @@ class _RateAppLauncherState extends State<RateAppLauncher> {
             onPressed: () async {
               if (stars != null && stars >= 4) {
                 await rateMyApp.callEvent(RateMyAppEventType.rateButtonPressed);
-                // open store listing
                 await rateMyApp.launchStore();
-              }
-
-              else if (stars != null && stars < 2) {
+              } else if (stars != null && stars < 2) {
                 await rateMyApp.callEvent(RateMyAppEventType.laterButtonPressed);
-                // open feedback popup
+                if (!context.mounted) return;
                 final budgetState = Provider.of<BudgetState>(context, listen: false);
                 List<String> data = await showReportIssueDialog(context, budgetState);
                 if (data.length == 2) {
@@ -78,12 +75,13 @@ class _RateAppLauncherState extends State<RateAppLauncher> {
                     mailSenderPlugin.sendMail(
                       recipient: [reportEmail],
                       subject: data[0],
-                      body: data[1]
+                      body: data[1],
                     );
                   }
                 }
               }
 
+              if (!context.mounted) return;
               Navigator.pop<RateMyAppDialogButton>(context);
             },
             child: Text(I18n.translate('okay')),

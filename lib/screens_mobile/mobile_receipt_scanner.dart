@@ -93,7 +93,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
       overrideBankAccount: widget.budgetState.categories.where((c) => c.categoryId == selectedCat).first.overrideBankAccount,
     );
 
-    if (widget.closeAfterSuccess) {
+    if (widget.closeAfterSuccess && mounted) {
       Navigator.of(context).pop();
     }
   }

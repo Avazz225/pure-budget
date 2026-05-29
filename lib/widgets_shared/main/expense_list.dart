@@ -80,7 +80,7 @@ class _ExpenseListState extends State<ExpenseList> {
                         allowCamera: widget.state.proStatusIsSet(mobileOnly: true),
                         overrideBankAccount: widget.state.categories.where((c) => c.categoryId == widget.categoryId).first.overrideBankAccount,
                       );
-                      if (res) {
+                      if (res && context.mounted) {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => ReceiptPage(baseCurrency: widget.state.settings.currency, budgetState: widget.state, designState: context.read<DesignState>(), overrideCatId: widget.categoryId, closeAfterSuccess: true),

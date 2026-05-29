@@ -9,17 +9,17 @@ import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:smb_connect/smb_connect.dart';
 
-class smbFolderSelector extends StatefulWidget {
+class SmbFolderSelector extends StatefulWidget {
   final BudgetState budgetState;
   final Function handleConnect;
-  const smbFolderSelector({super.key, required this.budgetState, required this.handleConnect});
+  const SmbFolderSelector({super.key, required this.budgetState, required this.handleConnect});
 
   @override
-  smbFolderSelectorState createState() => smbFolderSelectorState();
+  SmbFolderSelectorState createState() => SmbFolderSelectorState();
 }
 
 
-class smbFolderSelectorState extends State<smbFolderSelector> {
+class SmbFolderSelectorState extends State<SmbFolderSelector> {
   final TextEditingController controller = TextEditingController();
   final TextEditingController hostController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();

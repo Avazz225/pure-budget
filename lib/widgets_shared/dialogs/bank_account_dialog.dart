@@ -1,10 +1,10 @@
 
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/services/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/models/booking_principles.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/decimal_amount_field.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:provider/provider.dart';
 
@@ -57,7 +57,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                 Text(accountId == null ? I18n.translate("addAccount") : I18n.translate("editAccount")),
                 if (accountId != null && accountId != -1)
                 IconButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (principleWithoutDay.contains(budgetResetPrinciple)){
                       budgetResetDay = 1;
                     }
@@ -74,9 +74,10 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                       "refillsFrom": refillsFrom,
                       "refillPrincipleMode": refillPrincipleMode,
                     };
-                    budgetState.updateOrDeleteBankAccount(newBankAccount, accountId, true);
-                    Navigator.of(context).pop();
-                  }, 
+                    final navigator = Navigator.of(context);
+                    await budgetState.updateOrDeleteBankAccount(newBankAccount, accountId, true);
+                    navigator.pop();
+                  },
                   icon: Icon(Icons.delete_rounded, color: Theme.of(context).colorScheme.error, semanticLabel: I18n.translate('delete'),),
                 ),
               ],
@@ -96,7 +97,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                             isCreditCard = value;
                           });
                         },
-                        activeColor: Colors.green,
+                        activeThumbColor: Colors.green,
                       ),
                     ],
                   ),
@@ -120,63 +121,36 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                   ),
                   if (!isCreditCard)
                   ...[
-                    TextFormField(
+                    DecimalAmountField(
                       controller: incomeController,
                       focusNode: incomeFocusNode,
-                      textInputAction: TextInputAction.next,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
-                      decoration: InputDecoration(labelText: I18n.translate("income")),
-                      keyboardType: TextInputType.number,
+                      labelKey: "income",
+                      setState: setState,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return I18n.translate("numberRequired");
                         }
                         return null;
                       },
-                      onChanged: (value) {
-                        setState(() {
-                          if (I18n.comma()){
-                            incomeController.text = value.replaceAll('.', ",");
-                          }
-                          incomeController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: incomeController.text.length),
-                          );
-                        });
-                      },
                     ),
-                    TextFormField(
+                    DecimalAmountField(
                       controller: balanceController,
                       focusNode: balanceFocusNode,
+                      labelKey: "balance",
                       textInputAction: TextInputAction.done,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
-                      decoration: InputDecoration(labelText: I18n.translate("balance")),
-                      keyboardType: TextInputType.number,
+                      setState: setState,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           balanceController.text = "0";
                         }
                         return null;
                       },
-                      onChanged: (value) {
-                        setState(() {
-                          if (I18n.comma()){
-                            balanceController.text = value.replaceAll('.', ",");
-                          }
-                          balanceController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: balanceController.text.length),
-                          );
-                        });
-                      },
                     ),
                   ]
                   else if ((existingAccounts.isNotEmpty && accountId == null) || (accountId != null && existingAccounts.length > 1))
                   ...[
                     DropdownButtonFormField<int>(
-                      value: refillsFrom,
+                      value: refillsFrom, // ignore: deprecated_member_use
                       onChanged: (int? newValue) {
                         if (newValue != null) {
                           setState(() {
@@ -196,7 +170,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                     ),
                   ],
                   DropdownButtonFormField<String>(
-                    value: budgetResetPrinciple,
+                    value: budgetResetPrinciple, // ignore: deprecated_member_use
                     onChanged: (String? newValue) {
                       if (newValue != null) {
                         setState(() {
@@ -234,7 +208,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                 child: Text(I18n.translate("cancel")),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   if (principleWithoutDay.contains(budgetResetPrinciple)){
                     budgetResetDay = 1;
                   }
@@ -252,13 +226,14 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                     "refillPrincipleMode": refillPrincipleMode,
                   };
 
+                  final navigator = Navigator.of(context);
                   if (accountId == null) {
-                    budgetState.addBankAccount(newBankAccount);
+                    await budgetState.addBankAccount(newBankAccount);
                   } else {
-                    budgetState.updateOrDeleteBankAccount(newBankAccount, accountId, false);
+                    await budgetState.updateOrDeleteBankAccount(newBankAccount, accountId, false);
                   }
 
-                  Navigator.of(context).pop();
+                  if (context.mounted) navigator.pop();
                 },
                 child: Text(I18n.translate("save")),
               ),

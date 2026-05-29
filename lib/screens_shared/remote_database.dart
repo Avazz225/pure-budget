@@ -212,7 +212,7 @@ class RemoteDatabaseState extends State<RemoteDatabase> {
                     if (selected == "rmDBlocal")
                     localFile(context, budgetState, handleConnect),
                     if (selected == "rmDBsmb")
-                    smbFolderSelector(budgetState: budgetState, handleConnect: handleConnect),
+                    SmbFolderSelector(budgetState: budgetState, handleConnect: handleConnect),
                     if (selected == "rmDBiCloud")
                     iCloudSelector(context, budgetState, handleConnect),
                     if (selected == "rmDBgoogleDrive")

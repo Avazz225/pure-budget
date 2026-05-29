@@ -41,7 +41,7 @@ class _GoMobileBannerState extends State<GoMobileBanner> {
               switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, animation) => SizeTransition(
                 sizeFactor: animation,
-                axisAlignment: -1.0,
+                alignment: Alignment.topCenter,
                 child: FadeTransition(opacity: animation, child: child),
               ),
               child: _hovering

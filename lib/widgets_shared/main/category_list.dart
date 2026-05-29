@@ -29,13 +29,10 @@ Widget categoryList(BudgetState budgetState, Function setState) {
   return Expanded(
     child: ReorderableListView.builder(
       itemCount: budgetState.rawCategories.length,
-      onReorder: (oldIndex, newIndex) {
-        if (oldIndex < newIndex) {
-          newIndex -= 1;
-        }
+      onReorderItem: (fromIndex, toIndex) {
         setState(() {
-          final movedCategory = budgetState.rawCategories.removeAt(oldIndex);
-          budgetState.rawCategories.insert(newIndex, movedCategory);
+          final movedCategory = budgetState.rawCategories.removeAt(fromIndex);
+          budgetState.rawCategories.insert(toIndex, movedCategory);
         });
 
         updateCategoryPositions();

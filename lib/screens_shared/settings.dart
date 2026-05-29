@@ -138,7 +138,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                           budgetState.updateInclude(value);
                         });
                       },
-                      activeColor: Colors.green,
+                      activeThumbColor: Colors.green,
                     )
                   ],
                 )
@@ -163,7 +163,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                           budgetState.updateAvailableBudget(value);
                         });
                       },
-                      activeColor: Colors.green,
+                      activeThumbColor: Colors.green,
                     )
                   ],
                 )
@@ -188,7 +188,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                           budgetState.updateUseBalance(value);
                         });
                       },
-                      activeColor: Colors.green,
+                      activeThumbColor: Colors.green,
                     )
                   ],
                 )
@@ -236,7 +236,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                           Navigator.of(context).pop();
                         }
                       },
-                      activeColor: Colors.green,
+                      activeThumbColor: Colors.green,
                     )
                   ],
                 )

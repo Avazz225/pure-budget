@@ -82,7 +82,7 @@ class _ReminderSettingsWidgetState extends State<ReminderSettingsWidget> {
                 Switch(
                   value: _enabled,
                   onChanged: (val) => setState(() => _enabled = val),
-                  activeColor: Colors.green,
+                  activeThumbColor: Colors.green,
                 ),
               ],
             ),

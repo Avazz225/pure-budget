@@ -79,9 +79,10 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
               ),
               TextButton(
                 onPressed: () async {
+                  final navigator = Navigator.of(context);
                   final settingsState = Provider.of<BudgetState>(context, listen: false);
                   await settingsState.updateCurrency(currencyController.text);
-                  Navigator.of(context).pop();
+                  navigator.pop();
                 },
                 child: Text(I18n.translate("save")),
               ),

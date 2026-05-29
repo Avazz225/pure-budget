@@ -136,13 +136,14 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                 List.generate(gradients.length, (i) {
                   return GestureDetector(
                     onTap: () async {
+                      final navigator = Navigator.of(context);
                       await designState.updateCustomBackgroundPath("none");
                       await designState.updateAppBackground(i);
                       setState(() {
                         _customBackgroundPath = "none";
                         _appBackground = i;
                       });
-                      Navigator.of(context).pop();
+                      navigator.pop();
                     },
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -192,11 +193,10 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                       width: 200,
                       child: ReorderableListView(
                         shrinkWrap: true,
-                        onReorder: (oldIndex, newIndex) {
+                        onReorderItem: (fromIndex, toIndex) {
                           setState(() {
-                            if (newIndex > oldIndex) newIndex -= 1;
-                            final color = colors.removeAt(oldIndex);
-                            colors.insert(newIndex, color);
+                            final color = colors.removeAt(fromIndex);
+                            colors.insert(toIndex, color);
                             _customGradient['colors'] = colors;
                           });
                         },
@@ -271,6 +271,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
           actions: [
             TextButton(
               onPressed: () async {
+                final navigator = Navigator.of(context);
                 await designState.updateCustomBackgroundPath("none");
                 await designState.updateAppBackground(-1);
                 await designState.updateCustomGradient(_customGradient);
@@ -279,7 +280,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                   _appBackground = -1;
                 });
 
-                Navigator.of(context).pop();
+                navigator.pop();
               },
               child: Text(I18n.translate("done")),
             )
@@ -336,7 +337,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                                   _layoutMainVertical = value;
                                 });
                               },
-                              activeColor: Colors.green,
+                              activeThumbColor: Colors.green,
                             )
                           ],
                         ),
@@ -363,7 +364,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                                   _dialogSolidBackground = !value;
                                 });
                               },
-                              activeColor: Colors.green,
+                              activeThumbColor: Colors.green,
                             )
                           ],
                         ),
@@ -394,7 +395,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                                 _intervalStyle = value;
                               });
                             },
-                            activeColor: Colors.green,
+                            activeThumbColor: Colors.green,
                           )
                         ],
                       ),
@@ -577,7 +578,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                                     _arcSegmentsRounded = value;
                                   });
                                 },
-                                activeColor: Colors.green,
+                                activeThumbColor: Colors.green,
                               )
                             ],
                           ),
@@ -693,7 +694,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                                   _appBackgroundSolid = value;
                                 });
                               },
-                              activeColor: Colors.green,
+                              activeThumbColor: Colors.green,
                             )
                           ],
                         ),
@@ -733,7 +734,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                                     _customBackgroundBlur = value;
                                   });
                                 },
-                                activeColor: Colors.green,
+                                activeThumbColor: Colors.green,
                               )
                             ],
                           ),

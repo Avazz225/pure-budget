@@ -228,6 +228,8 @@ Future<bool> showExpenseDialog({
                     expense.amount = amount;
                     expense.accountId = int.parse(selectedIndex);
 
+                    final navigator = Navigator.of(context);
+                    final messenger = ScaffoldMessenger.of(context);
                     if (isEditing) {
                       if (amount == 0) {
                         await context.read<BudgetState>().deleteExpense(expense);
@@ -238,14 +240,14 @@ Future<bool> showExpenseDialog({
                       if (expense.amount != 0) {
                         await context.read<BudgetState>().saveExpense(expense);
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        messenger.showSnackBar(
                           SnackBar(content: Text(I18n.translate("validAmount"))),
                         );
                         return;
                       }
                     }
 
-                    Navigator.of(context).pop();
+                    navigator.pop();
                   },
                   child: Text((double.tryParse(amountController.text.replaceAll(",", "."),) != 0) 
                     ? I18n.translate("save") 

@@ -407,14 +407,14 @@ class BudgetState extends ChangeNotifier {
   } 
 
   // range
-  Future<void> updateRangeSelection(index) async {
+  Future<void> updateRangeSelection(int index) async {
     range = index;
     await _loadBankAccounts();
     await _loadBudgets(overrideRange: index);
     notifyListeners();
   }
 
-  Future<void> moneyFlowOnce(spenderId, spenderName, receiverId, receiverName, amount) async {
+  Future<void> moneyFlowOnce(int spenderId, String spenderName, int receiverId, String receiverName, double amount) async {
     String description = "$spenderName ${I18n.translate("to")} $receiverName";
     String date = formatForSqlite(DateTime.now());
 
@@ -435,7 +435,7 @@ class BudgetState extends ChangeNotifier {
   }
 
   // bankAccounts
-  void addBankAccount(Map<String, dynamic> acc) async {
+  Future<void> addBankAccount(Map<String, dynamic> acc) async {
     acc['id'] = await DatabaseHelper().insertBankAccount(acc);
     final newAcc = BankAccount(
       id: acc['id'],
@@ -469,7 +469,7 @@ class BudgetState extends ChangeNotifier {
     } 
   }
 
-  void updateOrDeleteBankAccount(Map<String, dynamic> acc, int id, bool delete) async {
+  Future<void> updateOrDeleteBankAccount(Map<String, dynamic> acc, int id, bool delete) async {
     final targetAccount = BankAccount(
       id: id,
       name: acc['name'],
@@ -488,15 +488,15 @@ class BudgetState extends ChangeNotifier {
     final index = bankAccounts.indexWhere((account) => account.id == targetAccount.id);
     if (delete && targetAccount.id != -1) {
       await DatabaseHelper().deleteBankAccount(targetAccount.id!);
-      bankAccounts.removeAt(index);
-      
+      if (index != -1) bankAccounts.removeAt(index);
+
       if (settings.filterBudget == targetAccount.id.toString()) {
         settings.filterBudget = "*";
       }
       targetAccount.delete();
     } else {
       await targetAccount.save();
-      bankAccounts[index] = targetAccount;
+      if (index != -1) bankAccounts[index] = targetAccount;
     }
 
     Map<String, dynamic> ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
@@ -521,6 +521,7 @@ class BudgetState extends ChangeNotifier {
 
   // ratePayments
   Future<void> addRateAutoExpense(AutoExpense newAE) async {
+    if (budgetRanges.isEmpty) return;
     await newAE.save(budgetRanges.first);
     autoExpenses.add(newAE);
     await _loadBudgets();
@@ -536,6 +537,7 @@ class BudgetState extends ChangeNotifier {
       newAE.delete();
       autoExpenses.removeWhere((exp) => exp.id == newAE.id);
     } else {
+      if (budgetRanges.isEmpty) return;
       newAE.save(budgetRanges.first);
       int index = autoExpenses.indexWhere((exp) => exp.id == newAE.id);
       autoExpenses[index] = newAE;
@@ -551,6 +553,7 @@ class BudgetState extends ChangeNotifier {
 
   // autoExpenses
   Future<void> addAutoExpense(AutoExpense autoExp) async {
+    if (budgetRanges.isEmpty) return;
     await autoExp.save(budgetRanges.first);
     if (!autoExp.moneyFlow) {
       autoExpenses.add(autoExp);
@@ -586,6 +589,7 @@ class BudgetState extends ChangeNotifier {
         }
       }
     } else {
+      if (budgetRanges.isEmpty) return;
       await autoExp.save(budgetRanges.first);
       if (index != -1) {
         if (!autoExp.moneyFlow) {
@@ -764,7 +768,8 @@ class BudgetState extends ChangeNotifier {
       await DatabaseHelper().moveExpense(id, newCatId, newAccountId);
     } else {
       await DatabaseHelper().moveAutoExpense(id, newCatId, newAccountId);
-      autoExpenses.where((aExp) => aExp.id == id).first.categoryId = newCatId;
+      final match = autoExpenses.where((aExp) => aExp.id == id);
+      if (match.isNotEmpty) match.first.categoryId = newCatId;
     }
 
     await _loadRanges();

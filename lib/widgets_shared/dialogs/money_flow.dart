@@ -84,7 +84,7 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                       },
                     ),
                     DropdownButtonFormField<int>(
-                      value: receiverAccountId,
+                      value: receiverAccountId, // ignore: deprecated_member_use
                       onChanged: (int? newValue) {
                         if (newValue != null) {
                           
@@ -105,7 +105,7 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                       ),
                     ),
                     DropdownButtonFormField<String>(
-                      value: bookingPrinciple,
+                      value: bookingPrinciple, // ignore: deprecated_member_use
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           setState(() {
@@ -144,6 +144,7 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                 ),
                 TextButton(
                   onPressed: () async {
+                    final navigator = Navigator.of(context);
                     if (principleWithoutDay.contains(bookingPrinciple)){
                       bookingDay = 1;
                     }
@@ -170,7 +171,7 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                       await budgetState.updateOrDeleteAutoExpense(newAutoExpense);
                     }
 
-                    Navigator.of(context).pop();
+                    navigator.pop();
 
                   },
                   child: (amountController.text.isNotEmpty) ? Text((double.parse(amountController.text.replaceAll(",", ".")) == 0.0 && expenseId != null) 

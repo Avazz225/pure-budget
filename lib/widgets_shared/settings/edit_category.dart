@@ -55,7 +55,7 @@ void editCategory(context, Category category, bool assigned, Function setState, 
                     const SizedBox.shrink(),
                     if (bankAccounts.length > 1)
                     DropdownButtonFormField<int?>(
-                      value: overrideBankAccount,
+                      value: overrideBankAccount, // ignore: deprecated_member_use
                       decoration: InputDecoration(
                         labelText: I18n.translate("overrideAccount"),
                       ),
@@ -121,6 +121,7 @@ void editCategory(context, Category category, bool assigned, Function setState, 
                 ),
                 TextButton(
                   onPressed: () async {
+                    final navigator = Navigator.of(context);
                     final partialBudgetState = Provider.of<BudgetState>(context, listen: false);
 
                     final updatedCategory = category;
@@ -139,8 +140,8 @@ void editCategory(context, Category category, bool assigned, Function setState, 
                     
 
                     await partialBudgetState.updateRawCategory(updatedCategory);
-                    
-                    Navigator.of(context).pop(true);
+
+                    navigator.pop(true);
                   },
                   child: Text(category.category.id != -1 ? (double.tryParse(budgetController.text.replaceAll(",", ".")) == 0.0) ? I18n.translate("delete") : I18n.translate("save") : I18n.translate("save")),
                 ),

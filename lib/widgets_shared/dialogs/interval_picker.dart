@@ -47,25 +47,27 @@ class IntervalPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
-      child: ListView.builder(
-        shrinkWrap: true,
-        itemCount: budgetRanges.length,
-        itemBuilder: (context, index) {
-          final range = budgetRanges[index];
-          final displayText = (index == 0)
-              ? I18n.translate("currentRange")
-              : "${formatDate(range.start.toIso8601String(), context, short: true)} - ${formatDate(range.end.toIso8601String(), context, short: true)}";
-          return RadioListTile<int>(
-            title: Text(displayText),
-            value: index,
-            groupValue: selectedIndex,
-            onChanged: (int? value) {
-              if (value != null) {
-                onIntervalSelected(value);
-              }
-            },
-          );
+      child: RadioGroup<int>(
+        groupValue: selectedIndex,
+        onChanged: (int? value) {
+          if (value != null) {
+            onIntervalSelected(value);
+          }
         },
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: budgetRanges.length,
+          itemBuilder: (context, index) {
+            final range = budgetRanges[index];
+            final displayText = (index == 0)
+                ? I18n.translate("currentRange")
+                : "${formatDate(range.start.toIso8601String(), context, short: true)} - ${formatDate(range.end.toIso8601String(), context, short: true)}";
+            return RadioListTile<int>(
+              title: Text(displayText),
+              value: index,
+            );
+          },
+        ),
       ),
     );
   }

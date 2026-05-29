@@ -29,10 +29,14 @@ class InitializationService {
     // get settings
     Settings settings = await dbHelper.getSettings();
 
-    // execute asnyc jobs
-    Logger().debug("Processing background jobs", tag: "initialization Service");
-    await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
-    Logger().debug("Processing background jobs done.", tag: "initialization Service");
+    bool newInterval = await checkNewInterval(dbHelper: dbHelper);
+
+    if (settings.sharedDbUrl == "none" && newInterval) {
+      // execute asnyc jobs
+      Logger().debug("Processing background jobs", tag: "initialization Service");
+      await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
+      Logger().debug("Processing background jobs done.", tag: "initialization Service");
+    }
 
     // refresh settings
     settings = await dbHelper.getSettings();
@@ -75,6 +79,16 @@ class InitializationService {
       moneyFlows: moneyFlows,
       settings: settings
     );
+
+    if (settings.sharedDbUrl != "none" && newInterval) {
+      await budgetState.syncSharedDb(manual: true);
+      Logger().debug("Processing background jobs", tag: "initialization Service");
+      bool didChanges = await backgroundJobs(dbHelper: dbHelper, lastAutoExpenseRun: settings.lastAutoExpenseRun);
+      Logger().debug("Processing background jobs done.", tag: "initialization Service");
+      if (didChanges) {
+        budgetState.syncSharedDb(manual: true);
+      }
+    }
 
     // Load language settings (if set manually)
     if (settings.language != "auto") {

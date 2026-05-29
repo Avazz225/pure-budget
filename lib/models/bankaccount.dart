@@ -2,7 +2,7 @@ import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/models/category_plain.dart';
 import 'package:jne_household_app/models/interval.dart';
 import 'package:jne_household_app/models/realized_bankaccounts.dart';
-import 'package:jne_household_app/models/realized_categroybudgets.dart';
+import 'package:jne_household_app/models/realized_category_budgets.dart';
 import 'package:jne_household_app/models/reset_principles.dart';
 
 class BankAccount {

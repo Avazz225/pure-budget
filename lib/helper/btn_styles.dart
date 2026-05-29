@@ -14,8 +14,3 @@ final btnPositiveStyle = ElevatedButton.styleFrom(
   backgroundColor: Colors.green[600],
   foregroundColor: Colors.white
 );
-
-final btnBottomNavBar = ElevatedButton.styleFrom(
-  backgroundColor: Colors.transparent,
-  foregroundColor: Colors.white
-);
