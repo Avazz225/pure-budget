@@ -54,7 +54,7 @@ Future<void> main() async {
   final initializationData = await InitializationService.initializeApp();
   logger.info("Initialization finished", tag: "init");
   logger.info("Initialize notification service", tag: "init");
-  if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
+  if (!Platform.isWindows) {
     await NotificationService().init();
     if (kDebugMode) {
       NotificationService().getPendingReminders();

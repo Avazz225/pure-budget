@@ -442,5 +442,7 @@
   "ageVerificationRequiredMessage": "Daqvam lo'lu'meH ngoQmey chaw'laH qochpu'lI'. tugh yIja'.",
   "confirmDeleteAccount": "This will permanently delete this bank account and all associated data.",
   "confirmDeleteExpense": "This expense will be permanently deleted.",
-  "confirmDeleteAutoExpense": "This recurring expense will be permanently deleted."
+  "confirmDeleteAutoExpense": "This recurring expense will be permanently deleted.",
+  "confirmDeleteCategory": "This category and all its budget history will be permanently deleted.",
+  "exportCsv": "Export as CSV"
 }

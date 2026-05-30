@@ -442,5 +442,7 @@
   "ageVerificationRequiredMessage": "このアプリへのアクセスには保護者の許可が必要です。保護者に連絡してください。",
   "confirmDeleteAccount": "このアカウントと関連するすべてのデータが完全に削除されます。",
   "confirmDeleteExpense": "この支出は完全に削除されます。",
-  "confirmDeleteAutoExpense": "この定期支出は完全に削除されます。"
+  "confirmDeleteAutoExpense": "この定期支出は完全に削除されます。",
+  "confirmDeleteCategory": "このカテゴリとすべての予算履歴は完全に削除されます。",
+  "exportCsv": "CSVとしてエクスポート"
 }

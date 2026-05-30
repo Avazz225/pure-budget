@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -19,10 +18,13 @@ import 'package:jne_household_app/models/category.dart';
 import 'package:jne_household_app/models/category_budget.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
+import 'package:jne_household_app/models/mixins/settings_mutations_mixin.dart';
+import 'package:jne_household_app/models/mixins/sync_mixin.dart';
 import 'package:jne_household_app/shared_database/shared_database.dart';
 
-class BudgetState extends ChangeNotifier {
-  double totalBudget;
+class BudgetState extends ChangeNotifier with SyncMixin, SettingsMutationsMixin {
+  // Fields that satisfy abstract getter contracts declared in the mixins
+  @override double totalBudget;
   double notAssignedBudget;
   Map<String, dynamic> resetInfo;
   List<CategoryBudget> categories;
@@ -30,15 +32,15 @@ class BudgetState extends ChangeNotifier {
   List<AutoExpense> autoExpenses;
   List<AutoExpense> moneyFlows;
   List<PBInterval> budgetRanges;
-  List<BankAccount> bankAccounts;
+  @override List<BankAccount> bankAccounts;
   int range;
   Map<String, List<Map<String, dynamic>>> statistics;
   int selectedStatisticIndex;
   bool isSetupComplete;
-  bool sharedDbConnected;
-  SharedDatabase sharedDb;
-  bool syncInProgress;
-  Settings settings;
+  @override bool sharedDbConnected;
+  @override SharedDatabase sharedDb;
+  @override bool syncInProgress;
+  @override Settings settings;
 
   BudgetState._({
     required this.totalBudget,
@@ -120,61 +122,14 @@ class BudgetState extends ChangeNotifier {
     instance.saveWidgetData("totalFrom", I18n.translate("from"));
     instance.saveWidgetData("language", I18n.language);
 
-    await instance._loadRanges();
-    await instance._loadBudgets();
+    await instance.loadRanges();
+    await instance.loadBudgets();
     await instance.getStatistics("month_total");
     return instance;
   }
 
-  Future<bool> initSharedDb() async {
-    bool status = await sharedDb.initSharedDatabase(settings.sharedDbUrl, settings.isPro ,newConnection: true);
-    if (status != sharedDbConnected && !status) {
-      sharedDbConnected = status;
-      notifyListeners();
-      return false;
-    } else {
-      sharedDbConnected = status;
-      if (!status) {
-        return false;
-      }
-      syncSharedDb();
-      return true;
-    }
-  }
-
-  Future<void> syncSharedDb({bool manual = false, bool changeKey = false}) async {
-    DatabaseHelper db = DatabaseHelper();
-    if (settings.syncMode == "frequently" && !manual) {
-      DateTime lastSync = await db.getLastSync();
-      if (lastSync.add(Duration(seconds: settings.syncFrequency)).isBefore(DateTime.now())) {
-        manual = true;
-      }
-    }
-
-    if (settings.syncMode == "instant" || manual) {
-      syncInProgress = true;
-      notifyListeners();
-      List<bool> result = await sharedDb.syncWithRemote(settings.sharedDbUrl, changeEncryptKey: changeKey, isPro: settings.isPro);
-      if (result[0]) {
-        sharedDbConnected = true;
-        if (Platform.isWindows || Platform.isLinux || Platform.isMacOS){
-          settings.isPro = result[1];
-          await settings.save();
-          settings.isPro = result[1];
-        }
-        await reloadData();
-        settings.lastSync = formatForSqlite(DateTime.now());
-        await settings.save();
-      } else {
-        sharedDbConnected = false;
-        if (result[2]) {
-          Logger().warning("Device has been locked out of shared database", tag: "sharedDatabase");
-        }
-      }
-      syncInProgress = false;
-    }
-    notifyListeners();
-  }
+  // initSharedDb, syncSharedDb, getRegisteredRemoteDevices,
+  // updateRemoteDeviceMetadata, changeBlockStatus → SyncMixin
 
   void setSetupComplete() {
     isSetupComplete = true;
@@ -182,6 +137,7 @@ class BudgetState extends ChangeNotifier {
   }
 
   // state loading
+  @override
   Future<void> reloadData() async {
     DatabaseHelper db = DatabaseHelper();
     rawCategories = await db.getCategories(settings.filterBudget);
@@ -197,13 +153,13 @@ class BudgetState extends ChangeNotifier {
       resetInfo = {"principle": bankAccounts.where((acc) => acc.id == int.tryParse(settings.filterBudget)).first.budgetResetPrinciple, "day": bankAccounts.where((acc) => acc.id == int.tryParse(settings.filterBudget)).first.budgetResetDay};
     }
 
-    await _loadMoneyFlows();
-    await _loadBankAccounts();
-    await _loadRanges();
+    await loadMoneyFlows();
+    await loadBankAccounts();
+    await loadRanges();
     if (budgetRanges.length <= range) {
       range = budgetRanges.length - 1;
     }
-    await _loadBudgets();
+    await loadBudgets();
 
     notifyListeners();
     
@@ -215,7 +171,8 @@ class BudgetState extends ChangeNotifier {
     saveWidgetData("totalBudget", totalBudget);
   }
 
-  Future<void> _loadBudgets({int? overrideRange}) async {
+  @override
+  Future<void> loadBudgets({int? overrideRange}) async {
     final cats = await DatabaseHelper().getCategories(settings.filterBudget);
 
     categories = await Future.wait(cats.map((cat) async {
@@ -241,7 +198,7 @@ class BudgetState extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadRanges() async {
+  Future<void> loadRanges() async {
     DateTime firstDate;
     try {
       firstDate = DateTime.parse((await DatabaseHelper().getFirstExpense())['date']);
@@ -264,153 +221,28 @@ class BudgetState extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadBankAccounts() async {
+  Future<void> loadBankAccounts() async {
     bankAccounts = await DatabaseHelper().getBankAccounts(moneyFlows, intervalId: budgetRanges[range].id!);
     totalBudget = bankAccounts.fold(0.0, (sum, acc) => sum + acc.income + (settings.useBalance ? acc.balance : 0.0));
   }
 
-  Future<void> _loadMoneyFlows() async {
+  Future<void> loadMoneyFlows() async {
     moneyFlows = await DatabaseHelper().getMoneyFlows();
   }
 
+  @override
   void calcNotAssignedBudget() {
     notAssignedBudget = totalBudget - categories.fold(0.0, (sum, cat) => sum + cat.budget);
   }
 
-  // settings
-
-  Future<void> updateFrequency(int value, String mode) async {
-    if (mode == "days") {
-      value = value * 60 * 60 * 24;
-    } else if (mode == "hours") {
-      value = value * 60 * 60;
-    } else if (mode == "minutes") {
-      value = value * 60;
-    }
-
-    settings.syncFrequency = value;
-    await settings.save();
-  }
-
-  Future<void> updateSyncMode(String mode) async {
-    settings.syncMode = mode;
-    await settings.save();
-  }
-
-  Future<void> updateFilter(String filter) async {
-    settings.filterBudget = filter;
-    await settings.save();
-    await reloadData();
-  }
-
-  Future<void> updateCurrency(String cur) async {
-    settings.currency = cur;
-    await settings.save();
-    notifyListeners();
-    saveWidgetData("settings.currency", settings.currency);
-  }
-
-  Future<void> updateInclude(bool include) async {
-    settings.includePlanned = include;
-    await settings.save();
-
-    await _loadBudgets();
-    notifyListeners();
-  }
-
-  Future<void> updateIsPro(bool pro) async {
-    settings.isPro = pro;
-    await settings.save();
-    await _loadBudgets();
-    notifyListeners();
-  }
-
-  Future<void> updateIsDesktopPro(bool pro) async {
-    settings.isDesktopPro = pro;
-    await settings.save();
-    notifyListeners();
-  }
-
-  Future<void> updateUseBalance(bool use) async {
-    settings.useBalance = use;
-    await settings.save();
-
-    Map<String, dynamic> ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
-    totalBudget = ret['totalIncome'] + (settings.useBalance ? ret['totalBalance'] : 0);
-
-    calcNotAssignedBudget();
-    notifyListeners();
-
-    saveWidgetData("totalBudget", totalBudget);
-  }
-
-  Future<void> updateLockApp(bool use) async {
-    settings.lockApp = use;
-    await settings.save();
-    notifyListeners();
-  }
-
-  Future<void> updateAvailableBudget(bool available) async {
-    settings.showAvailableBudget = available;
-    await settings.save();
-    notifyListeners();
-    saveWidgetData("settings.showAvailableBudget", (available) ? "true" : "false");
-    saveWidgetData("totalConnector", (settings.showAvailableBudget) ? I18n.translate("availableStr") : I18n.translate("spentStr"));
-  }
-
-  Future<void> updateLanguage(String code) async {
-    settings.language = code;
-    await settings.save();
-    String langCode = (code != "auto") ? code : PlatformDispatcher.instance.locale.toString();
-    await I18n.load(langCode, saveWidgetData: saveWidgetData);
-    notifyListeners();
-    saveWidgetData("totalConnector", (settings.showAvailableBudget) ? I18n.translate("availableStr") : I18n.translate("spentStr"));
-    saveWidgetData("totalFrom", I18n.translate("from"));
-  }
-
-  Future<bool> updateSharedDbUrl(String url) async {
-    settings.sharedDbUrl = url;
-    await settings.save();
-    
-    if (url != "none") {
-      bool result = await initSharedDb();
-      if (!result) {
-        settings.sharedDbUrl = "none";
-        await settings.save();
-        return false;
-      }
-    } else {
-      List<String> keys = [
-        'encryption_key', // general
-        'googleAccessToken', 'googleRefreshToken', 'googleDriveItemId', // google
-        'iCloudAccessTokenJson', 'iCloudItemId', // icloud (currently deactivated) 
-        'oneDriveAccessTokenJson', 'oneDriveItemId', // oneDrive
-        'smbHost', 'smbUname', 'smbPwd', 'smbDom' // samba
-      ];
-
-      for (String key in keys) {
-        await deleteKey(key);
-      }
-
-      sharedDbConnected = false;
-      notifyListeners();
-    }
-    return true;
-  }
-
-  Future<List<Map<String, dynamic>>> getRegisteredRemoteDevices() async {
-    return await sharedDb.getRegisteredDevices(settings.sharedDbUrl);
-  } 
-
-  Future<bool> updateRemoteDeviceMetadata(String uuid, Map<String, dynamic> metadata) async {
-    return await sharedDb.updateRegisteredDeviceMetadata(settings.sharedDbUrl, uuid, metadata);
-  } 
+  // updateFrequency … updateSharedDbUrl, getRegisteredRemoteDevices,
+  // updateRemoteDeviceMetadata → SettingsMutationsMixin
 
   // range
   Future<void> updateRangeSelection(int index) async {
     range = index;
-    await _loadBankAccounts();
-    await _loadBudgets(overrideRange: index);
+    await loadBankAccounts();
+    await loadBudgets(overrideRange: index);
     notifyListeners();
   }
 
@@ -426,7 +258,7 @@ class BudgetState extends ChangeNotifier {
     Expense expense2 = Expense(exp2);
     await expense2.save();
 
-    await _loadBudgets();
+    await loadBudgets();
     notifyListeners();
 
     if (sharedDbConnected && !syncInProgress) {
@@ -458,8 +290,8 @@ class BudgetState extends ChangeNotifier {
     Map<String, dynamic> ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
     totalBudget = ret['totalIncome'] + (settings.useBalance ? ret['totalBalance'] : 0);
 
-    await _loadRanges();
-    await _loadBudgets();
+    await loadRanges();
+    await loadBudgets();
     notifyListeners();
 
     saveWidgetData("totalBudget", totalBudget);
@@ -502,10 +334,10 @@ class BudgetState extends ChangeNotifier {
     Map<String, dynamic> ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
     totalBudget = ret['totalIncome'] + (settings.useBalance ? ret['totalBalance'] : 0);
 
-    await _loadMoneyFlows();
-    await _loadBankAccounts();
-    await _loadRanges();
-    await _loadBudgets();
+    await loadMoneyFlows();
+    await loadBankAccounts();
+    await loadRanges();
+    await loadBudgets();
     notifyListeners();
 
     saveWidgetData("totalBudget", totalBudget);
@@ -524,7 +356,7 @@ class BudgetState extends ChangeNotifier {
     if (budgetRanges.isEmpty) return;
     await newAE.save(budgetRanges.first);
     autoExpenses.add(newAE);
-    await _loadBudgets();
+    await loadBudgets();
     notifyListeners();
 
     if (sharedDbConnected && !syncInProgress) {
@@ -543,7 +375,7 @@ class BudgetState extends ChangeNotifier {
       autoExpenses[index] = newAE;
     }
 
-    await _loadBudgets();
+    await loadBudgets();
     notifyListeners();
 
     if (sharedDbConnected && !syncInProgress) {
@@ -559,10 +391,10 @@ class BudgetState extends ChangeNotifier {
       autoExpenses.add(autoExp);
     } else {
       moneyFlows.add(autoExp);
-      await _loadBankAccounts();
+      await loadBankAccounts();
     }
     
-    await _loadBudgets();
+    await loadBudgets();
     notifyListeners();
 
     if (sharedDbConnected && !syncInProgress) {
@@ -585,7 +417,7 @@ class BudgetState extends ChangeNotifier {
           autoExpenses.removeAt(index);
         } else {
           moneyFlows.removeAt(index);
-          await _loadBankAccounts();
+          await loadBankAccounts();
         }
       }
     } else {
@@ -596,12 +428,12 @@ class BudgetState extends ChangeNotifier {
           autoExpenses[index] = autoExp;
         } else {
           moneyFlows[index] = autoExp;
-          await _loadBankAccounts();
+          await loadBankAccounts();
         }
       }
     }
-    await _loadRanges();
-    await _loadBudgets();
+    await loadRanges();
+    await loadBudgets();
     notifyListeners();
 
     if (sharedDbConnected && !syncInProgress) {
@@ -667,7 +499,7 @@ class BudgetState extends ChangeNotifier {
     await updatedCategory.save();
 
     rawCategories = await DatabaseHelper().getCategories(settings.filterBudget);
-    await _loadBudgets();
+    await loadBudgets();
     calcNotAssignedBudget();
     notifyListeners();
 
@@ -702,8 +534,8 @@ class BudgetState extends ChangeNotifier {
   // expenses
   Future<void> saveExpense(Expense expense) async {
     expense.save();
-    await _loadRanges();
-    await _loadBudgets();
+    await loadRanges();
+    await loadBudgets();
     notifyListeners();
 
     if (sharedDbConnected && !syncInProgress) {
@@ -714,8 +546,8 @@ class BudgetState extends ChangeNotifier {
   Future<void> deleteExpense(Expense expense) async {
     expense.delete();
 
-    await _loadRanges();
-    await _loadBudgets();
+    await loadRanges();
+    await loadBudgets();
     notifyListeners();
 
     if (sharedDbConnected && !syncInProgress) {
@@ -772,17 +604,13 @@ class BudgetState extends ChangeNotifier {
       if (match.isNotEmpty) match.first.categoryId = newCatId;
     }
 
-    await _loadRanges();
-    await _loadBudgets();
+    await loadRanges();
+    await loadBudgets();
     notifyListeners();
 
     if (sharedDbConnected && !syncInProgress) {
       syncSharedDb();
     }
-  }
-
-  Future<bool> changeBlockStatus(int newStatus, String uuid) async {
-    return (await sharedDb.changeBlockStatus(settings.sharedDbUrl, newStatus, uuid));
   }
 
   void updateTotalSpentWidget(double amount) {
@@ -795,6 +623,7 @@ class BudgetState extends ChangeNotifier {
     }
   }
 
+  @override
   Future<void> saveWidgetData(String id, dynamic data) async {
     if (Platform.isAndroid || Platform.isIOS){
       if (data is double) {

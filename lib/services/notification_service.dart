@@ -23,16 +23,32 @@ class NotificationService {
   Future<void> init() async {
     if (_initialized) return;
 
-    if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
-      tzdata.initializeTimeZones();
-      final String timeZoneName = await FlutterNativeTimezoneLatest.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timeZoneName));
+    if (!Platform.isWindows) {
+      try {
+        tzdata.initializeTimeZones();
+        final timeZoneName = await FlutterNativeTimezoneLatest.getLocalTimezone();
+        tz.setLocalLocation(tz.getLocation(timeZoneName));
+      } catch (e) {
+        _logger.warning("Could not initialize timezone: $e", tag: "notification");
+      }
     }
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
-    WindowsInitializationSettings windowsInit = WindowsInitializationSettings(appName: I18n.translate("appTitle"), appUserModelId: appUserModelId, guid: guid, iconPath: 'assets/icon.ico');
-    InitializationSettings initSettings = InitializationSettings(android: androidInit, iOS: iosInit, macOS: iosInit, windows: windowsInit);
+    const linuxInit = LinuxInitializationSettings(defaultActionName: 'Open');
+    final windowsInit = WindowsInitializationSettings(
+      appName: I18n.translate("appTitle"),
+      appUserModelId: appUserModelId,
+      guid: guid,
+      iconPath: 'assets/icon.ico',
+    );
+    final initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
+      macOS: iosInit,
+      windows: windowsInit,
+      linux: linuxInit,
+    );
 
     await _plugin.initialize(initSettings);
     _initialized = true;
@@ -57,7 +73,8 @@ class NotificationService {
       priority: Priority.defaultPriority,
     );
     const ios = DarwinNotificationDetails();
-    return const NotificationDetails(android: android, iOS: ios, macOS: ios);
+    const linux = LinuxNotificationDetails();
+    return const NotificationDetails(android: android, iOS: ios, macOS: ios, linux: linux);
   }
 
   Future<void> showTestNotification() async {

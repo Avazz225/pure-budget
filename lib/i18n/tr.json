@@ -442,5 +442,7 @@
   "ageVerificationRequiredMessage": "Bu uygulamaya erişim için ebeveynlerinizin izin vermesi gerekiyor. Lütfen onlarla iletişime geçin.",
   "confirmDeleteAccount": "Bu hesap ve ilgili tüm veriler kalıcı olarak silinecektir.",
   "confirmDeleteExpense": "Bu harcama kalıcı olarak silinecektir.",
-  "confirmDeleteAutoExpense": "Bu düzenli harcama kalıcı olarak silinecektir."
+  "confirmDeleteAutoExpense": "Bu düzenli harcama kalıcı olarak silinecektir.",
+  "confirmDeleteCategory": "Bu kategori ve tüm bütçe geçmişi kalıcı olarak silinecektir.",
+  "exportCsv": "CSV olarak dışa aktar"
 }

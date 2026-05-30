@@ -442,5 +442,7 @@
   "ageVerificationRequiredMessage": "Vos responsables légaux doivent autoriser l’accès à cette application. Veuillez les contacter.",
   "confirmDeleteAccount": "Ce compte et toutes les données associées seront définitivement supprimés.",
   "confirmDeleteExpense": "Cette dépense sera définitivement supprimée.",
-  "confirmDeleteAutoExpense": "Cette dépense récurrente sera définitivement supprimée."
+  "confirmDeleteAutoExpense": "Cette dépense récurrente sera définitivement supprimée.",
+  "confirmDeleteCategory": "Cette catégorie et tout son historique budgétaire seront définitivement supprimés.",
+  "exportCsv": "Exporter en CSV"
 }

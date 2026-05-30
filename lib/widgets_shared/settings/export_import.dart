@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/export_import.dart';
+import 'package:jne_household_app/services/csv_export.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:provider/provider.dart';
 
@@ -54,17 +55,34 @@ class ExportImport extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    final budgetState = Provider.of<BudgetState>(context, listen: false);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ElevatedButton(
-          onPressed: () => BackupManager.exportData(),
-          child: Text(I18n.translate("exportData")),
+        // ── Backup (encrypted .pbstate) ────────────────────────────────────
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () => BackupManager.exportData(),
+              child: Text(I18n.translate("exportData")),
+            ),
+            ElevatedButton(
+              onPressed: () => _handleImportData(context),
+              child: Text(I18n.translate("importData")),
+            ),
+          ],
         ),
-        ElevatedButton(
-          onPressed: () => _handleImportData(context),
-          child: Text(I18n.translate("importData")),
-        )
+        const SizedBox(height: 8),
+        // ── CSV export ─────────────────────────────────────────────────────
+        OutlinedButton.icon(
+          icon: const Icon(Icons.table_chart_rounded),
+          label: Text(I18n.translate("exportCsv")),
+          onPressed: () => CsvExportService.exportExpenses(
+            currency: budgetState.settings.currency,
+            filterBudget: budgetState.settings.filterBudget,
+          ),
+        ),
       ],
     );
   }

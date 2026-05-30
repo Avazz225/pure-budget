@@ -442,5 +442,7 @@
   "ageVerificationRequiredMessage": "Twoi opiekunowie muszą zezwolić na dostęp do tej aplikacji. Skontaktuj się z nimi.",
   "confirmDeleteAccount": "To konto i wszystkie powiązane dane zostaną trwale usunięte.",
   "confirmDeleteExpense": "Ten wydatek zostanie trwale usunięty.",
-  "confirmDeleteAutoExpense": "Ten stały wydatek zostanie trwale usunięty."
+  "confirmDeleteAutoExpense": "Ten stały wydatek zostanie trwale usunięty.",
+  "confirmDeleteCategory": "Ta kategoria i cała jej historia budżetu zostaną trwale usunięte.",
+  "exportCsv": "Eksportuj jako CSV"
 }

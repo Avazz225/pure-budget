@@ -442,5 +442,7 @@
   "ageVerificationRequiredMessage": "您的监护人必须允许访问此应用。请联系他们。",
   "confirmDeleteAccount": "此账户及所有相关数据将被永久删除。",
   "confirmDeleteExpense": "此支出将被永久删除。",
-  "confirmDeleteAutoExpense": "此定期支出将被永久删除。"
+  "confirmDeleteAutoExpense": "此定期支出将被永久删除。",
+  "confirmDeleteCategory": "此类别及其所有预算历史将被永久删除。",
+  "exportCsv": "导出为 CSV"
 }

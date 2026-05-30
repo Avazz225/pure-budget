@@ -442,5 +442,7 @@
   "ageVerificationRequiredMessage": "Tus tutores deben permitir el acceso a esta aplicación. Por favor, contáctalos.",
   "confirmDeleteAccount": "Esta cuenta y todos los datos asociados se eliminarán de forma permanente.",
   "confirmDeleteExpense": "Este gasto se eliminará de forma permanente.",
-  "confirmDeleteAutoExpense": "Este gasto recurrente se eliminará de forma permanente."
+  "confirmDeleteAutoExpense": "Este gasto recurrente se eliminará de forma permanente.",
+  "confirmDeleteCategory": "Esta categoría y todo su historial de presupuesto se eliminarán de forma permanente.",
+  "exportCsv": "Exportar como CSV"
 }

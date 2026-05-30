@@ -442,5 +442,7 @@
   "ageVerificationRequiredMessage": "Deine Erziehungsberechtigten müssen den Zugriff auf diese App erlauben. Bitte kontaktiere sie.",
   "confirmDeleteAccount": "Dieses Konto und alle zugehörigen Daten werden dauerhaft gelöscht.",
   "confirmDeleteExpense": "Diese Ausgabe wird dauerhaft gelöscht.",
-  "confirmDeleteAutoExpense": "Diese Dauerausgabe wird dauerhaft gelöscht."
+  "confirmDeleteAutoExpense": "Diese Dauerausgabe wird dauerhaft gelöscht.",
+  "confirmDeleteCategory": "Diese Kategorie und ihre gesamte Budgethistorie werden dauerhaft gelöscht.",
+  "exportCsv": "Als CSV exportieren"
 }
