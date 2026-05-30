@@ -269,6 +269,18 @@ class SettingsScreenState extends State<SettingsScreen> {
             ),
             if (budgetState.settings.sharedDbUrl == "none")
             const ExportImport(),
+            if (Platform.isAndroid || Platform.isIOS)
+            ...[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.tour_rounded),
+                label: Text(I18n.translate("replayTour")),
+                onPressed: () async {
+                  await budgetState.updateTourCompleted(false);
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+              ),
+            ],
             if (!Platform.isIOS && !Platform.isAndroid)
             const SizedBox(height: 8,),
             if (!Platform.isIOS && !Platform.isAndroid)

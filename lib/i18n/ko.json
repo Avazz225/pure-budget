@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "이 지출이 영구적으로 삭제됩니다.",
   "confirmDeleteAutoExpense": "이 정기 지출이 영구적으로 삭제됩니다.",
   "confirmDeleteCategory": "이 카테고리와 모든 예산 내역이 영구적으로 삭제됩니다.",
-  "exportCsv": "CSV로 내보내기"
+  "exportCsv": "CSV로 내보내기",
+  "exportPdfSelectPeriod": "내보내기 기간 선택",
+  "exportPdf": "PDF로 내보내기",
+  "proFeature": "Pro 버전에서 사용 가능",
+  "totalSpentLabel": "총 지출",
+  "page": "페이지",
+  "tourBudgetTitle": "예산 개요",
+  "tourBudgetDesc": "호는 예산을 얼마나 사용했는지 보여줍니다. 카테고리를 탭하여 지출을 확인하거나 +를 탭하여 추가하세요.",
+  "tourHomeTitle": "홈 화면",
+  "tourHomeDesc": "앱 어디서든 여기를 탭하여 예산 개요로 돌아가세요.",
+  "tourStatsTitle": "통계",
+  "tourStatsDesc": "지출 내역을 확인하고, 월을 비교하고, 시간에 따른 카테고리를 분석하세요.",
+  "tourSettingsTitle": "설정 및 더보기",
+  "tourSettingsDesc": "설정, 도움말, 데이터 내보내기 및 앱 외관 사용자 지정은 여기서 하세요.",
+  "replayTour": "앱 투어 다시 시작"
 }

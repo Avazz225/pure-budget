@@ -25,6 +25,7 @@ class Settings {
   late bool isPro;
   late bool showAvailableBudget;
   late bool includePlanned;
+  late bool tourCompleted;
 
   Settings(Map<String, dynamic> values) {
     id = values['id'] as int;
@@ -51,6 +52,7 @@ class Settings {
     isPro = values['isPro'] == 1 || values['isPro'] == "1";
     showAvailableBudget = values['showAvailableBudget'] == 1 || values['showAvailableBudget'] == "1";
     includePlanned = values['includePlanned'] == 1 || values['includePlanned'] == "1";
+    tourCompleted = values['tourCompleted'] == 1 || values['tourCompleted'] == "1";
   }
 
   Map<String, dynamic> toMap() {
@@ -78,7 +80,8 @@ class Settings {
       "useBalance": useBalance ? 1 : 0,
       "isPro": isPro ? 1 : 0,
       "showAvailableBudget": showAvailableBudget ? 1 : 0,
-      "includePlanned": includePlanned ? 1 : 0
+      "includePlanned": includePlanned ? 1 : 0,
+      "tourCompleted": tourCompleted ? 1 : 0,
     };
   }
 

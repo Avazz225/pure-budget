@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "この支出は完全に削除されます。",
   "confirmDeleteAutoExpense": "この定期支出は完全に削除されます。",
   "confirmDeleteCategory": "このカテゴリとすべての予算履歴は完全に削除されます。",
-  "exportCsv": "CSVとしてエクスポート"
+  "exportCsv": "CSVとしてエクスポート",
+  "exportPdfSelectPeriod": "エクスポート期間を選択",
+  "exportPdf": "PDFとしてエクスポート",
+  "proFeature": "Proバージョンで利用可能",
+  "totalSpentLabel": "合計支出",
+  "page": "ページ",
+  "tourBudgetTitle": "予算の概要",
+  "tourBudgetDesc": "弧はどれだけ予算を使ったかを示しています。カテゴリをタップして支出を確認、または + で追加。",
+  "tourHomeTitle": "ホーム画面",
+  "tourHomeDesc": "どこからでもここをタップして予算概要に戻ります。",
+  "tourStatsTitle": "統計",
+  "tourStatsDesc": "支出の履歴を表示し、月を比較し、カテゴリを分析します。",
+  "tourSettingsTitle": "設定など",
+  "tourSettingsDesc": "設定、ヘルプ、データのエクスポート、外観のカスタマイズはここから。",
+  "replayTour": "アプリツアーを再再生"
 }

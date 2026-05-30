@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "Este gasto se eliminará de forma permanente.",
   "confirmDeleteAutoExpense": "Este gasto recurrente se eliminará de forma permanente.",
   "confirmDeleteCategory": "Esta categoría y todo su historial de presupuesto se eliminarán de forma permanente.",
-  "exportCsv": "Exportar como CSV"
+  "exportCsv": "Exportar como CSV",
+  "exportPdfSelectPeriod": "Seleccionar período de exportación",
+  "exportPdf": "Exportar como PDF",
+  "proFeature": "Disponible en la versión Pro",
+  "totalSpentLabel": "Total gastado",
+  "page": "Página",
+  "tourBudgetTitle": "Resumen de tu presupuesto",
+  "tourBudgetDesc": "El arco muestra cuánto de tu presupuesto has gastado. Toca una categoría para ver sus gastos, o toca + para agregar uno.",
+  "tourHomeTitle": "Pantalla de inicio",
+  "tourHomeDesc": "Toca aquí para volver al resumen del presupuesto desde cualquier lugar.",
+  "tourStatsTitle": "Estadísticas",
+  "tourStatsDesc": "Consulta tu historial de gastos, compara meses y analiza categorías a lo largo del tiempo.",
+  "tourSettingsTitle": "Configuración y más",
+  "tourSettingsDesc": "Accede a configuraciones, ayuda, exporta tus datos y personaliza la apariencia de la app.",
+  "replayTour": "Repetir el recorrido de la app"
 }

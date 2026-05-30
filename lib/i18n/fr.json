@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "Cette dépense sera définitivement supprimée.",
   "confirmDeleteAutoExpense": "Cette dépense récurrente sera définitivement supprimée.",
   "confirmDeleteCategory": "Cette catégorie et tout son historique budgétaire seront définitivement supprimés.",
-  "exportCsv": "Exporter en CSV"
+  "exportCsv": "Exporter en CSV",
+  "exportPdfSelectPeriod": "Sélectionner la période d'export",
+  "exportPdf": "Exporter en PDF",
+  "proFeature": "Disponible dans la version Pro",
+  "totalSpentLabel": "Total dépensé",
+  "page": "Page",
+  "tourBudgetTitle": "Aperçu de votre budget",
+  "tourBudgetDesc": "L'arc montre combien de votre budget vous avez dépensé. Appuyez sur une catégorie pour voir ses dépenses, ou sur + pour en ajouter une.",
+  "tourHomeTitle": "Écran d'accueil",
+  "tourHomeDesc": "Appuyez ici pour revenir à l'aperçu du budget depuis n'importe où.",
+  "tourStatsTitle": "Statistiques",
+  "tourStatsDesc": "Consultez votre historique de dépenses, comparez les mois et analysez les catégories.",
+  "tourSettingsTitle": "Paramètres et plus",
+  "tourSettingsDesc": "Accédez aux paramètres, à l'aide, exportez vos données et personnalisez l'apparence de l'application.",
+  "replayTour": "Rejouer la visite guidée"
 }

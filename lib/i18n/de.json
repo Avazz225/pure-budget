@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "Diese Ausgabe wird dauerhaft gelöscht.",
   "confirmDeleteAutoExpense": "Diese Dauerausgabe wird dauerhaft gelöscht.",
   "confirmDeleteCategory": "Diese Kategorie und ihre gesamte Budgethistorie werden dauerhaft gelöscht.",
-  "exportCsv": "Als CSV exportieren"
+  "exportCsv": "Als CSV exportieren",
+  "exportPdfSelectPeriod": "Exportzeitraum wählen",
+  "exportPdf": "Als PDF exportieren",
+  "proFeature": "In der Pro-Version verfügbar",
+  "totalSpentLabel": "Gesamt ausgegeben",
+  "page": "Seite",
+  "tourBudgetTitle": "Dein Budget-Überblick",
+  "tourBudgetDesc": "Der Bogen zeigt, wie viel du von deinem Budget ausgegeben hast. Tippe auf eine Kategorie-Kachel, um Ausgaben zu sehen, oder tippe + um eine hinzuzufügen.",
+  "tourHomeTitle": "Startseite",
+  "tourHomeDesc": "Tippe hier, um von überall in der App zur Budget-Übersicht zurückzukehren.",
+  "tourStatsTitle": "Statistiken",
+  "tourStatsDesc": "Sieh dir deinen Ausgabenverlauf an, vergleiche Monate und analysiere Kategorien über die Zeit.",
+  "tourSettingsTitle": "Einstellungen & mehr",
+  "tourSettingsDesc": "Hier erreichst du Einstellungen, Hilfe, Datenexport und die App-Anpassung.",
+  "replayTour": "App-Tour wiederholen"
 }

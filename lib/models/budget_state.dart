@@ -6,10 +6,8 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/keys.dart';
-import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/models/interval.dart';
 import 'package:jne_household_app/models/settings.dart';
-import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
@@ -18,23 +16,28 @@ import 'package:jne_household_app/models/category.dart';
 import 'package:jne_household_app/models/category_budget.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/free_restrictions.dart';
+import 'package:jne_household_app/models/mixins/auto_expense_mixin.dart';
+import 'package:jne_household_app/models/mixins/bank_account_mixin.dart';
+import 'package:jne_household_app/models/mixins/category_mixin.dart';
+import 'package:jne_household_app/models/mixins/expense_mixin.dart';
 import 'package:jne_household_app/models/mixins/settings_mutations_mixin.dart';
 import 'package:jne_household_app/models/mixins/sync_mixin.dart';
 import 'package:jne_household_app/shared_database/shared_database.dart';
 
-class BudgetState extends ChangeNotifier with SyncMixin, SettingsMutationsMixin {
+class BudgetState extends ChangeNotifier
+    with SyncMixin, SettingsMutationsMixin, BankAccountMixin, AutoExpenseMixin, CategoryMixin, ExpenseMixin {
   // Fields that satisfy abstract getter contracts declared in the mixins
   @override double totalBudget;
-  double notAssignedBudget;
+  @override double notAssignedBudget;
   Map<String, dynamic> resetInfo;
-  List<CategoryBudget> categories;
-  List<Category> rawCategories;
-  List<AutoExpense> autoExpenses;
-  List<AutoExpense> moneyFlows;
-  List<PBInterval> budgetRanges;
+  @override List<CategoryBudget> categories;
+  @override List<Category> rawCategories;
+  @override List<AutoExpense> autoExpenses;
+  @override List<AutoExpense> moneyFlows;
+  @override List<PBInterval> budgetRanges;
   @override List<BankAccount> bankAccounts;
-  int range;
-  Map<String, List<Map<String, dynamic>>> statistics;
+  @override int range;
+  @override Map<String, List<Map<String, dynamic>>> statistics;
   int selectedStatisticIndex;
   bool isSetupComplete;
   @override bool sharedDbConnected;
@@ -164,8 +167,8 @@ class BudgetState extends ChangeNotifier with SyncMixin, SettingsMutationsMixin 
     notifyListeners();
     
     if (kDebugMode) {
-      for (PBInterval range in budgetRanges) {
-        logger.debug("Rangeid: ${range.id}, start: ${range.start}, end: ${range.end}", tag: "PresentRanges");
+      for (final r in budgetRanges) {
+        Logger().debug("Rangeid: ${r.id}, start: ${r.start}, end: ${r.end}", tag: "PresentRanges");
       }
     }
     saveWidgetData("totalBudget", totalBudget);
@@ -198,6 +201,7 @@ class BudgetState extends ChangeNotifier with SyncMixin, SettingsMutationsMixin 
     }
   }
 
+  @override
   Future<void> loadRanges() async {
     DateTime firstDate;
     try {
@@ -221,11 +225,13 @@ class BudgetState extends ChangeNotifier with SyncMixin, SettingsMutationsMixin 
     }
   }
 
+  @override
   Future<void> loadBankAccounts() async {
     bankAccounts = await DatabaseHelper().getBankAccounts(moneyFlows, intervalId: budgetRanges[range].id!);
     totalBudget = bankAccounts.fold(0.0, (sum, acc) => sum + acc.income + (settings.useBalance ? acc.balance : 0.0));
   }
 
+  @override
   Future<void> loadMoneyFlows() async {
     moneyFlows = await DatabaseHelper().getMoneyFlows();
   }
@@ -237,381 +243,13 @@ class BudgetState extends ChangeNotifier with SyncMixin, SettingsMutationsMixin 
 
   // updateFrequency … updateSharedDbUrl, getRegisteredRemoteDevices,
   // updateRemoteDeviceMetadata → SettingsMutationsMixin
+  // updateRangeSelection, moneyFlowOnce → BankAccountMixin
+  // addBankAccount, updateOrDeleteBankAccount, getTransfers → BankAccountMixin
 
-  // range
-  Future<void> updateRangeSelection(int index) async {
-    range = index;
-    await loadBankAccounts();
-    await loadBudgets(overrideRange: index);
-    notifyListeners();
-  }
-
-  Future<void> moneyFlowOnce(int spenderId, String spenderName, int receiverId, String receiverName, double amount) async {
-    String description = "$spenderName ${I18n.translate("to")} $receiverName";
-    String date = formatForSqlite(DateTime.now());
-
-    Map<String, dynamic> exp1 = {"description": description, "categoryId": -1, "amount": amount, "accountId": spenderId, "date": date};
-    Expense expense1 = Expense(exp1);
-    await expense1.save();
-
-    Map<String, dynamic> exp2 = {"description": description, "categoryId": -1, "amount": -amount, "accountId": receiverId, "date": date};
-    Expense expense2 = Expense(exp2);
-    await expense2.save();
-
-    await loadBudgets();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    } 
-  }
-
-  // bankAccounts
-  Future<void> addBankAccount(Map<String, dynamic> acc) async {
-    acc['id'] = await DatabaseHelper().insertBankAccount(acc);
-    final newAcc = BankAccount(
-      id: acc['id'],
-      name: acc['name'],
-      description: acc['description'],
-      balance: acc['balance'],
-      income: acc['income'],
-      budgetResetPrinciple: acc['budgetResetPrinciple'],
-      budgetResetDay: acc['budgetResetDay'],
-      lastSavingRun: "none",
-      transfers: 0,
-      isCreditCard: acc['isCreditCard'] == 1,
-      refillsFrom: acc['refillsFrom'],
-      refillPrincipleMode: acc['refillPrincipleMode']
-    );
-
-    await newAcc.save();
-    bankAccounts.add(newAcc);
-
-    Map<String, dynamic> ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
-    totalBudget = ret['totalIncome'] + (settings.useBalance ? ret['totalBalance'] : 0);
-
-    await loadRanges();
-    await loadBudgets();
-    notifyListeners();
-
-    saveWidgetData("totalBudget", totalBudget);
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    } 
-  }
-
-  Future<void> updateOrDeleteBankAccount(Map<String, dynamic> acc, int id, bool delete) async {
-    final targetAccount = BankAccount(
-      id: id,
-      name: acc['name'],
-      description: acc['description'],
-      balance: acc['balance'],
-      income: acc['income'],
-      budgetResetPrinciple: acc['budgetResetPrinciple'],
-      budgetResetDay: acc['budgetResetDay'],
-      lastSavingRun: acc['lastSavingRun'],
-      transfers: getTransfers(id),
-      isCreditCard: acc['isCreditCard'] == 1,
-      refillsFrom: acc['refillsFrom'],
-      refillPrincipleMode: acc['refillPrincipleMode']
-    );
-
-    final index = bankAccounts.indexWhere((account) => account.id == targetAccount.id);
-    if (delete && targetAccount.id != -1) {
-      await DatabaseHelper().deleteBankAccount(targetAccount.id!);
-      if (index != -1) bankAccounts.removeAt(index);
-
-      if (settings.filterBudget == targetAccount.id.toString()) {
-        settings.filterBudget = "*";
-      }
-      targetAccount.delete();
-    } else {
-      await targetAccount.save();
-      if (index != -1) bankAccounts[index] = targetAccount;
-    }
-
-    Map<String, dynamic> ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
-    totalBudget = ret['totalIncome'] + (settings.useBalance ? ret['totalBalance'] : 0);
-
-    await loadMoneyFlows();
-    await loadBankAccounts();
-    await loadRanges();
-    await loadBudgets();
-    notifyListeners();
-
-    saveWidgetData("totalBudget", totalBudget);
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    }
-  }
-
-  double getTransfers(int accountId) {
-    return moneyFlows.where((mf) => mf.receiverAccountId == accountId).fold(0, (sum, mf) => sum + mf.amount);
-  }
-
-  // ratePayments
-  Future<void> addRateAutoExpense(AutoExpense newAE) async {
-    if (budgetRanges.isEmpty) return;
-    await newAE.save(budgetRanges.first);
-    autoExpenses.add(newAE);
-    await loadBudgets();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    }
-  }
-
-  Future<void> updateOrDeleteRateAutoExpense(AutoExpense newAE) async {
-    if (newAE.amount == 0.0) {
-      newAE.delete();
-      autoExpenses.removeWhere((exp) => exp.id == newAE.id);
-    } else {
-      if (budgetRanges.isEmpty) return;
-      newAE.save(budgetRanges.first);
-      int index = autoExpenses.indexWhere((exp) => exp.id == newAE.id);
-      autoExpenses[index] = newAE;
-    }
-
-    await loadBudgets();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    }
-  }
-
-  // autoExpenses
-  Future<void> addAutoExpense(AutoExpense autoExp) async {
-    if (budgetRanges.isEmpty) return;
-    await autoExp.save(budgetRanges.first);
-    if (!autoExp.moneyFlow) {
-      autoExpenses.add(autoExp);
-    } else {
-      moneyFlows.add(autoExp);
-      await loadBankAccounts();
-    }
-    
-    await loadBudgets();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    }
-  }
-
-  Future<void> updateOrDeleteAutoExpense(AutoExpense autoExp) async {
-    int index;
-
-    if (!autoExp.moneyFlow) {
-      index = autoExpenses.indexWhere((expense) => expense.id == autoExp.id);
-    } else {
-      index = moneyFlows.indexWhere((expense) => expense.id == autoExp.id);
-    }
-    if (autoExp.amount == 0.0) {
-      await autoExp.delete();
-      if (index != -1) {
-        if (!autoExp.moneyFlow) {
-          autoExpenses.removeAt(index);
-        } else {
-          moneyFlows.removeAt(index);
-          await loadBankAccounts();
-        }
-      }
-    } else {
-      if (budgetRanges.isEmpty) return;
-      await autoExp.save(budgetRanges.first);
-      if (index != -1) {
-        if (!autoExp.moneyFlow) {
-          autoExpenses[index] = autoExp;
-        } else {
-          moneyFlows[index] = autoExp;
-          await loadBankAccounts();
-        }
-      }
-    }
-    await loadRanges();
-    await loadBudgets();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    } 
-  }
-
-  // categories (shared)
-  Future<int> insertCategory(Category category) async {
-    final newPos = rawCategories.length;
-    category.save();
-    rawCategories.add(category);
-    categories.add(CategoryBudget(categoryId: category.category.id!, category: category.category.name, budget: category.budget, spent: 0.0, color: colorFromHex(category.category.color)!, position: newPos, overrideBankAccount: category.categoryBudgetsPlain.first.overrideBankAccount));
-    sortRawCategories();
-    sortCategories();
-    calcNotAssignedBudget();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    }
-
-    if (Platform.isAndroid || Platform.isIOS) {
-      List<Map<String, dynamic>> categoryWidgetList = categories.map((c) => c.toWidgetData(notAssignedBudget)).toList();
-      saveWidgetData("categoryList", jsonEncode(categoryWidgetList));
-    }
-
-    return category.category.id!;
-  }
-
-  // categories
-  void updateCategory(CategoryBudget oldCategory, CategoryBudget newCategory) {
-    final index = categories.indexOf(oldCategory);
-    if (index != -1) {
-      categories[index] = newCategory;
-      notifyListeners();
-    }
-    if (Platform.isAndroid || Platform.isIOS) {
-      List<Map<String, dynamic>> categoryWidgetList = categories.map((c) => c.toWidgetData(notAssignedBudget)).toList();
-      saveWidgetData("categoryList", jsonEncode(categoryWidgetList));
-    }
-  }
-
-  void sortCategories(){
-    categories.sort((a, b) {
-      return b.position.compareTo(a.position);
-    });
-
-    if (Platform.isAndroid || Platform.isIOS) {
-      List<Map<String, dynamic>> categoryWidgetList = categories.map((c) => c.toWidgetData(notAssignedBudget)).toList();
-      saveWidgetData("categoryList", jsonEncode(categoryWidgetList));
-    }
-  }
-
-  // raw categories
-  void sortRawCategories(){
-    rawCategories.sort((a, b) {
-      return b.category.position.compareTo(a.category.position);
-    });
-  }
-
-  Future<void> updateRawCategory(Category updatedCategory) async {
-    await updatedCategory.save();
-
-    rawCategories = await DatabaseHelper().getCategories(settings.filterBudget);
-    await loadBudgets();
-    calcNotAssignedBudget();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    } 
-
-    if (Platform.isAndroid || Platform.isIOS) {
-      List<Map<String, dynamic>> categoryWidgetList = categories.map((c) => c.toWidgetData(notAssignedBudget)).toList();
-      saveWidgetData("categoryList", jsonEncode(categoryWidgetList));
-    }
-  }
-
-  Future<void> saveCategoryOrder() async {
-    List<Map<String, int>> positions = [];
-    for (Category cat in rawCategories) {
-      positions.add({"id": cat.category.id!, "pos": cat.category.position}) ;
-      final category = categories.firstWhere((category) => category.categoryId == cat.category.id);
-      category.position = cat.category.position;
-    }
-
-    await DatabaseHelper().updatePositions(positions);
-    sortRawCategories();
-    sortCategories();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    }
-  }
-
-  // expenses
-  Future<void> saveExpense(Expense expense) async {
-    expense.save();
-    await loadRanges();
-    await loadBudgets();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    }
-  }
-
-  Future<void> deleteExpense(Expense expense) async {
-    expense.delete();
-
-    await loadRanges();
-    await loadBudgets();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    }
-  }
-
-  Future<void> getStatistics(String type) async {
-    switch (type) {
-      case "history_months":
-        statistics = {
-          "data": await DatabaseHelper().lastMonthsTotal(budgetRanges, settings.filterBudget),
-          "totalBudget": await DatabaseHelper().lastTotalBudgets(budgetRanges, settings.filterBudget)
-        };
-      case "month_by_cat":
-        statistics = {
-          "data": await DatabaseHelper().statisticMonthTotalByCat(budgetRanges[range], settings.filterBudget)
-        };
-      case "history_by_cat":
-        statistics = {
-          "data": await DatabaseHelper().lastMonthsByCat(budgetRanges, settings.filterBudget),
-          "totalBudget": await DatabaseHelper().lastMonthsCatBudget(budgetRanges, settings.filterBudget)
-        };
-      // month_total
-      default:
-        statistics = {
-          "data": (await DatabaseHelper().statisticMonthTotal(budgetRanges[range], settings.filterBudget))
-        };
-    }
-  }
-
-  double getCategoryBudget(String category) {
-    if (category == "__undefined_category_name__"){
-      return notAssignedBudget;
-    }
-
-    try {
-      final categoryBudget = categories.firstWhere(
-        (item) => item.category == category,
-        orElse: () => throw Exception('Category not found'),
-      );
-      return categoryBudget.budget;
-    } catch (e) {
-      return notAssignedBudget;
-    }
-  }
-
-  Future<void> moveItem(int id, int newCatId, int newAccountId, bool autoExpense) async {
-    if (!autoExpense) {
-      await DatabaseHelper().moveExpense(id, newCatId, newAccountId);
-    } else {
-      await DatabaseHelper().moveAutoExpense(id, newCatId, newAccountId);
-      final match = autoExpenses.where((aExp) => aExp.id == id);
-      if (match.isNotEmpty) match.first.categoryId = newCatId;
-    }
-
-    await loadRanges();
-    await loadBudgets();
-    notifyListeners();
-
-    if (sharedDbConnected && !syncInProgress) {
-      syncSharedDb();
-    }
-  }
+  // addBankAccount … getTransfers → BankAccountMixin
+  // addRateAutoExpense … updateOrDeleteAutoExpense → AutoExpenseMixin
+  // insertCategory … getCategoryBudget → CategoryMixin
+  // saveExpense … moveItem → ExpenseMixin
 
   void updateTotalSpentWidget(double amount) {
     if(settings.showAvailableBudget) {

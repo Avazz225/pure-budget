@@ -5,6 +5,7 @@ import 'package:jne_household_app/screens_mobile/mobile_receipt_scanner.dart';
 import 'package:jne_household_app/screens_shared/customization_screen.dart';
 import 'package:jne_household_app/screens_shared/help_screen.dart';
 import 'package:jne_household_app/screens_mobile/mobile_in_app_purchase.dart';
+import 'package:jne_household_app/services/app_tour.dart';
 import 'package:jne_household_app/widgets_mobile/home/statistics.dart';
 import 'package:jne_household_app/widgets_shared/app_rating.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/interval_picker.dart';
@@ -18,6 +19,7 @@ import 'package:jne_household_app/widgets_shared/main/bank_accounts.dart';
 import 'package:jne_household_app/widgets_shared/main/category_list.dart';
 import 'package:jne_household_app/widgets_shared/tri_rhombus_icon.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -31,12 +33,27 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   HomeScreenState();
   int tabindex = 2;
+  bool _tourScheduled = false;
+
+  void _maybeStartTour(BuildContext context, BudgetState budgetState) {
+    if (_tourScheduled || budgetState.settings.tourCompleted) return;
+    _tourScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AppTour().startTour(context);
+      budgetState.updateTourCompleted(true);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
     final designState = Provider.of<DesignState>(context);
-    return RateAppLauncher(
+    return ShowCaseWidget(
+      onFinish: () {},
+      builder: (ctx) {
+      _maybeStartTour(ctx, budgetState);
+      return RateAppLauncher(
       child: Scaffold(
         backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
         appBar: AppBar(
@@ -96,7 +113,12 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            PopupMenuButton<String>(
+            AppTour.step(
+              stepKey: AppTour().keySettingsMenu,
+              titleKey: "tourSettingsTitle",
+              descKey: "tourSettingsDesc",
+              tooltipPosition: TooltipPosition.bottom,
+              child: PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'settings') {
                   Navigator.of(context).push(
@@ -157,6 +179,7 @@ class HomeScreenState extends State<HomeScreen> {
                 )
               ],
             ),
+            ), // AppTour.step closes
           ],
         ),
         body: switch (tabindex) {
@@ -185,7 +208,13 @@ class HomeScreenState extends State<HomeScreen> {
                   autoExpenseList(budgetState)
                 ]
               ),
-          _ => const BudgetSummary(),
+          _ => AppTour.step(
+              stepKey: AppTour().keyBudgetSummary,
+              titleKey: "tourBudgetTitle",
+              descKey: "tourBudgetDesc",
+              tooltipPosition: TooltipPosition.bottom,
+              child: const BudgetSummary(),
+            ),
         },
         bottomNavigationBar: Column(
           mainAxisSize: MainAxisSize.min,
@@ -201,12 +230,24 @@ class HomeScreenState extends State<HomeScreen> {
                   backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
                 ),
                 BottomNavigationBarItem(
-                  icon: const Icon(Icons.line_axis_rounded),
+                  icon: Showcase(
+                    key: AppTour().keyBottomNavStats,
+                    title: I18n.translate("tourStatsTitle"),
+                    description: I18n.translate("tourStatsDesc"),
+                    tooltipPosition: TooltipPosition.top,
+                    child: const Icon(Icons.line_axis_rounded),
+                  ),
                   label: I18n.translate("statistics"),
                   backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
                 ),
                 BottomNavigationBarItem(
-                  icon: const Icon(Icons.home_rounded),
+                  icon: Showcase(
+                    key: AppTour().keyBottomNavHome,
+                    title: I18n.translate("tourHomeTitle"),
+                    description: I18n.translate("tourHomeDesc"),
+                    tooltipPosition: TooltipPosition.top,
+                    child: const Icon(Icons.home_rounded),
+                  ),
                   label: I18n.translate("start"),
                   backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
                 ),
@@ -242,5 +283,6 @@ class HomeScreenState extends State<HomeScreen> {
         ),
       )
     );
+    }); // ShowCaseWidget.builder
   }
 }

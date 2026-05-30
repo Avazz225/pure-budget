@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "Questa spesa verrà eliminata definitivamente.",
   "confirmDeleteAutoExpense": "Questa spesa ricorrente verrà eliminata definitivamente.",
   "confirmDeleteCategory": "Questa categoria e tutta la sua cronologia del budget verranno eliminate definitivamente.",
-  "exportCsv": "Esporta come CSV"
+  "exportCsv": "Esporta come CSV",
+  "exportPdfSelectPeriod": "Seleziona il periodo di esportazione",
+  "exportPdf": "Esporta come PDF",
+  "proFeature": "Disponibile nella versione Pro",
+  "totalSpentLabel": "Totale speso",
+  "page": "Pagina",
+  "tourBudgetTitle": "Panoramica del budget",
+  "tourBudgetDesc": "L'arco mostra quanto del tuo budget hai speso. Tocca una categoria per vedere le spese, o tocca + per aggiungerne una.",
+  "tourHomeTitle": "Schermata principale",
+  "tourHomeDesc": "Tocca qui per tornare alla panoramica del budget da qualsiasi parte.",
+  "tourStatsTitle": "Statistiche",
+  "tourStatsDesc": "Visualizza la cronologia delle spese, confronta i mesi e analizza le categorie nel tempo.",
+  "tourSettingsTitle": "Impostazioni e altro",
+  "tourSettingsDesc": "Accedi alle impostazioni, alla guida, esporta i tuoi dati e personalizza l'aspetto dell'app.",
+  "replayTour": "Ripeti il tour dell'app"
 }

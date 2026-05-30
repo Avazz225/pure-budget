@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "Ten wydatek zostanie trwale usunięty.",
   "confirmDeleteAutoExpense": "Ten stały wydatek zostanie trwale usunięty.",
   "confirmDeleteCategory": "Ta kategoria i cała jej historia budżetu zostaną trwale usunięte.",
-  "exportCsv": "Eksportuj jako CSV"
+  "exportCsv": "Eksportuj jako CSV",
+  "exportPdfSelectPeriod": "Wybierz okres eksportu",
+  "exportPdf": "Eksportuj jako PDF",
+  "proFeature": "Dostępne w wersji Pro",
+  "totalSpentLabel": "Łącznie wydano",
+  "page": "Strona",
+  "tourBudgetTitle": "Przegląd budżetu",
+  "tourBudgetDesc": "Łuk pokazuje, ile z budżetu wydałeś. Dotknij kafelka kategorii, aby zobaczyć wydatki, lub + aby dodać nowy.",
+  "tourHomeTitle": "Ekran główny",
+  "tourHomeDesc": "Dotknij tutaj, aby wrócić do przeglądu budżetu z dowolnego miejsca.",
+  "tourStatsTitle": "Statystyki",
+  "tourStatsDesc": "Przeglądaj historię wydatków, porównuj miesiące i analizuj kategorie w czasie.",
+  "tourSettingsTitle": "Ustawienia i więcej",
+  "tourSettingsDesc": "Tutaj znajdziesz ustawienia, pomoc, eksport danych i dostosowanie wyglądu aplikacji.",
+  "replayTour": "Powtórz wycieczkę po aplikacji"
 }

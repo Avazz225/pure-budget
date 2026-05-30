@@ -116,6 +116,12 @@ mixin SettingsMutationsMixin on ChangeNotifier {
     saveWidgetData("totalFrom", I18n.translate("from"));
   }
 
+  Future<void> updateTourCompleted(bool completed) async {
+    settings.tourCompleted = completed;
+    await settings.save();
+    notifyListeners();
+  }
+
   Future<bool> updateSharedDbUrl(String url) async {
     settings.sharedDbUrl = url;
     await settings.save();

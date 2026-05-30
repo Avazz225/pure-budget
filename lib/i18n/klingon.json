@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "This expense will be permanently deleted.",
   "confirmDeleteAutoExpense": "This recurring expense will be permanently deleted.",
   "confirmDeleteCategory": "This category and all its budget history will be permanently deleted.",
-  "exportCsv": "Export as CSV"
+  "exportCsv": "Export as CSV",
+  "exportPdfSelectPeriod": "Select export period",
+  "exportPdf": "Export as PDF",
+  "proFeature": "Available in Pro version",
+  "totalSpentLabel": "Total spent",
+  "page": "Page",
+  "tourBudgetTitle": "Your Budget Overview",
+  "tourBudgetDesc": "The arc shows how much of your budget you've spent.",
+  "tourHomeTitle": "Home Screen",
+  "tourHomeDesc": "Tap here to return to the budget overview.",
+  "tourStatsTitle": "Statistics",
+  "tourStatsDesc": "View your spending history and compare months.",
+  "tourSettingsTitle": "Settings & More",
+  "tourSettingsDesc": "Access settings, help, and export your data here.",
+  "replayTour": "Replay app tour"
 }

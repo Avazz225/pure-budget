@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "Bu harcama kalıcı olarak silinecektir.",
   "confirmDeleteAutoExpense": "Bu düzenli harcama kalıcı olarak silinecektir.",
   "confirmDeleteCategory": "Bu kategori ve tüm bütçe geçmişi kalıcı olarak silinecektir.",
-  "exportCsv": "CSV olarak dışa aktar"
+  "exportCsv": "CSV olarak dışa aktar",
+  "exportPdfSelectPeriod": "Dışa aktarma dönemini seçin",
+  "exportPdf": "PDF olarak dışa aktar",
+  "proFeature": "Pro sürümünde mevcut",
+  "totalSpentLabel": "Toplam harcama",
+  "page": "Sayfa",
+  "tourBudgetTitle": "Bütçe Genel Bakışı",
+  "tourBudgetDesc": "Yay, bütçenizin ne kadarını harcadığınızı gösterir. Harcamaları görmek için bir kategoriye, eklemek için + simgesine dokunun.",
+  "tourHomeTitle": "Ana Ekran",
+  "tourHomeDesc": "Uygulamanın herhangi bir yerinden bütçe özetine dönmek için buraya dokunun.",
+  "tourStatsTitle": "İstatistikler",
+  "tourStatsDesc": "Harcama geçmişinizi görüntüleyin, ayları karşılaştırın ve kategorileri zaman içinde analiz edin.",
+  "tourSettingsTitle": "Ayarlar ve Daha Fazlası",
+  "tourSettingsDesc": "Ayarlara, yardıma, veri dışa aktarımına ve uygulamanın görünümünü özelleştirmeye buradan erişin.",
+  "replayTour": "Uygulama turunu tekrar oynat"
 }

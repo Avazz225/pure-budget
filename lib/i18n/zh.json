@@ -444,5 +444,19 @@
   "confirmDeleteExpense": "此支出将被永久删除。",
   "confirmDeleteAutoExpense": "此定期支出将被永久删除。",
   "confirmDeleteCategory": "此类别及其所有预算历史将被永久删除。",
-  "exportCsv": "导出为 CSV"
+  "exportCsv": "导出为 CSV",
+  "exportPdfSelectPeriod": "选择导出周期",
+  "exportPdf": "导出为 PDF",
+  "proFeature": "在 Pro 版本中可用",
+  "totalSpentLabel": "总支出",
+  "page": "第",
+  "tourBudgetTitle": "预算概览",
+  "tourBudgetDesc": "弧形显示您花费了多少预算。点击类别磁贴查看支出，或点击 + 添加。",
+  "tourHomeTitle": "主屏幕",
+  "tourHomeDesc": "点击此处从应用的任何位置返回预算概览。",
+  "tourStatsTitle": "统计",
+  "tourStatsDesc": "查看您的消费历史，比较月份，并分析各类别随时间的变化。",
+  "tourSettingsTitle": "设置及更多",
+  "tourSettingsDesc": "在这里访问设置、帮助、导出数据并自定义应用外观。",
+  "replayTour": "重播应用导览"
 }
