@@ -28,11 +28,13 @@ class BudgetDropdown extends StatelessWidget {
       child: DropdownButton<int>(
         hint: Text(I18n.translate("selectRange")),
         value: selectedIndex,
+        underline: const SizedBox(),
+        icon: const Icon(Icons.expand_more_rounded, size: 20),
         items: budgetRanges.asMap().entries.map((entry) {
           int index = entry.key;
           PBInterval range = entry.value;
-          String displayText = (index == 0) 
-            ? I18n.translate("currentRange") 
+          String displayText = (index == 0)
+            ? I18n.translate("currentRange")
             : "${formatDate(range.start.toIso8601String(), context, short: true)} - ${formatDate(range.end.toIso8601String(), context, short: true)}";
           return DropdownMenuItem<int>(
             value: index,

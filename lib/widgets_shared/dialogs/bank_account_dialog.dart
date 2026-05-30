@@ -27,6 +27,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
     String refillPrincipleMode = principleModes[2];
 
     final budgetState = Provider.of<BudgetState>(context, listen: false);
+    final formKey = GlobalKey<FormState>();
 
     BankAccount? existingAccount;
     if (accountId != null) {
@@ -58,6 +59,28 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                 if (accountId != null && accountId != -1)
                 IconButton(
                   onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AdaptiveAlertDialog(
+                        title: Text(I18n.translate("delete")),
+                        content: Text(I18n.translate("confirmDeleteAccount")),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            child: Text(I18n.translate("cancel")),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            child: Text(
+                              I18n.translate("delete"),
+                              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed != true || !context.mounted) return;
+
                     if (principleWithoutDay.contains(budgetResetPrinciple)){
                       budgetResetDay = 1;
                     }
@@ -78,12 +101,15 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                     await budgetState.updateOrDeleteBankAccount(newBankAccount, accountId, true);
                     navigator.pop();
                   },
-                  icon: Icon(Icons.delete_rounded, color: Theme.of(context).colorScheme.error, semanticLabel: I18n.translate('delete'),),
+                  icon: Icon(Icons.delete_rounded, color: Theme.of(context).colorScheme.error, semanticLabel: I18n.translate('delete')),
                 ),
               ],
             ),
             content: SingleChildScrollView(
-              child: Column(
+              child: Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
                 children: [
                   if (existingAccounts.isNotEmpty && accountId == null || (accountId != null && existingAccounts.length > 1 && accountId != -1))
                   Row(
@@ -200,6 +226,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                 ],
               ),
             ),
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -207,8 +234,9 @@ void addOrEditAutoExpenseDialog(BuildContext context, List<BankAccount> existing
                 },
                 child: Text(I18n.translate("cancel")),
               ),
-              TextButton(
+              FilledButton(
                 onPressed: () async {
+                  if (!(formKey.currentState?.validate() ?? false)) return;
                   if (principleWithoutDay.contains(budgetResetPrinciple)){
                     budgetResetDay = 1;
                   }

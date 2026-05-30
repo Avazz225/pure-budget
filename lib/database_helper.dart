@@ -41,6 +41,14 @@ class DatabaseHelper {
     return _database!;
   }
 
+  /// Injects a pre-opened database. Only for use in tests.
+  @visibleForTesting
+  static void overrideDatabaseForTesting(Database db) => _database = db;
+
+  /// Resets the database singleton. Call in tearDown to ensure test isolation.
+  @visibleForTesting
+  static void resetForTesting() => _database = null;
+
   Future<Database> _initDatabase() async {
     String dbPath;
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -82,12 +90,14 @@ class DatabaseHelper {
         String start = formatForSqlite(DateTime(tdy.year, tdy.month));
         String end = formatForSqlite(DateTime(tdy.year, tdy.month + 1));
 
+        final defaultColor = colorToHex(Colors.grey[700]!);
+        final unassignedName = I18n.translate("unassignedAccount");
         db.execute('INSERT INTO design (id, arcStyle) VALUES (1, $arcStyle)');
-        db.execute('INSERT INTO settings (currency) VALUES ("€")');
-        db.execute('INSERT INTO categories (id, name, color, position) VALUES (-1, "__undefined_category_name__", "${colorToHex(Colors.grey[700]!)}", 0)');
-        db.execute('INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, "${I18n.translate("unassignedAccount")}", 0, 0, "monthStart", 1)');
+        db.execute("INSERT INTO settings (currency) VALUES ('€')");
+        db.execute("INSERT INTO categories (id, name, color, position) VALUES (-1, '__undefined_category_name__', '$defaultColor', 0)");
+        db.execute("INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, '$unassignedName', 0, 0, 'monthStart', 1)");
         db.execute('INSERT INTO categoryBudgets (categoryId, accountId, budget) VALUES (-1, -1, 0)');
-        db.execute('INSERT INTO intervals (start, end, accountId) VALUES ("$start", "$end", -1)');
+        db.execute("INSERT INTO intervals (start, end, accountId) VALUES ('$start', '$end', -1)");
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         _logger.debug("Upgrading database from version $oldVersion to $newVersion", tag: "database");
@@ -348,9 +358,11 @@ class DatabaseHelper {
 
   void createDefaultData() async {
     final db = await database;
-    await db.execute('INSERT INTO settings (currency) VALUES ("€")');
-    await db.execute('INSERT INTO categories (id, name, color, position) VALUES (-1, "__undefined_category_name__", "${colorToHex(Colors.grey[700]!)}", 0)');
-    await db.execute('INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, "${I18n.translate("unassignedAccount")}", 0, 0, "monthStart", 1)');
+    final defaultColor = colorToHex(Colors.grey[700]!);
+    final unassignedName = I18n.translate("unassignedAccount");
+    await db.execute("INSERT INTO settings (currency) VALUES ('€')");
+    await db.execute("INSERT INTO categories (id, name, color, position) VALUES (-1, '__undefined_category_name__', '$defaultColor', 0)");
+    await db.execute("INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, '$unassignedName', 0, 0, 'monthStart', 1)");
     await db.execute('INSERT INTO categoryBudgets (categoryId, accountId, budget) VALUES (-1, -1, 0)');
 
     await insertEditLog("categories", -1, "insert", dbObj: db);

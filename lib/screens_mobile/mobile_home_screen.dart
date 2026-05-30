@@ -36,8 +36,6 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
     final designState = Provider.of<DesignState>(context);
-    bool isDarkMode = Theme.brightnessOf(context) == Brightness.dark;
-
     return RateAppLauncher(
       child: Scaffold(
         backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
@@ -48,9 +46,12 @@ class HomeScreenState extends State<HomeScreen> {
             children: (budgetState.settings.filterBudget != "*") ? 
             [
               const Image(image: AssetImage('assets/icons/logo.png'), height: 32,),
-              Text(
-                budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name,
-                style: Theme.of(context).textTheme.bodyLarge,
+              Flexible(
+                child: Text(
+                  budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  overflow: TextOverflow.ellipsis,
+                ),
               )
             ]
             :
@@ -190,8 +191,8 @@ class HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             BottomNavigationBar(
-              selectedItemColor: isDarkMode ? Colors.blue[100] : Colors.blue[900],
-              unselectedItemColor: isDarkMode ? Colors.purple[50]: Colors.purple[900],
+              selectedItemColor: Theme.of(context).colorScheme.primary,
+              unselectedItemColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: .55),
               backgroundColor: Colors.transparent,
               items: [
                 BottomNavigationBarItem(

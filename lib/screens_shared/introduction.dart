@@ -77,7 +77,7 @@ class _AppSetupScreenState extends State<AppSetupScreen> {
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(I18n.translate("cancel")),
               ),
-              TextButton(
+              FilledButton(
                 onPressed: () async {
                   final navigator = Navigator.of(context);
                   final settingsState = Provider.of<BudgetState>(context, listen: false);

@@ -357,7 +357,7 @@ Future<bool> keyChangeInfo(BuildContext context) async {
           },
           child: Text(I18n.translate("cancel")),
         ),
-        TextButton(
+        FilledButton(
           onPressed: () {
             doChange = true;
             Navigator.of(context).pop();

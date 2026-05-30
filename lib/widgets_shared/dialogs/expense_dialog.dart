@@ -1,10 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/models/expense.dart';
-import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/services/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -80,11 +78,7 @@ Future<bool> showExpenseDialog({
       filteredAccounts = bankAccounts;
     }
 
-    if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
-      ScreenshotManager().takeScreenshot(name: "expenseAdd");
-    }
-
-    if ( !isEditing && (overrideBankAccount != null && bankAccounts.where((acc) => acc.id == overrideBankAccount).isNotEmpty)) {
+    if (!isEditing && (overrideBankAccount != null && bankAccounts.where((acc) => acc.id == overrideBankAccount).isNotEmpty)) {
       selectedIndex = overrideBankAccount.toString();
     }
 
@@ -211,13 +205,42 @@ Future<bool> showExpenseDialog({
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(I18n.translate("cancel")),
                 ),
+                if (isEditing)
                 TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AdaptiveAlertDialog(
+                        title: Text(I18n.translate("delete")),
+                        content: Text(I18n.translate("confirmDeleteExpense")),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            child: Text(I18n.translate("cancel")),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            child: Text(I18n.translate("delete")),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed != true || !context.mounted) return;
+                    final navigator = Navigator.of(context);
+                    await context.read<BudgetState>().deleteExpense(expense!);
+                    navigator.pop();
+                  },
+                  child: Text(I18n.translate("delete")),
+                ),
+                FilledButton(
                   onPressed: () async {
                     final double? amount = double.tryParse(
                       amountController.text.replaceAll(",", "."),
                     );
 
-                    if (amount == null) {
+                    if (amount == null || amount == 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(I18n.translate("validAmount"))),
                       );
@@ -229,30 +252,14 @@ Future<bool> showExpenseDialog({
                     expense.accountId = int.parse(selectedIndex);
 
                     final navigator = Navigator.of(context);
-                    final messenger = ScaffoldMessenger.of(context);
                     if (isEditing) {
-                      if (amount == 0) {
-                        await context.read<BudgetState>().deleteExpense(expense);
-                      } else {
-                        await context.read<BudgetState>().saveExpense(expense);
-                      }
+                      await context.read<BudgetState>().saveExpense(expense);
                     } else {
-                      if (expense.amount != 0) {
-                        await context.read<BudgetState>().saveExpense(expense);
-                      } else {
-                        messenger.showSnackBar(
-                          SnackBar(content: Text(I18n.translate("validAmount"))),
-                        );
-                        return;
-                      }
+                      await context.read<BudgetState>().saveExpense(expense);
                     }
-
                     navigator.pop();
                   },
-                  child: Text((double.tryParse(amountController.text.replaceAll(",", "."),) != 0) 
-                    ? I18n.translate("save") 
-                    : I18n.translate("delete")
-                  ),
+                  child: Text(I18n.translate("save")),
                 ),
               ],
             );
@@ -261,4 +268,5 @@ Future<bool> showExpenseDialog({
       },
     );
     return openCamera;
+
   }

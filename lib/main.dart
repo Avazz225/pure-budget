@@ -13,7 +13,6 @@ import 'package:jne_household_app/services/uri_handler.dart';
 import 'package:jne_household_app/widgets_mobile/dialogs/age_verification_popup.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jne_household_app/services/quick_actions_service.dart';
-import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
@@ -32,17 +31,20 @@ import 'package:jne_household_app/services/initialization_service.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:play_age_signals/play_age_signals.dart';
 
-// automatically take screenshots by using --dart-define=SCREENS=t
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isWindows || Platform.isMacOS) {
+    await windowManager.ensureInitialized();
+    await windowManager.setMinimumSize(const Size(900, 600));
+  }
+
   // initialize logger
   final logger = Logger();
   await logger.init(minLevel: (kDebugMode) ? LogLevel.debug : LogLevel.error);
-  const bool takeScreenshots = String.fromEnvironment('SCREENS', defaultValue: 'f') == "t";
-
   final quickActions = QuickActionsService();
   if (Platform.isIOS) {
     await quickActions.initIOS();
@@ -52,7 +54,7 @@ Future<void> main() async {
   final initializationData = await InitializationService.initializeApp();
   logger.info("Initialization finished", tag: "init");
   logger.info("Initialize notification service", tag: "init");
-  if (!Platform.isWindows && !Platform.isMacOS) {
+  if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
     await NotificationService().init();
     if (kDebugMode) {
       NotificationService().getPendingReminders();
@@ -109,38 +111,19 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]).then((_) {
-    if (!kDebugMode || !takeScreenshots && Platform.isWindows) {
-      runApp(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<BudgetState>.value(
-              value: initializationData.budgetState,
-            ),
-            ChangeNotifierProvider<DesignState>.value(
-              value: initializationData.designState,
-            ),
-          ],
-          child: HouseholdBudgetApp(lockApp: initializationData.budgetState.settings.lockApp),
-        )
-      );
-    } else {
-      runApp(
-        ScreenshotManager()
-          .wrapWithScreenshot(
-            child: MultiProvider(
-            providers: [
-              ChangeNotifierProvider<BudgetState>.value(
-                value: initializationData.budgetState,
-              ),
-              ChangeNotifierProvider<DesignState>.value(
-                value: initializationData.designState,
-              ),
-            ],
-            child: HouseholdBudgetApp(lockApp: initializationData.budgetState.settings.lockApp),
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<BudgetState>.value(
+            value: initializationData.budgetState,
           ),
-        )
-      );
-    }
+          ChangeNotifierProvider<DesignState>.value(
+            value: initializationData.designState,
+          ),
+        ],
+        child: HouseholdBudgetApp(lockApp: initializationData.budgetState.settings.lockApp),
+      ),
+    );
   });
 }
 
@@ -228,10 +211,15 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBin
   }
 
   Future<void> _authenticate(bool authRequired) async {
+    // local_auth is not available on Linux or desktop platforms that don't support biometrics
+    if (Platform.isLinux || !authRequired) {
+      setState(() => _isAuthenticated = true);
+      return;
+    }
     try {
       bool supported = await auth.isDeviceSupported();
       bool biometricAvailable = await auth.canCheckBiometrics;
-      final isBiometricAvailable = (biometricAvailable || supported) && authRequired;
+      final isBiometricAvailable = biometricAvailable || supported;
 
       if (isBiometricAvailable) {
         _isAuthenticated = await auth.authenticate(
@@ -246,11 +234,10 @@ class _HouseholdBudgetAppState extends State<HouseholdBudgetApp> with WidgetsBin
       }
       setState(() {});
     } catch (e) {
+      // Authentication failed or plugin unavailable — grant access so the app
+      // doesn't become permanently locked. The error is logged for diagnostics.
       Logger().warning("User authentication failed: $e", tag: "auth");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text( I18n.translate("authFailed", placeholders: {'error': e.toString()}))),
-      );
-      Navigator.of(context).pop();
+      setState(() => _isAuthenticated = true);
     }
   }
 

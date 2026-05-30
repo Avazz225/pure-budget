@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/services/remote/i_cloud_connector.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
@@ -156,8 +155,7 @@ Padding iCloudSelector(
           ],
         ),
         const SizedBox(height: 8,),
-        ElevatedButton(
-          style: btnNeutralStyle,
+        FilledButton(
           onPressed: () => handleFolderSet("icloud://$selectedFolderId"),
           child: Text(I18n.translate("continue"))
         )

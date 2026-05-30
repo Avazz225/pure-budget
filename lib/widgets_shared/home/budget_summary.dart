@@ -1,8 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/widgets_shared/home/budget_arc.dart';
@@ -31,10 +27,6 @@ class _BudgetSummaryState extends State<BudgetSummary> {
     final double totalSpent = categorySpent.fold(0.0, (sum, spent) => sum + spent);
 
     budgetState.updateTotalSpentWidget(totalSpent);
-
-    if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
-      ScreenshotManager().takeScreenshot(name: "main");
-    }
 
     return Column(
       children: [

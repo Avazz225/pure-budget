@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -28,8 +27,7 @@ Future<void> connectSharedDbDialog(BuildContext context, BudgetState budgetState
                     I18n.translate(sharedDbExists ? "sharedDbAlreadyExists" : "newSharedDb")
                   ),
                   const SizedBox(height: 16,),
-                  ElevatedButton(
-                    style: btnNeutralStyle,
+                  FilledButton(
                     onPressed: () async {
                       final navigator = Navigator.of(context);
                       if (sharedDbExists) {
@@ -174,7 +172,7 @@ Future<bool> keyDialog(BuildContext context) async {
                 },
                 child: Text(I18n.translate("cancel")),
               ),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () async {
                   if (keyInput.isNotEmpty) {
                     await EncryptionHelper.saveKey(keyInput.replaceAll(" ", ""));

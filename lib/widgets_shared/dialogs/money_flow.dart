@@ -133,7 +133,7 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                   },
                   child: Text(I18n.translate("cancel")),
                 ),
-                TextButton(
+                FilledButton(
                   onPressed: () async {
                     final navigator = Navigator.of(context);
                     if (principleWithoutDay.contains(bookingPrinciple)){

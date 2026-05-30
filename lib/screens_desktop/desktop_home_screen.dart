@@ -66,16 +66,21 @@ class HomeScreenState extends State<DesktopHomeScreen> {
         backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
         title: Row(
           mainAxisSize: MainAxisSize.min,
-          children: (budgetState.settings.filterBudget != "*") ? 
+          children: (budgetState.settings.filterBudget != "*") ?
           [
-            const Image(image: AssetImage('assets/icons/logo.png'), height: 48,),
-            Text(
-              budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name,
-            )
+            const Image(image: AssetImage('assets/icons/logo.png'), height: 48),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
           ]
           :
           [
-            const Image(image: AssetImage('assets/icons/PureBudgetFullImage.png'), height: 48,)
+            const Image(image: AssetImage('assets/icons/PureBudgetFullImage.png'), height: 48),
           ],
         ),
         actions: [
@@ -216,8 +221,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           );
                         },
                       ),
-                      const SizedBox(height: 0,),
-                    ],
+                                    ],
                   ),
                 ],
               ),

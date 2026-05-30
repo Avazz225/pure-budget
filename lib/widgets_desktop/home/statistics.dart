@@ -1,12 +1,8 @@
 
 // ignore_for_file: library_private_types_in_public_api
 
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_charts/flutter_charts.dart';
-import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/services/statistics.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -69,14 +65,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             children: [
               if ((state.selectedStatisticIndex == 2 || state.selectedStatisticIndex == 0) || !table)
               Card(
-                child: Column(
-                  children: [
-                    Text(
-                      I18n.translate("legend"),
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    statisticsLegend(chartData, filter, state, updateFilter)
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      Text(
+                        I18n.translate("legend"),
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      statisticsLegend(chartData, filter, state, updateFilter),
+                    ],
+                  ),
                 ),
               ),
               if (state.selectedStatisticIndex == 1 || state.selectedStatisticIndex == 3)
@@ -96,13 +95,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           setState(() {
                             table = value;
                           });
-                          if (kDebugMode&& !Platform.isAndroid && !Platform.isIOS){
-                            if (state.selectedStatisticIndex == 1 && table) {
-                              ScreenshotManager().takeScreenshot(name: "statisticsTable");
-                            } else if (state.selectedStatisticIndex == 3 && !table) {
-                              ScreenshotManager().takeScreenshot(name: "statisticsGraph");
-                            }
-                          }
                         },
                         activeThumbColor: Colors.green,
                       )
@@ -128,13 +120,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 filter = "";
                 init = true;
               });
-              if (kDebugMode&& !Platform.isAndroid && !Platform.isIOS){
-                if (index == 1 && table) {
-                  ScreenshotManager().takeScreenshot(name: "statisticsTable");
-                } else if (index == 3 && !table) {
-                  ScreenshotManager().takeScreenshot(name: "statisticsGraph");
-                }
-              }
             },
             items: [
               BottomNavigationBarItem(

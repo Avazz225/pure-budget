@@ -117,7 +117,7 @@ Future<void> addCategory(context, List<BankAccount> bankAccounts) async {
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(I18n.translate("cancel")),
                 ),
-                TextButton(
+                FilledButton(
                   onPressed: () {
                     final v = double.tryParse(amountController.text.replaceAll(",", ".")) ?? 0.0;
                     if (name.isNotEmpty && v > 0) {

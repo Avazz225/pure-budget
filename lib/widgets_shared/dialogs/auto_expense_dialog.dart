@@ -32,6 +32,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
     bool lastRateDifferent = false;
 
     final budgetState = Provider.of<BudgetState>(context, listen: false);
+    final formKey = GlobalKey<FormState>();
 
     AutoExpense? existingExpense;
     if (expenseId != null) {
@@ -67,7 +68,10 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
             return AdaptiveAlertDialog(
               title: Text(expenseId == null ? I18n.translate("addAutoExpense") : I18n.translate("editExpense")),
               content: SingleChildScrollView(
-                child: Column(
+                child: Form(
+                  key: formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Column(
                   children: [
                     Row(
                       children: [
@@ -286,6 +290,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                   ],
                 ),
               ),
+            ),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -293,8 +298,50 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                   },
                   child: Text(I18n.translate("cancel")),
                 ),
+                if (expenseId != null)
                 TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
                   onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AdaptiveAlertDialog(
+                        title: Text(I18n.translate("delete")),
+                        content: Text(I18n.translate("confirmDeleteAutoExpense")),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            child: Text(I18n.translate("cancel")),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            child: Text(I18n.translate("delete")),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed != true || !context.mounted) return;
+                    final navigator = Navigator.of(context);
+                    final toDelete = AutoExpense(
+                      categoryId: categoryId,
+                      amount: 0,
+                      description: descriptionController.text,
+                      bookingPrinciple: bookingPrinciple,
+                      bookingDay: bookingDay,
+                      principleMode: principleMode,
+                      accountId: -1,
+                      moneyFlow: false,
+                      receiverAccountId: -1,
+                      ratePayment: ratePayment,
+                    )..id = expenseId;
+                    await budgetState.updateOrDeleteAutoExpense(toDelete);
+                    navigator.pop();
+                  },
+                  child: Text(I18n.translate("delete")),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    if (!(formKey.currentState?.validate() ?? false)) return;
                     final navigator = Navigator.of(context);
                     if (principleWithoutDay.contains(bookingPrinciple)){
                       bookingDay = 1;
@@ -340,10 +387,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                     }
                     navigator.pop();
                   },
-                  child: (amountController.text.isNotEmpty) ? Text((double.parse(amountController.text.replaceAll(",", ".")) == 0.0 && expenseId != null)
-                  ? I18n.translate("delete")
-                  : I18n.translate("save"))
-                  : Text(I18n.translate("save")),
+                  child: Text(I18n.translate("save")),
                 ),
               ],
             );

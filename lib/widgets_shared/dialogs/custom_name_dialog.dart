@@ -33,7 +33,7 @@ Future<Map<String, dynamic>> showCustomDeviceNameDialog({
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(I18n.translate("cancel")),
               ),
-              TextButton(
+              FilledButton(
                 onPressed: () async {
                   if (!processing) {
                     setState(() {

@@ -69,6 +69,7 @@ class _ExpenseListState extends State<ExpenseList> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.add_rounded),
+                    tooltip: I18n.translate("addExpense"),
                     onPressed: () async {
                       bool res = await  showExpenseDialog(
                         context: context, 
@@ -91,9 +92,9 @@ class _ExpenseListState extends State<ExpenseList> {
                       }
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                  TextButton(
                     onPressed: () => Navigator.of(context).pop(),
+                    child: Text(I18n.translate("close")),
                   ),
                 ]
               )
@@ -123,10 +124,13 @@ class _ExpenseListState extends State<ExpenseList> {
                   itemCount: itemCount,
                   itemBuilder: (context, index) {
                     if (futureExpenses.isNotEmpty && index == 0) {
-                      return Text(
-                        I18n.translate("planned"),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          I18n.translate("planned"),
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
                       );
                     }
                     if (index <= futureExpenses.length && futureExpenses.isNotEmpty) {

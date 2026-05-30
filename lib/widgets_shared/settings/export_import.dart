@@ -28,7 +28,8 @@ class ExportImport extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(I18n.translate("importInformation")),
                     const SizedBox(height: 10),
-                    ElevatedButton(
+                    FilledButton(
+                      style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
                       onPressed: () async {
                         final navigator = Navigator.of(context);
                         await BackupManager.importDataFromFile();

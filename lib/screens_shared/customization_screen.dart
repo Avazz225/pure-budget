@@ -87,7 +87,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
         return AdaptiveAlertDialog(
           title: Text(I18n.translate("preview")),
           actions: [
-            TextButton(
+            FilledButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(I18n.translate("done")),
             )
@@ -159,7 +159,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
             ),
           ),
           actions: [
-            TextButton(
+            FilledButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(I18n.translate("done")),
             )
@@ -269,7 +269,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
             }
           ),
           actions: [
-            TextButton(
+            FilledButton(
               onPressed: () async {
                 final navigator = Navigator.of(context);
                 await designState.updateCustomBackgroundPath("none");
