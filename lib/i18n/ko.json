@@ -459,5 +459,9 @@
   "tourSettingsTitle": "설정 및 더보기",
   "tourSettingsDesc": "설정, 도움말, 데이터 내보내기 및 앱 외관 사용자 지정은 여기서 하세요.",
   "replayTour": "앱 투어 다시 시작",
-  "dismissBannerForever": "이 배너를 영구적으로 숨기기"
+  "dismissBannerForever": "이 배너를 영구적으로 숨기기",
+  "remaining": "잔액",
+  "expenses": "지출",
+  "labelSpent": "지출됨",
+  "pdfSaveDialogTitle": "PDF 보고서 저장"
 }

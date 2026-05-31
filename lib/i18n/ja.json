@@ -459,5 +459,9 @@
   "tourSettingsTitle": "設定など",
   "tourSettingsDesc": "設定、ヘルプ、データのエクスポート、外観のカスタマイズはここから。",
   "replayTour": "アプリツアーを再再生",
-  "dismissBannerForever": "このバナーを永久に非表示"
+  "dismissBannerForever": "このバナーを永久に非表示",
+  "remaining": "残り",
+  "expenses": "支出",
+  "labelSpent": "支出済み",
+  "pdfSaveDialogTitle": "PDFレポートを保存"
 }

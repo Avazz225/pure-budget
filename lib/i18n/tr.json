@@ -459,5 +459,9 @@
   "tourSettingsTitle": "Ayarlar ve Daha Fazlası",
   "tourSettingsDesc": "Ayarlara, yardıma, veri dışa aktarımına ve uygulamanın görünümünü özelleştirmeye buradan erişin.",
   "replayTour": "Uygulama turunu tekrar oynat",
-  "dismissBannerForever": "Bu afişi kalıcı olarak gizle"
+  "dismissBannerForever": "Bu afişi kalıcı olarak gizle",
+  "remaining": "Kalan",
+  "expenses": "Harcamalar",
+  "labelSpent": "Harcanan",
+  "pdfSaveDialogTitle": "PDF raporunu kaydet"
 }

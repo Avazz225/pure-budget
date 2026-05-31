@@ -459,5 +459,9 @@
   "tourSettingsTitle": "Settings & More",
   "tourSettingsDesc": "Access settings, help, and export your data here.",
   "replayTour": "Replay app tour",
-  "dismissBannerForever": "Hide this banner permanently"
+  "dismissBannerForever": "Hide this banner permanently",
+  "remaining": "Remaining",
+  "expenses": "Expenses",
+  "labelSpent": "Spent",
+  "pdfSaveDialogTitle": "Save PDF report"
 }

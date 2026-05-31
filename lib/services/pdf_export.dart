@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
@@ -50,34 +52,63 @@ class PdfExportService {
     // ── Aggregations ──────────────────────────────────────────────────────────
     final totalSpent = expenses.fold<double>(0, (s, e) => s + (e['amount'] as num));
 
-    // Category totals
+    // Total budget (income) from realizedBankaccounts for the exact interval.
+    // This is the historically correct value, not the current account income.
+    final dbRaw = await db.database;
+    final budgetRows = filterBudget == '*'
+        ? await dbRaw.rawQuery(
+            'SELECT SUM(income) AS totalIncome FROM realizedBankaccounts WHERE intervalId = ?',
+            [interval.id])
+        : await dbRaw.rawQuery(
+            'SELECT SUM(income) AS totalIncome FROM realizedBankaccounts WHERE intervalId = ? AND accountId = ?',
+            [interval.id, int.tryParse(filterBudget)]);
+    final totalBudget = (budgetRows.first['totalIncome'] as num?)?.toDouble() ?? 0;
+
+    // Category totals (actual spending per category)
     final catTotals = <int, double>{};
-    final catBudgets = await db.genericSelect('categoryBudgets') as List;
     for (final e in expenses) {
       final id = e['categoryId'] as int;
       catTotals[id] = (catTotals[id] ?? 0) + (e['amount'] as num);
     }
 
-    // Lookup budget per category
-    Map<int, double> catBudgetMap = {};
-    for (final cb in catBudgets) {
-      final catId = cb['categoryId'] as int;
-      if (!catBudgetMap.containsKey(catId) || cb['budget'] as double > 0) {
-        catBudgetMap[catId] = (cb['budget'] as num).toDouble();
+    // Historical budgets from realizedCategoryBudgets for the exact interval.
+    // accountId = -1 is the sentinel used when filterBudget == "*".
+    final accountId = filterBudget == '*' ? -1 : (int.tryParse(filterBudget) ?? -1);
+    final realizedBudgets = await dbRaw.rawQuery(
+      'SELECT categoryId, budget FROM realizedCategoryBudgets WHERE intervalId = ? AND accountId = ?',
+      [interval.id, accountId],
+    );
+
+    final catBudgetMap = <int, double>{};
+    double assignedBudget = 0;
+    for (final row in realizedBudgets) {
+      final catId = row['categoryId'] as int;
+      final bgt = (row['budget'] as num).toDouble();
+      if (catId != -1) {
+        catBudgetMap[catId] = bgt;
+        assignedBudget += bgt;
       }
     }
+    // "Unassigned" budget = total income − sum of all named category budgets
+    catBudgetMap[-1] = (totalBudget - assignedBudget).clamp(0, double.infinity);
+
+    // ── Load font (Unicode support: €, –, — etc.) ─────────────────────────────
+    final fontData = await rootBundle.load('lib/assets/fonts/RobotoMono-Bold.ttf');
+    final ttf = pw.Font.ttf(fontData);
+    final theme = pw.ThemeData.withFont(base: ttf, bold: ttf);
 
     // ── Build PDF ─────────────────────────────────────────────────────────────
     final pdf = pw.Document();
 
     pdf.addPage(
       pw.MultiPage(
+        theme: theme,
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         header: (ctx) => _buildHeader(ctx, appTitle, interval, currency),
         footer: (ctx) => _buildFooter(ctx),
         build: (ctx) => [
-          _summarySection(totalSpent, currency),
+          _summarySection(totalBudget, totalSpent, currency),
           pw.SizedBox(height: 16),
           _categoryTable(catTotals, catBudgetMap, categoryById, currency),
           pw.SizedBox(height: 16),
@@ -86,17 +117,33 @@ class PdfExportService {
       ),
     );
 
-    // ── Write & share ─────────────────────────────────────────────────────────
-    final dir  = await getTemporaryDirectory();
-    final path = '${dir.path}/pure_budget_report.pdf';
-    final file = File(path);
-    await file.writeAsBytes(await pdf.save());
-    _logger.info("PDF written to $path", tag: "pdfExport");
+    // ── Write & deliver ───────────────────────────────────────────────────────
+    final bytes = await pdf.save();
+    final defaultName =
+        'pure_budget_${_periodLabel(interval).replaceAll(' ', '').replaceAll('.', '-')}.pdf';
 
-    await Share.shareXFiles(
-      [XFile(path, mimeType: 'application/pdf')],
-      subject: '$appTitle — ${_periodLabel(interval)}',
-    );
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      // Desktop: native save-file dialog so the user picks the location
+      final savePath = await FilePicker.platform.saveFile(
+        dialogTitle: I18n.translate("pdfSaveDialogTitle"),
+        fileName: defaultName,
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      if (savePath == null) return; // user cancelled
+      await File(savePath).writeAsBytes(bytes);
+      _logger.info("PDF saved to $savePath", tag: "pdfExport");
+    } else {
+      // Mobile: system share sheet
+      final dir  = await getTemporaryDirectory();
+      final path = '${dir.path}/$defaultName';
+      await File(path).writeAsBytes(bytes);
+      _logger.info("PDF written to $path", tag: "pdfExport");
+      await Share.shareXFiles(
+        [XFile(path, mimeType: 'application/pdf')],
+        subject: '$appTitle — ${_periodLabel(interval)}',
+      );
+    }
   }
 
   // ── Widgets ───────────────────────────────────────────────────────────────
@@ -136,7 +183,13 @@ class PdfExportService {
     );
   }
 
-  static pw.Widget _summarySection(double totalSpent, String currency) {
+  static pw.Widget _summarySection(
+      double totalBudget, double totalSpent, String currency) {
+    final balance = totalBudget - totalSpent;
+    final overBudget = balance < 0;
+    final balanceStr =
+        '${overBudget ? '' : '+'}${balance.toStringAsFixed(2)} $currency';
+
     return pw.Container(
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
@@ -146,19 +199,32 @@ class PdfExportService {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
         children: [
-          _statCell(I18n.translate('totalSpentLabel'), '${totalSpent.toStringAsFixed(2)} $currency'),
+          _statCell(I18n.translate('budget'),
+              '${totalBudget.toStringAsFixed(2)} $currency'),
+          _statCell(I18n.translate('totalSpentLabel'),
+              '${totalSpent.toStringAsFixed(2)} $currency'),
+          _statCell(
+            I18n.translate('balance'),
+            balanceStr,
+            valueColor: overBudget ? _overBudget : PdfColors.green800,
+          ),
         ],
       ),
     );
   }
 
-  static pw.Widget _statCell(String label, String value) {
+  static pw.Widget _statCell(String label, String value,
+      {PdfColor valueColor = PdfColors.black}) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
         pw.Text(label, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
         pw.SizedBox(height: 2),
-        pw.Text(value, style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
+        pw.Text(value,
+            style: pw.TextStyle(
+                fontSize: 13,
+                fontWeight: pw.FontWeight.bold,
+                color: valueColor)),
       ],
     );
   }
@@ -189,7 +255,7 @@ class PdfExportService {
             _tableHeaderRow([
               I18n.translate('categories'),
               I18n.translate('budget'),
-              I18n.translate('spent'),
+              I18n.translate('labelSpent'),
               I18n.translate('remaining'),
             ]),
             for (int i = 0; i < rows.length; i++)
@@ -224,9 +290,9 @@ class PdfExportService {
       decoration: pw.BoxDecoration(color: shade ? _altRow : null),
       children: [
         _cell(name, style: style),
-        _cell(budget > 0 ? '${budget.toStringAsFixed(2)} $currency' : '—', style: style),
+        _cell(budget > 0 ? '${budget.toStringAsFixed(2)} $currency' : '-', style: style),
         _cell('${spent.toStringAsFixed(2)} $currency', style: style),
-        _cell(budget > 0 ? '${remaining.toStringAsFixed(2)} $currency' : '—',
+        _cell(budget > 0 ? '${remaining.toStringAsFixed(2)} $currency' : '-',
               style: style.copyWith(color: overBudget ? _overBudget : PdfColors.green800)),
       ],
     );
@@ -277,7 +343,8 @@ class PdfExportService {
     final catName = rawCat == '__undefined_category_name__' ? I18n.translate('unassigned') : rawCat;
     final amount = (expense['amount'] as num).toDouble();
     final amountStr = '${amount.toStringAsFixed(2)} $currency';
-    final dateStr = (expense['date'] as String).substring(0, 10);
+    final d = DateTime.parse(expense['date'] as String);
+    final dateStr = '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
     const style = pw.TextStyle(fontSize: 9);
 
     return pw.TableRow(

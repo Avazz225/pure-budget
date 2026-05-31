@@ -459,5 +459,9 @@
   "tourSettingsTitle": "Paramètres et plus",
   "tourSettingsDesc": "Accédez aux paramètres, à l'aide, exportez vos données et personnalisez l'apparence de l'application.",
   "replayTour": "Rejouer la visite guidée",
-  "dismissBannerForever": "Masquer cette bannière définitivement"
+  "dismissBannerForever": "Masquer cette bannière définitivement",
+  "remaining": "Restant",
+  "expenses": "Dépenses",
+  "labelSpent": "Dépensé",
+  "pdfSaveDialogTitle": "Enregistrer le rapport PDF"
 }

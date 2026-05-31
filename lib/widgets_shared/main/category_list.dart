@@ -16,7 +16,7 @@ Widget categoryList(BudgetState budgetState, Function setState) {
       budgetState.saveCategoryOrder();
     }
 
-  String currentAccount = (budgetState.bankAccounts.length == 1) ? "" : ((budgetState.settings.filterBudget == "*") ? "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == "-1").name})" : "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == budgetState.settings.filterBudget).name})");
+  String currentAccount = (budgetState.bankAccounts.length <= 1) ? "" : ((budgetState.settings.filterBudget == "*") ? "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == "-1", orElse: () => budgetState.bankAccounts.first).name})" : "\n(${budgetState.bankAccounts.firstWhere((acc) => acc.id.toString() == budgetState.settings.filterBudget, orElse: () => budgetState.bankAccounts.first).name})");
 
   return Expanded(
     child: ReorderableListView.builder(

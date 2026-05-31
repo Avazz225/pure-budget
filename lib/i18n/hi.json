@@ -459,5 +459,9 @@
   "tourSettingsTitle": "सेटिंग्स और अधिक",
   "tourSettingsDesc": "यहाँ से सेटिंग्स, सहायता, डेटा निर्यात और ऐप का स्वरूप अनुकूलित करें।",
   "replayTour": "ऐप टूर दोबारा चलाएं",
-  "dismissBannerForever": "इस बैनर को स्थायी रूप से छुपाएं"
+  "dismissBannerForever": "इस बैनर को स्थायी रूप से छुपाएं",
+  "remaining": "शेष",
+  "expenses": "खर्च",
+  "labelSpent": "खर्च किया",
+  "pdfSaveDialogTitle": "PDF रिपोर्ट सहेजें"
 }

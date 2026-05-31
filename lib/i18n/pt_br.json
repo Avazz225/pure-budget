@@ -459,5 +459,9 @@
   "tourSettingsTitle": "Configurações e mais",
   "tourSettingsDesc": "Acesse configurações, ajuda, exporte seus dados e personalize a aparência do app.",
   "replayTour": "Repetir o tour do app",
-  "dismissBannerForever": "Ocultar este banner permanentemente"
+  "dismissBannerForever": "Ocultar este banner permanentemente",
+  "remaining": "Restante",
+  "expenses": "Despesas",
+  "labelSpent": "Gasto",
+  "pdfSaveDialogTitle": "Salvar relatório PDF"
 }

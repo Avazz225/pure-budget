@@ -459,5 +459,9 @@
   "tourSettingsTitle": "Ustawienia i więcej",
   "tourSettingsDesc": "Tutaj znajdziesz ustawienia, pomoc, eksport danych i dostosowanie wyglądu aplikacji.",
   "replayTour": "Powtórz wycieczkę po aplikacji",
-  "dismissBannerForever": "Ukryj ten baner na stałe"
+  "dismissBannerForever": "Ukryj ten baner na stałe",
+  "remaining": "Pozostało",
+  "expenses": "Wydatki",
+  "labelSpent": "Wydano",
+  "pdfSaveDialogTitle": "Zapisz raport PDF"
 }

@@ -562,7 +562,9 @@ class DatabaseHelper {
 
   Future<int> insertBankAccount(Map<String, dynamic> bankAccount, {Database? dbObj}) async {
     final db = dbObj ?? await database;
-    bankAccount['isCreditCard'] = bankAccount['isCreditCard'] ? 1 : 0;
+    // isCreditCard may arrive as int (0/1) from a backup file — convert safely
+    bankAccount['isCreditCard'] =
+        (bankAccount['isCreditCard'] == true || bankAccount['isCreditCard'] == 1) ? 1 : 0;
     int id = await db.insert('bankaccounts', bankAccount);
     await insertEditLog("bankaccounts", id, "insert", dbObj: db);
     List<Category> cats = await getCategories("*");
@@ -809,58 +811,60 @@ class DatabaseHelper {
   Future<void> importData(Map<String, dynamic> data) async {
     final db = await database;
 
-    await resetDatabase();
+    // Wrap everything in a transaction so the DB is never left in a partial state.
+    // If any insert fails, SQLite rolls back to the state before the import started.
+    await db.transaction((txn) async {
+      // Clear existing data inside the transaction
+      const tables = [
+        'expenses', 'categories', 'settings', 'autoexpenses', 'bankaccounts',
+        'categoryBudgets', 'editLog', 'intervals', 'realizedCategoryBudgets',
+        'realizedBankaccounts', 'realizedAutoexpenses',
+      ];
+      for (final t in tables) {
+        await txn.delete(t);
+      }
 
-    for (Map<String, dynamic> expense in data['expenses']){
-      await genericInsert("expenses", expense, dbObj: db);
-    }
-
-    for (Map<String, dynamic> autoexpenses in data['autoexpenses']){
-      await insertAutoExpense(autoexpenses, dbObj: db);
-    }
-
-    for (Map<String, dynamic> settings in data['settings']){
-      settings.remove("isPro");
-      await insertSettings(settings, dbObj: db);
-    }
-
-    for (Map<String, dynamic> bankaccount in data['bankaccounts']){
-      await insertBankAccount(bankaccount, dbObj: db);
-    }
-
-    for (Map<String, dynamic> categoryBudgets in data['categoryBudgets']){
-      await insertCategoryBudget(categoryBudgets, dbObj: db);
-    }
-
-    for (Map<String, dynamic> categories in data['categories']){
-      await insertCategoryFlat(categories, dbObj: db);
-    }
-
-    for (Map<String, dynamic> refill in data['creditCardRefills']){
-      await insertRefill(refill, dbObj: db);
-    }
-
-    for (Map<String, dynamic> intervals in data['intervals']){
-      await genericInsert("intervals", intervals, dbObj: db);
-    }
-
-    for (Map<String, dynamic> realizedBankaccounts in data['realizedBankaccounts']){
-      await genericInsert("realizedBankaccounts", realizedBankaccounts, dbObj: db);
-    }
-
-    for (Map<String, dynamic> realizedCategoryBudgets in data['realizedCategoryBudgets']){
-      await genericInsert("realizedCategoryBudgets", realizedCategoryBudgets, dbObj: db);
-    }
-
-    for (Map<String, dynamic> realizedAutoExpenses in data['realizedAutoExpenses']){
-      await genericInsert("realizedAutoExpenses", realizedAutoExpenses, dbObj: db);
-    }
-    
-    await db.delete("editLog");
-
-    for (Map<String, dynamic> editLog in data['editLog']){
-      await insertEditLogFlat(editLog, dbObj: db);
-    }
+      for (final row in (data['expenses'] as List)) {
+        await txn.insert('expenses', row as Map<String, dynamic>);
+      }
+      for (final row in (data['autoexpenses'] as List)) {
+        await insertAutoExpense(Map<String, dynamic>.from(row as Map), dbObj: txn as Database?);
+      }
+      for (final row in (data['settings'] as List)) {
+        final s = Map<String, dynamic>.from(row as Map)..remove('isPro');
+        await txn.insert('settings', s);
+      }
+      for (final row in (data['bankaccounts'] as List)) {
+        final acc = Map<String, dynamic>.from(row as Map);
+        acc['isCreditCard'] =
+            (acc['isCreditCard'] == true || acc['isCreditCard'] == 1) ? 1 : 0;
+        await txn.insert('bankaccounts', acc);
+      }
+      for (final row in (data['categoryBudgets'] as List)) {
+        await txn.insert('categoryBudgets', row as Map<String, dynamic>);
+      }
+      for (final row in (data['categories'] as List)) {
+        await txn.insert('categories', row as Map<String, dynamic>);
+      }
+      for (final row in (data['creditCardRefills'] as List)) {
+        await txn.insert('creditCardRefills', row as Map<String, dynamic>);
+      }
+      for (final row in (data['intervals'] as List)) {
+        await txn.insert('intervals', row as Map<String, dynamic>);
+      }
+      for (final row in (data['realizedBankaccounts'] as List)) {
+        await txn.insert('realizedBankaccounts', row as Map<String, dynamic>);
+      }
+      for (final row in (data['realizedCategoryBudgets'] as List)) {
+        await txn.insert('realizedCategoryBudgets', row as Map<String, dynamic>);
+      }
+      for (final row in (data['realizedAutoExpenses'] as List)) {
+        await txn.insert('realizedAutoexpenses', row as Map<String, dynamic>);
+      }
+      for (final row in (data['editLog'] as List)) {
+        await txn.insert('editLog', row as Map<String, dynamic>);
+      }
+    });
   }
 
   Future<void> insertRefill(Map<String, dynamic> refill, {Database? dbObj}) async {

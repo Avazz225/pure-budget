@@ -54,19 +54,25 @@ class InitializationService {
     }
     final categories = await dbHelper.getCategories(filter);
     final autoExpenses = await dbHelper.getAutoExpenses();
-    final totalBalance = (await dbHelper.getTotalBudget(filter))[settings.useBalance ? 'totalBalance' : 'totalIncome'];
+    final budgetRow = await dbHelper.getTotalBudget(filter);
+    final totalBalance = (budgetRow[settings.useBalance ? 'totalBalance' : 'totalIncome'] as num? ?? 0).toDouble();
     
     Map<String, dynamic> resetInfo;
 
-    // read resetInfo
-    if (filter == "*") {
-      resetInfo = {"principle": bankAccounts[0].budgetResetPrinciple, "day":bankAccounts[0].budgetResetDay};
+    // read resetInfo — guard against empty list (e.g. after a failed import)
+    if (bankAccounts.isEmpty) {
+      resetInfo = {"principle": "monthStart", "day": 1};
+    } else if (filter == "*") {
+      resetInfo = {"principle": bankAccounts[0].budgetResetPrinciple, "day": bankAccounts[0].budgetResetDay};
     } else {
-      resetInfo = {"principle": bankAccounts.where((acc) => acc.id == int.tryParse(filter)).first.budgetResetPrinciple, "day": bankAccounts.where((acc) => acc.id == int.tryParse(filter)).first.budgetResetDay};
+      final match = bankAccounts.where((acc) => acc.id == int.tryParse(filter));
+      final src = match.isEmpty ? bankAccounts[0] : match.first;
+      resetInfo = {"principle": src.budgetResetPrinciple, "day": src.budgetResetDay};
     }
 
     // determine whether app has been set up
-    bool isSetupComplete = (bankAccounts[0].balance != 0.00 || bankAccounts[0].income != 0.00 || categories.length != 1);
+    final bool isSetupComplete = bankAccounts.isNotEmpty &&
+        (bankAccounts[0].balance != 0.00 || bankAccounts[0].income != 0.00 || categories.length != 1);
 
     // Initialize BudgetState
     final budgetState = await BudgetState.initialize(

@@ -42,7 +42,12 @@ mixin ExpenseMixin on ChangeNotifier {
   }
 
   Future<void> getStatistics(String type) async {
+    if (budgetRanges.isEmpty) {
+      statistics = {"data": []};
+      return;
+    }
     final repo = StatisticsRepository();
+    final currentRange = budgetRanges[range.clamp(0, budgetRanges.length - 1)];
     switch (type) {
       case "history_months":
         statistics = {
@@ -51,7 +56,7 @@ mixin ExpenseMixin on ChangeNotifier {
         };
       case "month_by_cat":
         statistics = {
-          "data": await repo.statisticMonthTotalByCat(budgetRanges[range], settings.filterBudget),
+          "data": await repo.statisticMonthTotalByCat(currentRange, settings.filterBudget),
         };
       case "history_by_cat":
         statistics = {
@@ -60,7 +65,7 @@ mixin ExpenseMixin on ChangeNotifier {
         };
       default: // month_total
         statistics = {
-          "data": await repo.statisticMonthTotal(budgetRanges[range], settings.filterBudget),
+          "data": await repo.statisticMonthTotal(currentRange, settings.filterBudget),
         };
     }
   }

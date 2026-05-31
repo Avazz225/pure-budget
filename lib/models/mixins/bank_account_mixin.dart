@@ -74,9 +74,10 @@ mixin BankAccountMixin on ChangeNotifier {
     bankAccounts.add(newAcc);
 
     final ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
-    totalBudget = ret['totalIncome'] + (settings.useBalance ? ret['totalBalance'] : 0);
+    totalBudget = ((ret['totalIncome'] as num? ?? 0) + (settings.useBalance ? (ret['totalBalance'] as num? ?? 0) : 0)).toDouble();
 
     await loadRanges();
+    await loadBankAccounts();
     await loadBudgets();
     notifyListeners();
     saveWidgetData("totalBudget", totalBudget);
@@ -112,11 +113,11 @@ mixin BankAccountMixin on ChangeNotifier {
     }
 
     final ret = await DatabaseHelper().getTotalBudget(settings.filterBudget);
-    totalBudget = ret['totalIncome'] + (settings.useBalance ? ret['totalBalance'] : 0);
+    totalBudget = ((ret['totalIncome'] as num? ?? 0) + (settings.useBalance ? (ret['totalBalance'] as num? ?? 0) : 0)).toDouble();
 
     await loadMoneyFlows();
+    await loadRanges();        // must come before loadBankAccounts (which needs budgetRanges)
     await loadBankAccounts();
-    await loadRanges();
     await loadBudgets();
     notifyListeners();
     saveWidgetData("totalBudget", totalBudget);

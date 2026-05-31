@@ -148,12 +148,19 @@ class BudgetState extends ChangeNotifier
     moneyFlows = await db.getMoneyFlows();
     bankAccounts = await db.getBankAccounts(moneyFlows);
     autoExpenses = await db.getAutoExpenses();
-    totalBudget = ret['totalIncome'] + (settings.useBalance ? ret['totalBalance'] : 0);
+    totalBudget = ((ret['totalIncome'] as num? ?? 0) + (settings.useBalance ? (ret['totalBalance'] as num? ?? 0) : 0)).toDouble();
     settings.currency = settings.currency;
-    if (settings.filterBudget == "*") {
+    if (bankAccounts.isEmpty) {
+      resetInfo = {"principle": "monthStart", "day": 1};
+    } else if (settings.filterBudget == "*") {
       resetInfo = {"principle": bankAccounts[0].budgetResetPrinciple, "day":bankAccounts[0].budgetResetDay};
     } else {
-      resetInfo = {"principle": bankAccounts.where((acc) => acc.id == int.tryParse(settings.filterBudget)).first.budgetResetPrinciple, "day": bankAccounts.where((acc) => acc.id == int.tryParse(settings.filterBudget)).first.budgetResetDay};
+      final match = bankAccounts.where((acc) => acc.id == int.tryParse(settings.filterBudget));
+      if (match.isEmpty) {
+        resetInfo = {"principle": bankAccounts[0].budgetResetPrinciple, "day":bankAccounts[0].budgetResetDay};
+      } else {
+        resetInfo = {"principle": match.first.budgetResetPrinciple, "day": match.first.budgetResetDay};
+      }
     }
 
     await loadMoneyFlows();
@@ -227,7 +234,10 @@ class BudgetState extends ChangeNotifier
 
   @override
   Future<void> loadBankAccounts() async {
-    bankAccounts = await DatabaseHelper().getBankAccounts(moneyFlows, intervalId: budgetRanges[range].id!);
+    final intervalId = budgetRanges.isNotEmpty
+        ? budgetRanges[range.clamp(0, budgetRanges.length - 1)].id
+        : null;
+    bankAccounts = await DatabaseHelper().getBankAccounts(moneyFlows, intervalId: intervalId);
     totalBudget = bankAccounts.fold(0.0, (sum, acc) => sum + acc.income + (settings.useBalance ? acc.balance : 0.0));
   }
 

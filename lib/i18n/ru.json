@@ -459,5 +459,9 @@
   "tourSettingsTitle": "Настройки и другое",
   "tourSettingsDesc": "Здесь вы найдёте настройки, справку, экспорт данных и настройку внешнего вида приложения.",
   "replayTour": "Повторить тур по приложению",
-  "dismissBannerForever": "Скрыть этот баннер навсегда"
+  "dismissBannerForever": "Скрыть этот баннер навсегда",
+  "remaining": "Остаток",
+  "expenses": "Расходы",
+  "labelSpent": "Потрачено",
+  "pdfSaveDialogTitle": "Сохранить PDF-отчёт"
 }
