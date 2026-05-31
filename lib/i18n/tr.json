@@ -458,5 +458,6 @@
   "tourStatsDesc": "Harcama geçmişinizi görüntüleyin, ayları karşılaştırın ve kategorileri zaman içinde analiz edin.",
   "tourSettingsTitle": "Ayarlar ve Daha Fazlası",
   "tourSettingsDesc": "Ayarlara, yardıma, veri dışa aktarımına ve uygulamanın görünümünü özelleştirmeye buradan erişin.",
-  "replayTour": "Uygulama turunu tekrar oynat"
+  "replayTour": "Uygulama turunu tekrar oynat",
+  "dismissBannerForever": "Bu afişi kalıcı olarak gizle"
 }

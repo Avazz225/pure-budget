@@ -458,5 +458,6 @@
   "tourStatsDesc": "Consultez votre historique de dépenses, comparez les mois et analysez les catégories.",
   "tourSettingsTitle": "Paramètres et plus",
   "tourSettingsDesc": "Accédez aux paramètres, à l'aide, exportez vos données et personnalisez l'apparence de l'application.",
-  "replayTour": "Rejouer la visite guidée"
+  "replayTour": "Rejouer la visite guidée",
+  "dismissBannerForever": "Masquer cette bannière définitivement"
 }

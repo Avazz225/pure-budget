@@ -458,5 +458,6 @@
   "tourStatsDesc": "Sieh dir deinen Ausgabenverlauf an, vergleiche Monate und analysiere Kategorien über die Zeit.",
   "tourSettingsTitle": "Einstellungen & mehr",
   "tourSettingsDesc": "Hier erreichst du Einstellungen, Hilfe, Datenexport und die App-Anpassung.",
-  "replayTour": "App-Tour wiederholen"
+  "replayTour": "App-Tour wiederholen",
+  "dismissBannerForever": "Dieses Banner dauerhaft ausblenden"
 }

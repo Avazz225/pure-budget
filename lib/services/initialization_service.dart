@@ -113,7 +113,8 @@ class InitializationService {
       mainMenuStyle: designData["mainMenuStyle"] as int,
       blurIntensity: designData["blurIntensity"] as double,
       customGradient: designData["customGradient"] as String,
-      intervalStyle: designData["intervalStyle"] as int
+      intervalStyle: designData["intervalStyle"] as int,
+      goMobileBannerDismissed: designData["goMobileBannerDismissed"] == 1,
     );
 
     // Initialize date formatting

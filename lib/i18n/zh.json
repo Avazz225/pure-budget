@@ -458,5 +458,6 @@
   "tourStatsDesc": "查看您的消费历史，比较月份，并分析各类别随时间的变化。",
   "tourSettingsTitle": "设置及更多",
   "tourSettingsDesc": "在这里访问设置、帮助、导出数据并自定义应用外观。",
-  "replayTour": "重播应用导览"
+  "replayTour": "重播应用导览",
+  "dismissBannerForever": "永久隐藏此横幅"
 }

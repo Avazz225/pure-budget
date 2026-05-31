@@ -458,5 +458,6 @@
   "tourStatsDesc": "View your spending history and compare months.",
   "tourSettingsTitle": "Settings & More",
   "tourSettingsDesc": "Access settings, help, and export your data here.",
-  "replayTour": "Replay app tour"
+  "replayTour": "Replay app tour",
+  "dismissBannerForever": "Hide this banner permanently"
 }

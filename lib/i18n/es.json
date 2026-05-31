@@ -458,5 +458,6 @@
   "tourStatsDesc": "Consulta tu historial de gastos, compara meses y analiza categorías a lo largo del tiempo.",
   "tourSettingsTitle": "Configuración y más",
   "tourSettingsDesc": "Accede a configuraciones, ayuda, exporta tus datos y personaliza la apariencia de la app.",
-  "replayTour": "Repetir el recorrido de la app"
+  "replayTour": "Repetir el recorrido de la app",
+  "dismissBannerForever": "Ocultar este banner permanentemente"
 }

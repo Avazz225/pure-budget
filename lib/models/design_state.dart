@@ -20,14 +20,15 @@ class DesignState extends ChangeNotifier {
   double blurIntensity; // blur of background image
   Map<String, dynamic> customGradient; // custom gradient for background
   int intervalStyle; // style for interval display
+  bool goMobileBannerDismissed; // user permanently closed the go-mobile banner
 
   DesignState._({
     required this.layoutMainVertical,
     required this.categoryMainStyle,
-    required this.addExpenseStyle, 
-    required this.arcStyle, 
+    required this.addExpenseStyle,
+    required this.arcStyle,
     required this.arcPercent,
-    required this.arcWidth, 
+    required this.arcWidth,
     required this.arcSegmentsRounded,
     required this.dialogSolidBackground,
     required this.appBackgroundSolid,
@@ -37,7 +38,8 @@ class DesignState extends ChangeNotifier {
     required this.mainMenuStyle,
     required this.blurIntensity,
     required this.customGradient,
-    required this.intervalStyle
+    required this.intervalStyle,
+    required this.goMobileBannerDismissed,
   });
 
   factory DesignState({
@@ -56,7 +58,8 @@ class DesignState extends ChangeNotifier {
     required int mainMenuStyle,
     required double blurIntensity,
     required String customGradient,
-    required int intervalStyle
+    required int intervalStyle,
+    required bool goMobileBannerDismissed,
   }) {
     return DesignState._(
       layoutMainVertical: layoutMainVertical,
@@ -74,7 +77,8 @@ class DesignState extends ChangeNotifier {
       mainMenuStyle: mainMenuStyle,
       blurIntensity: blurIntensity,
       customGradient: decodeCustomGradient(customGradient),
-      intervalStyle: intervalStyle
+      intervalStyle: intervalStyle,
+      goMobileBannerDismissed: goMobileBannerDismissed,
     );
   }
 
@@ -94,9 +98,10 @@ class DesignState extends ChangeNotifier {
     required int mainMenuStyle,
     required double blurIntensity,
     required String customGradient,
-    required int intervalStyle
+    required int intervalStyle,
+    required bool goMobileBannerDismissed,
   }) {
-    final instance = DesignState(
+    return DesignState(
       layoutMainVertical: layoutMainVertical,
       categoryMainStyle: categoryMainStyle,
       addExpenseStyle: addExpenseStyle,
@@ -112,10 +117,9 @@ class DesignState extends ChangeNotifier {
       mainMenuStyle: mainMenuStyle,
       blurIntensity: blurIntensity,
       customGradient: customGradient,
-      intervalStyle: intervalStyle
+      intervalStyle: intervalStyle,
+      goMobileBannerDismissed: goMobileBannerDismissed,
     );
-
-    return instance;
   } 
 
   static Map<String, dynamic> decodeCustomGradient(String jsonString) {
@@ -163,6 +167,12 @@ class DesignState extends ChangeNotifier {
     };
     
     await DatabaseHelper().updateDesign("customGradient", json.encode(processed));
+  }
+
+  Future<void> updateGoMobileBannerDismissed(bool dismissed) async {
+    goMobileBannerDismissed = dismissed;
+    await DatabaseHelper().updateDesign("goMobileBannerDismissed", dismissed ? 1 : 0);
+    notifyListeners();
   }
 
   Future<void> updateMainMenuStyle(int index) async {

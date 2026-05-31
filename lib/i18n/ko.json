@@ -458,5 +458,6 @@
   "tourStatsDesc": "지출 내역을 확인하고, 월을 비교하고, 시간에 따른 카테고리를 분석하세요.",
   "tourSettingsTitle": "설정 및 더보기",
   "tourSettingsDesc": "설정, 도움말, 데이터 내보내기 및 앱 외관 사용자 지정은 여기서 하세요.",
-  "replayTour": "앱 투어 다시 시작"
+  "replayTour": "앱 투어 다시 시작",
+  "dismissBannerForever": "이 배너를 영구적으로 숨기기"
 }

@@ -458,5 +458,6 @@
   "tourStatsDesc": "支出の履歴を表示し、月を比較し、カテゴリを分析します。",
   "tourSettingsTitle": "設定など",
   "tourSettingsDesc": "設定、ヘルプ、データのエクスポート、外観のカスタマイズはここから。",
-  "replayTour": "アプリツアーを再再生"
+  "replayTour": "アプリツアーを再再生",
+  "dismissBannerForever": "このバナーを永久に非表示"
 }
