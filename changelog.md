@@ -4,10 +4,50 @@
 
 ### planned (depends on need)
 
-- add connection to iCloud
-- export to pdf and csv
+- add connection to iCloud (requires full CloudKit rewrite)
 
 ## Changelog
+
+### 4.0.0 bundle 44
+
+#### Export
+- **PDF export** (Pro) — generates a formatted A4 report with category summary table and full expense list; period is freely selectable from all available intervals
+- **CSV export** — exports all expenses of any period as UTF-8 CSV via the system share sheet; available in all versions
+
+#### UI / UX
+- **In-app tour** — spotlight-based guided tour highlights the 4 key elements of the home screen on first launch after setup; can be replayed from Settings at any time
+- Amounts are now the prominent title on category tiles, category names are secondary
+- Progress bar direction is left-to-right (RTL-aware)
+- All primary actions use `FilledButton`, destructive actions use error colour, secondary actions use `TextButton` — consistent across all dialogs
+- Disconnect dialog: corrected inverted button semantics
+- Folder pickers switch icon from open to filled once a folder is selected
+
+#### Form validation
+- All input dialogs now show inline field errors as soon as the user touches a field (`AutovalidateMode.onUserInteraction`) — affected: expense, auto-expense, bank account, category dialogs
+
+#### Delete confirmations
+- Explicit "Delete" buttons with confirmation dialogs added to expense, auto-expense, bank account, and category dialogs
+- Deleting via "set amount to 0" is no longer needed
+
+#### Notifications
+- Linux notification support enabled
+- macOS notifications re-enabled (were unintentionally excluded)
+
+#### Architecture
+- `budget_state.dart` reduced from 874 to 341 lines (−61 %) via 6 mixins
+- Statistics queries moved from `database_helper.dart` to `StatisticsRepository`
+- 25 integration tests added (expense CRUD, bank account CRUD, auto-expense deduplication, background jobs)
+- DB schema v40: `tourCompleted` flag in settings
+
+#### Bug fixes
+- Fixed fresh-install crash on Linux (SQL double-quote issue in INSERT statements)
+- Fixed `local_auth` crash on Linux (plugin unsupported — skipped)
+- Fixed authentication callback using `ScaffoldMessenger` above `MaterialApp` root
+- Fixed `void` async bank account methods — callers now correctly await them
+- Fixed potential crash when bank account not found in memory list (`indexWhere`)
+- Fixed unawaited `db.delete` in shared-database import
+- Fixed crash in `moveItem` when auto-expense not found
+- Added guard for empty `budgetRanges` before `.first` calls
 
 ### 3.3.8 bundle 43
 
