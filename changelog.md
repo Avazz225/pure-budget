@@ -8,11 +8,11 @@
 
 ## Changelog
 
-### 4.0.1 bundle 45
+### 4.0.1 bundle 45 (06.06.2026)
 
 - fix multiple creations of autoexpenses when using multiple bank accounts
 
-### 4.0.0 bundle 44
+### 4.0.0 bundle 44 (05.06.2026)
 
 #### Export
 - **PDF export** (Pro) — generates a formatted A4 report with category summary table and full expense list; period is freely selectable from all available intervals
