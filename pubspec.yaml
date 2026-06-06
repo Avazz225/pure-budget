@@ -106,7 +106,7 @@ flutter_launcher_icons:
 msix_config:
   display_name: Pure Budget
   publisher_display_name: J2 Soft
-  logo_path: E:\Workspaces\VSCode\household-app\jne_household_app\logo.png
+  logo_path: logo.png
   capabilities: internetClient
   languages: en, de, es, fr, hi, it, ja, ko, pl, pt-br, pt, ru, tr, zh-cn
 
