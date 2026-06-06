@@ -32,13 +32,16 @@ jobs:
           echo "version_raw=$VERSION_RAW" >> $GITHUB_OUTPUT
 
       - name: Build MSIX (Store)
+        env:
+          PUBLISHER: ${{ secrets.PUBLISHER }}
+          IDENTITY: ${{ secrets.IDENTITY }}
         run: |
           dart run msix:create `
             --store true `
             --version "${{ steps.version.outputs.version }}" `
             -n "pureBudget_release" `
-            -b "${{ secrets.PUBLISHER }}" `
-            -i "${{ secrets.IDENTITY }}"
+            -b "$env:PUBLISHER" `
+            -i "$env:IDENTITY"
 
       - name: Upload MSIX
         uses: actions/upload-artifact@v4
