@@ -11,6 +11,7 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    environment: windows
 
     steps:
       - uses: actions/checkout@v4
@@ -40,8 +41,8 @@ jobs:
             --store true `
             --version "${{ steps.version.outputs.version }}" `
             -n "pureBudget_release" `
-            -b "$env:PUBLISHER" `
-            -i "$env:IDENTITY"
+            -b "$PUBLISHER" `
+            -i "$IDENTITY"
 
       - name: Upload MSIX
         uses: actions/upload-artifact@v4
