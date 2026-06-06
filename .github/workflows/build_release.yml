@@ -1,0 +1,47 @@
+ame: Build Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pubspec.yaml'
+
+jobs:
+  build-windows:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'windows' }}
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          VERSION_RAW=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          VERSION=$(echo "$VERSION_RAW" | sed 's/+[0-9]*/\.0/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_raw=$VERSION_RAW" >> $GITHUB_OUTPUT
+
+      - name: Build MSIX (Store)
+        run: |
+          dart run msix:create `
+            --store true `
+            --version "${{ steps.version.outputs.version }}" `
+            -n "pureBudget_release"
+            -b "${{ secrets.PUBLISHER }}"
+            -i "${{ secrets.IDENTITY }}"
+
+      - name: Upload MSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ steps.version.outputs.version }}
+          path: build/windows/x64/runner/Release/*.msix
