@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'pubspec.yaml'
+  workflow_dispatch:
 
 jobs:
   build-windows:
