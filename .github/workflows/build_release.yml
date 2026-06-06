@@ -41,8 +41,8 @@ jobs:
             --store true `
             --version "${{ steps.version.outputs.version }}" `
             -n "pureBudget_release" `
-            -b "$PUBLISHER" `
-            -i "$IDENTITY"
+            -b "$env:PUBLISHER" `
+            -i "$env:IDENTITY"
 
       - name: Upload MSIX
         uses: actions/upload-artifact@v4
