@@ -141,7 +141,9 @@ Future<bool> backgroundJobs({DatabaseHelper ?dbHelper, List<AutoExpense> ?autoEx
       final List<AutoExpense> autoExpenses = await dbHelper.getAutoExpenses(noMoneyFlow: false, dbObj: db);
       logger.debug("Processing ${autoExpenses.length} autoexpenses", tag: "background jobs");
       for (final AutoExpense ae in autoExpenses) {
-        await ae.processUpcomingAE(newInterval, db, true);
+        if (ae.accountId == ba.id){
+          await ae.processUpcomingAE(newInterval, db, true);
+        }
       }
 
       didChanges = true;

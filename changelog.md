@@ -8,6 +8,10 @@
 
 ## Changelog
 
+### 4.0.1 bundle 45
+
+- fix multiple creations of autoexpenses when using multiple bank accounts
+
 ### 4.0.0 bundle 44
 
 #### Export

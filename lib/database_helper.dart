@@ -63,6 +63,7 @@ class DatabaseHelper {
 
       final dir = await getApplicationSupportDirectory();
       dbPath = dir.path;
+      _logger.debug("DB path: $dbPath", tag: "db");
     } else {
       dbPath = await getDatabasesPath();
     }
@@ -696,7 +697,6 @@ class DatabaseHelper {
       List.from(await db.query('autoexpenses', where: 'moneyFlow = ?', whereArgs: [0]))
       :
       List.from(await db.query('autoexpenses'));
-
     return autoExpenseList.map((data) {
       return AutoExpense(
         id: data['id'] as int,
@@ -820,51 +820,81 @@ class DatabaseHelper {
         'categoryBudgets', 'editLog', 'intervals', 'realizedCategoryBudgets',
         'realizedBankaccounts', 'realizedAutoexpenses',
       ];
+
+      _logger.debug("Loading data from keys: ${data.keys}r" ,tag: "import");
+
+      _logger.debug("Deleting old data", tag: "import");
       for (final t in tables) {
         await txn.delete(t);
       }
 
+      _logger.debug("Inserting expenses", tag: "import");
       for (final row in (data['expenses'] as List)) {
         await txn.insert('expenses', row as Map<String, dynamic>);
       }
+
+      _logger.debug("Inserting autoexpenses", tag: "import");
       for (final row in (data['autoexpenses'] as List)) {
-        await insertAutoExpense(Map<String, dynamic>.from(row as Map), dbObj: txn as Database?);
+        await txn.insert('autoexpenses', row as Map<String, dynamic>);
       }
+
+      _logger.debug("Inserting settings", tag: "import");
       for (final row in (data['settings'] as List)) {
         final s = Map<String, dynamic>.from(row as Map)..remove('isPro');
         await txn.insert('settings', s);
       }
+
+      _logger.debug("Inserting bankaccounts", tag: "import");
       for (final row in (data['bankaccounts'] as List)) {
         final acc = Map<String, dynamic>.from(row as Map);
         acc['isCreditCard'] =
             (acc['isCreditCard'] == true || acc['isCreditCard'] == 1) ? 1 : 0;
         await txn.insert('bankaccounts', acc);
       }
+
+      _logger.debug("Inserting categoryBudgets", tag: "import");
       for (final row in (data['categoryBudgets'] as List)) {
         await txn.insert('categoryBudgets', row as Map<String, dynamic>);
       }
+
+      _logger.debug("Inserting categories", tag: "import");
       for (final row in (data['categories'] as List)) {
         await txn.insert('categories', row as Map<String, dynamic>);
       }
+
+      _logger.debug("Inserting creditCardRefills", tag: "import");
       for (final row in (data['creditCardRefills'] as List)) {
         await txn.insert('creditCardRefills', row as Map<String, dynamic>);
       }
+
+      _logger.debug("Inserting intervals", tag: "import");
       for (final row in (data['intervals'] as List)) {
         await txn.insert('intervals', row as Map<String, dynamic>);
       }
-      for (final row in (data['realizedBankaccounts'] as List)) {
+
+      _logger.debug("Inserting realized_bankaccounts", tag: "import");
+      for (final row in (data['realized_bankaccounts'] as List)) {
         await txn.insert('realizedBankaccounts', row as Map<String, dynamic>);
       }
-      for (final row in (data['realizedCategoryBudgets'] as List)) {
+
+      _logger.debug("Inserting realized_categorybudgets", tag: "import");
+      for (final row in (data['realized_categorybudgets'] as List)) {
         await txn.insert('realizedCategoryBudgets', row as Map<String, dynamic>);
       }
-      for (final row in (data['realizedAutoExpenses'] as List)) {
+
+      _logger.debug("Inserting realized_autoexpenses", tag: "import");
+      for (final row in (data['realized_autoexpenses'] as List)) {
         await txn.insert('realizedAutoexpenses', row as Map<String, dynamic>);
       }
+
+      _logger.debug("Inserting editLog", tag: "import");
       for (final row in (data['editLog'] as List)) {
         await txn.insert('editLog', row as Map<String, dynamic>);
       }
+
+      _logger.debug("Finished inserting", tag: "import");
     });
+    _logger.debug("Finished import", tag: "import");
   }
 
   Future<void> insertRefill(Map<String, dynamic> refill, {Database? dbObj}) async {
