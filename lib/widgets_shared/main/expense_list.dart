@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
 import 'package:jne_household_app/models/design_state.dart';
+import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/screens_mobile/mobile_receipt_scanner.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -31,7 +32,7 @@ class ExpenseList extends StatefulWidget {
 }
 
 class _ExpenseListState extends State<ExpenseList> {
-  late Future<List<Map<String, dynamic>>> _expensesFuture;
+  late Future<List<Expense>> _expensesFuture;
 
   @override
   void initState() {
@@ -40,7 +41,7 @@ class _ExpenseListState extends State<ExpenseList> {
   }
 
   void _loadExpenses() {
-    _expensesFuture = DatabaseHelper().getExpenses(widget.categoryId, widget.state.filterBudget, widget.state.budgetRanges[widget.state.range]);
+    _expensesFuture = DatabaseHelper().getExpenses(widget.categoryId, widget.state.settings.filterBudget, widget.state.budgetRanges[widget.state.range], widget.state.bankAccounts);
   }
 
   void _refreshExpenses() {
@@ -50,7 +51,7 @@ class _ExpenseListState extends State<ExpenseList> {
 
   @override
   Widget build(BuildContext context) {
-    String filterBudget = widget.state.filterBudget;
+    String filterBudget = widget.state.settings.filterBudget;
     List<BankAccount> accounts = widget.state.bankAccounts;
 
     return Column(
@@ -68,20 +69,22 @@ class _ExpenseListState extends State<ExpenseList> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.add_rounded),
+                    tooltip: I18n.translate("addExpense"),
                     onPressed: () async {
                       bool res = await  showExpenseDialog(
                         context: context, 
                         category: widget.category, 
                         categoryId: widget.categoryId, 
-                        accountId: widget.state.filterBudget, 
+                        accountId: widget.state.settings.filterBudget, 
                         bankAccounts: widget.state.bankAccounts, 
                         bankAccoutCount: widget.state.bankAccounts.length,
-                        allowCamera: widget.state.proStatusIsSet(mobileOnly: true)
+                        allowCamera: widget.state.proStatusIsSet(mobileOnly: true),
+                        overrideBankAccount: widget.state.categories.where((c) => c.categoryId == widget.categoryId).first.overrideBankAccount,
                       );
-                      if (res) {
+                      if (res && context.mounted) {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => ReceiptPage(baseCurrency: widget.state.currency, budgetState: widget.state, designState: context.read<DesignState>(), overrideCatId: widget.categoryId, closeAfterSuccess: true),
+                            builder: (context) => ReceiptPage(baseCurrency: widget.state.settings.currency, budgetState: widget.state, designState: context.read<DesignState>(), overrideCatId: widget.categoryId, closeAfterSuccess: true),
                           ),
                         );
                       } else {
@@ -89,9 +92,9 @@ class _ExpenseListState extends State<ExpenseList> {
                       }
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                  TextButton(
                     onPressed: () => Navigator.of(context).pop(),
+                    child: Text(I18n.translate("close")),
                   ),
                 ]
               )
@@ -100,7 +103,7 @@ class _ExpenseListState extends State<ExpenseList> {
         ),
     
         Expanded(
-          child: FutureBuilder<List<Map<String, dynamic>>>(
+          child: FutureBuilder<List<Expense>>(
             future: _expensesFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -108,8 +111,8 @@ class _ExpenseListState extends State<ExpenseList> {
               } else if (snapshot.hasData) {
                 final expenses = snapshot.data!.reversed.toList();
                 final now = DateTime.now();
-                final futureExpenses = expenses.where((exp) => DateTime.parse(exp['date']).isAfter(now)).toList();
-                final pastExpenses = expenses.where((exp) => DateTime.parse(exp['date']).isBefore(now)).toList();
+                final futureExpenses = expenses.where((exp) => exp.date.isAfter(now)).toList();
+                final pastExpenses = expenses.where((exp) => exp.date.isBefore(now)).toList();
                 final itemCount = (futureExpenses.isNotEmpty ? futureExpenses.length + 1 : 0) +
                     (pastExpenses.isNotEmpty ? pastExpenses.length + (futureExpenses.isNotEmpty ? 1 : 0) : 0);
 
@@ -121,10 +124,13 @@ class _ExpenseListState extends State<ExpenseList> {
                   itemCount: itemCount,
                   itemBuilder: (context, index) {
                     if (futureExpenses.isNotEmpty && index == 0) {
-                      return Text(
-                        I18n.translate("planned"),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          I18n.translate("planned"),
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
                       );
                     }
                     if (index <= futureExpenses.length && futureExpenses.isNotEmpty) {
@@ -148,34 +154,43 @@ class _ExpenseListState extends State<ExpenseList> {
     );
   }
 
-  Card _buildExpenseTile(Map<String, dynamic> expense, String filterBudget, List<BankAccount> accounts) {
+  Card _buildExpenseTile(Expense expense, String filterBudget, List<BankAccount> accounts) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
-        title: Text(expense['description'] != "" ? expense['description'] : I18n.translate("expense")),
+        title: Text(expense.description != "" ? expense.description : I18n.translate("expense")),
         subtitle: Text(
-          formatDate(expense['date'], context) + (expense['autoId'] == -1 ? "" : " ${I18n.translate("automatic")}")
-          + (filterBudget == "*" ? " - ${accounts.where((acc) => acc.id== expense['accountId']).first.name}" : "")
+          formatDate(formatForSqlite(expense.date), context) + (expense.autoId == -1 ? "" : " ${I18n.translate("automatic")}")
+          + (filterBudget == "*" ? " - ${accounts.where((acc) => acc.id== expense.accountId).first.name}" : "")
           ,
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              I18n.translate("expenseAmount", placeholders: {"amount": expense['amount'].toStringAsFixed(2), "currency": widget.currency}),
+              I18n.translate("expenseAmount", placeholders: {"amount": expense.amount.toStringAsFixed(2), "currency": widget.currency}),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             IconButton(
               icon: const Icon(Icons.swap_horiz_rounded),
               onPressed: () async {
-                await showMoveDialog(context: context, categoryId: widget.categoryId, accountId: expense['accountId'],targetId: expense['id'], autoExpense: false);
+                await showMoveDialog(context: context, categoryId: widget.categoryId, accountId: expense.accountId,targetId: expense.id!, autoExpense: false);
                 _refreshExpenses();
               },
             ),
             IconButton(
               icon: const Icon(Icons.edit_rounded),
               onPressed: () async {
-                await showExpenseDialog(context: context, category: widget.category, categoryId: widget.categoryId, expense: expense, accountId: expense['accountId'].toString(), bankAccounts: accounts, bankAccoutCount: accounts.length);
+                await showExpenseDialog(
+                  context: context, 
+                  category: widget.category, 
+                  categoryId: widget.categoryId, 
+                  expense: expense, 
+                  accountId: expense.accountId.toString(), 
+                  bankAccounts: accounts, 
+                  bankAccoutCount: accounts.length,
+                  overrideBankAccount: widget.state.categories.where((c) => c.categoryId == widget.categoryId).first.overrideBankAccount,
+                );
                 _refreshExpenses();
               },
             ),

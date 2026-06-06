@@ -1,8 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/widgets_shared/home/budget_arc.dart';
@@ -26,18 +22,15 @@ class _BudgetSummaryState extends State<BudgetSummary> {
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
     final designState = Provider.of<DesignState>(context);
-    final currency = budgetState.currency;
+    final currency = budgetState.settings.currency;
     final List<double> categorySpent = budgetState.categories.map((c) => c.spent).toList();
     final double totalSpent = categorySpent.fold(0.0, (sum, spent) => sum + spent);
 
     budgetState.updateTotalSpentWidget(totalSpent);
 
-    if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
-      ScreenshotManager().takeScreenshot(name: "main");
-    }
-
     return Column(
       children: [
+        if (designState.intervalStyle == 0)
         BudgetDropdown(
           budgetRanges: budgetState.budgetRanges,
           updateRangeSelection: budgetState.updateRangeSelection,
@@ -62,7 +55,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
           BudgetArcWidget(
             totalBudget: budgetState.totalBudget,
             totalSpent: totalSpent,
-            currency: budgetState.currency,
+            currency: budgetState.settings.currency,
             categorySpent: categorySpent,
             segmentColors: budgetState.categories.map((c) => c.color).toList(),
             showText: designState.layoutMainVertical,
@@ -72,7 +65,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
           BudgetLineWidget(
             totalBudget: budgetState.totalBudget,
             totalSpent: totalSpent,
-            currency: budgetState.currency,
+            currency: budgetState.settings.currency,
             categorySpent: categorySpent,
             segmentColors: budgetState.categories.map((c) => c.color).toList(),
             showText: designState.layoutMainVertical,
@@ -92,7 +85,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
                 child: BudgetArcWidget(
                   totalBudget: budgetState.totalBudget,
                   totalSpent: totalSpent,
-                  currency: budgetState.currency,
+                  currency: budgetState.settings.currency,
                   categorySpent: categorySpent,
                   segmentColors: budgetState.categories.map((c) => c.color).toList(),
                   showText: designState.layoutMainVertical,
@@ -106,7 +99,7 @@ class _BudgetSummaryState extends State<BudgetSummary> {
                 child: BudgetLineWidget(
                   totalBudget: budgetState.totalBudget,
                   totalSpent: totalSpent,
-                  currency: budgetState.currency,
+                  currency: budgetState.settings.currency,
                   categorySpent: categorySpent,
                   segmentColors: budgetState.categories.map((c) => c.color).toList(),
                   showText: designState.layoutMainVertical,

@@ -1,4 +1,5 @@
 import 'package:jne_household_app/models/booking_principles.dart';
+import 'package:jne_household_app/models/interval.dart';
 
 DateTime nthBusinessDay(int year, int month, [int dayCount = 1]) {
   if (dayCount < 1) {
@@ -61,24 +62,78 @@ bool isSameDay(DateTime d1, DateTime d2) {
   return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
 }
 
-List<Map<String, DateTime>> getMultipleRanges(Map<String, dynamic> resetInfo, int count, DateTime firstDate) {
+PBInterval getDateRangeForCreditCard(Map<String, dynamic> resetInfo, int accountId, {PBInterval? rangeToMeet, bool lastMonth=false}) {
+  DateTime today = DateTime.now();
+  int i = 1;
+
+  if (rangeToMeet != null) {
+      while (!dateInRange(rangeToMeet, today)) {
+        today = today.subtract(Duration(days: i));
+        i++;
+      }
+  }
+
+  
+  PBInterval adapt = getDateRangeForPrinciple(resetInfo, accountId, year: today.year, month: today.month, now: today);
+
+  if (dateInRange(adapt, today)) {
+    if (lastMonth) {
+      DateTime targetDay = subtractMonths(today, 1);
+      return getDateRangeForPrinciple(resetInfo, accountId, year: today.year, month: today.month, now: targetDay);
+    }
+    return adapt;
+  } else if (dateBeforeRange(today, adapt.end)) {
+    if (lastMonth) {
+      DateTime targetDay = subtractMonths(today, 2);
+      return getDateRangeForPrinciple(resetInfo, accountId, year: today.year, month: today.month, now: targetDay);
+    }
+    DateTime targetDay = subtractMonths(today, 1);
+    return getDateRangeForPrinciple(resetInfo, accountId, year: today.year, month: today.month, now: targetDay);
+  } else {
+    if (lastMonth) {
+      return adapt;
+    }
+    DateTime targetDay = subtractMonths(today, -1);
+    return getDateRangeForPrinciple(resetInfo, accountId, year: today.year, month: today.month, now: targetDay);
+  }
+}
+
+DateTime getCreditCardStartDayLastMonth(Map<String, dynamic> resetInfo, int accountId) {
+  DateTime today = DateTime.now();
+  today = DateTime(today.year, today.month, 1);
+  
+  PBInterval adapt = getDateRangeForPrinciple(resetInfo, accountId, year: today.year, month: today.month, now: today);
+
+  if (dateInRange(adapt, today)) {
+    return adapt.start;
+  } else if (dateBeforeRange(today, adapt.end)) {
+    DateTime targetDay = subtractMonths(today, 1);
+    return getDateRangeForPrinciple(resetInfo, accountId, year: today.year, month: today.month, now: targetDay).start;
+  } else {
+    DateTime targetDay = subtractMonths(today, -1);
+    return getDateRangeForPrinciple(resetInfo, accountId, year: today.year, month: today.month, now: targetDay).start;
+  }
+}
+
+List<PBInterval> getMultipleRanges(Map<String, dynamic> resetInfo, int count, DateTime firstDate, int accountId) {
   DateTime today = DateTime.now();
   bool include = true;
 
-  List<Map<String, DateTime>> result = [];
+  List<PBInterval> result = [];
 
   for (int i = 0; i < count; i++) {
     if (!include) break;
 
     DateTime targetDay = subtractMonths(today, i);
-    Map<String, DateTime> range = getDateRangeForPrinciple(
+    PBInterval range = getDateRangeForPrinciple(
       resetInfo,
+      accountId,
       year: targetDay.year,
       month: targetDay.month,
       now: targetDay,
     );
 
-    if (dateInOrAfterRange(firstDate, range['end']!)) {
+    if (dateInOrAfterRange(firstDate, range.end)) {
       result.add(range);
     } else {
       include = false;
@@ -103,7 +158,7 @@ DateTime subtractMonths(DateTime date, int months) {
   return DateTime(year, month, day);
 }
 
-Map<String, DateTime> getDateRangeForPrinciple(Map<String, dynamic> resetInfo, {int? year, int? month, DateTime? now}) {
+PBInterval getDateRangeForPrinciple(Map<String, dynamic> resetInfo, int accountId, {int? year, int? month, DateTime? now}) {
   DateTime today = now ?? DateTime.now();
   int targetYear = year ?? today.year;
   int targetMonth = month ?? today.month;
@@ -120,29 +175,29 @@ Map<String, DateTime> getDateRangeForPrinciple(Map<String, dynamic> resetInfo, {
     case 'nthDayOfMonth':
       DateTime targetDate = nthDay(targetYear, targetMonth, day);
       return isSameDay(today, targetDate) || today.isAfter(targetDate)
-          ? {'start': targetDate, 'end': nthDay(targetYear, targetMonth + 1, day)}
-          : {'start': nthDay(targetYear, targetMonth - 1, day), 'end': targetDate};
+          ? PBInterval({'start': targetDate, 'end': nthDay(targetYear, targetMonth + 1, day), 'accountId': accountId})
+          : PBInterval({'start': nthDay(targetYear, targetMonth - 1, day), 'end': targetDate, 'accountId': accountId});
     
     case 'monthEnd':
     case 'nthLastDayOfMonth':
       DateTime targetDate = nthLastDay(targetYear, targetMonth, day);
       return isSameDay(today, targetDate) || today.isBefore(targetDate)
-          ? {'start': nthLastDay(targetYear, targetMonth - 1, day), 'end': targetDate}
-          : {'start': targetDate, 'end': nthLastDay(targetYear, targetMonth + 1, day)};
+          ? PBInterval({'start': nthLastDay(targetYear, targetMonth - 1, day), 'end': targetDate, 'accountId': accountId})
+          : PBInterval({'start': targetDate, 'end': nthLastDay(targetYear, targetMonth + 1, day), 'accountId': accountId});
     
     case 'firstBusinessDayOfMonth':
     case 'nthBusinessDayOfMonth':
       DateTime targetDate = nthBusinessDay(targetYear, targetMonth, day);
       return isSameDay(today, targetDate) || today.isAfter(targetDate)
-          ? {'start': targetDate, 'end': nthBusinessDay(targetYear, targetMonth + 1, day)}
-          : {'start': nthBusinessDay(targetYear, targetMonth - 1, day), 'end': targetDate};
+          ? PBInterval({'start': targetDate, 'end': nthBusinessDay(targetYear, targetMonth + 1, day), 'accountId': accountId})
+          : PBInterval({'start': nthBusinessDay(targetYear, targetMonth - 1, day), 'end': targetDate, 'accountId': accountId});
     
     case 'lastBusinessDayOfMonth':
     case 'nthLastBusinessDayOfMonth':
       DateTime targetDate = nthLastBusinessDay(targetYear, targetMonth, day);
       return isSameDay(today, targetDate) || today.isBefore(targetDate)
-          ? {'start': nthLastBusinessDay(targetYear, targetMonth - 1, day), 'end': targetDate}
-          : {'start': targetDate, 'end': nthLastBusinessDay(targetYear, targetMonth + 1, day)};
+          ? PBInterval({'start': nthLastBusinessDay(targetYear, targetMonth - 1, day), 'end': targetDate, 'accountId': accountId})
+          : PBInterval({'start': targetDate, 'end': nthLastBusinessDay(targetYear, targetMonth + 1, day), 'accountId': accountId});
     
     default:
       throw ArgumentError("Ungültiges Prinzip: $principle");
@@ -180,6 +235,14 @@ bool dateInOrAfterRange(DateTime date, DateTime rangeEnd) {
   return !rangeEnd.isBefore(date) && !date.isAtSameMomentAs(rangeEnd);
 }
 
-bool dateBeforRange(DateTime date, DateTime rangeStart) {
+bool dateBeforeRange(DateTime date, DateTime rangeStart) {
   return date.isBefore(rangeStart);
+}
+
+bool dateAfterRange(PBInterval range, DateTime date) {
+  return date.isAfter(range.end);
+}
+
+bool dateInRange(PBInterval range, DateTime date) {
+  return (date.isAtSameMomentAs(range.start) || date.isAfter(range.start)) && (date.isAtSameMomentAs(range.end) || date.isBefore(range.end));
 }

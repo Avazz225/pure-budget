@@ -80,19 +80,20 @@ class _ReceiptPageState extends State<ReceiptPage> {
   }
 
   Future<void> _updateControllers(ReceiptData data) async {
-    final selectedCat = widget.overrideCatId ?? widget.budgetState.selectedScanCategory;
+    final selectedCat = widget.overrideCatId ?? widget.budgetState.settings.selectedScanCategory;
     _logger.debug("Read data: amount -> ${data.amount}, selectedCategoryId -> $selectedCat", tag: "scan");
     await showExpenseDialog(
       context: context,
-      accountId: widget.budgetState.filterBudget,
+      accountId: widget.budgetState.settings.filterBudget,
       bankAccounts: widget.budgetState.bankAccounts,
       bankAccoutCount: widget.budgetState.bankAccounts.length,
       defaultVal: data.amount,
-      category: widget.budgetState.rawCategories.where((c) => c.id == selectedCat).first.name,
-      categoryId: selectedCat
+      category: widget.budgetState.rawCategories.where((c) => c.category.id == selectedCat).first.category.name,
+      categoryId: selectedCat,
+      overrideBankAccount: widget.budgetState.categories.where((c) => c.categoryId == selectedCat).first.overrideBankAccount,
     );
 
-    if (widget.closeAfterSuccess) {
+    if (widget.closeAfterSuccess && mounted) {
       Navigator.of(context).pop();
     }
   }

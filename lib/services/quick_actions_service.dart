@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart'; // Mobile Widgets
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/keys.dart';
@@ -87,6 +88,11 @@ class QuickActionsService with TrayListener {
       MenuItem(key: 'open_budget', label: I18n.translate("open")),
       MenuItem.separator(),
       MenuItem(key: 'exit', label: I18n.translate("exit")),
+      if (kDebugMode)
+      ... [
+        MenuItem.separator(),
+        MenuItem(key: 'direct?categoryId=-1&amount=10.0&description=Test expense from fast actions', label: "Test Direct Insert"),
+      ]
     ];
 
     await trayManager.setContextMenu(Menu(items: menu));

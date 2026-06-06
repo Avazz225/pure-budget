@@ -5,7 +5,10 @@ import 'package:jne_household_app/screens_mobile/mobile_receipt_scanner.dart';
 import 'package:jne_household_app/screens_shared/customization_screen.dart';
 import 'package:jne_household_app/screens_shared/help_screen.dart';
 import 'package:jne_household_app/screens_mobile/mobile_in_app_purchase.dart';
+import 'package:jne_household_app/services/app_tour.dart';
 import 'package:jne_household_app/widgets_mobile/home/statistics.dart';
+import 'package:jne_household_app/widgets_shared/app_rating.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/interval_picker.dart';
 import 'package:jne_household_app/widgets_shared/home/budget_summary.dart';
 import 'package:jne_household_app/widgets_shared/main/autoexpenses.dart';
 import 'package:jne_household_app/widgets_mobile/banner_ad.dart';
@@ -16,6 +19,7 @@ import 'package:jne_household_app/widgets_shared/main/bank_accounts.dart';
 import 'package:jne_household_app/widgets_shared/main/category_list.dart';
 import 'package:jne_household_app/widgets_shared/tri_rhombus_icon.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -29,190 +33,256 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   HomeScreenState();
   int tabindex = 2;
+  bool _tourScheduled = false;
+
+  void _maybeStartTour(BuildContext context, BudgetState budgetState) {
+    if (_tourScheduled || budgetState.settings.tourCompleted) return;
+    _tourScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AppTour().startTour(context);
+      budgetState.updateTourCompleted(true);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
     final designState = Provider.of<DesignState>(context);
-    bool isDarkMode = Theme.brightnessOf(context) == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
-        title: Text("${I18n.translate('appTitle')} ${budgetState.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.filterBudget).first.name}" : ""}"),
-        actions: [
-          if(budgetState.sharedDbUrl != "none")
-          ...[
-            if (!budgetState.syncInProgress)
-            ...[
-              if (budgetState.sharedDbConnected)
-              IconButton(
-                icon: const Icon(Icons.cloud_queue_rounded),
-                onPressed: () => budgetState.syncSharedDb(manual: true),
-              )
-              else
-              IconButton(
-                icon: const Icon(Icons.cloud_off_rounded),
-                onPressed: () => budgetState.syncSharedDb(manual: true),
+    return ShowCaseWidget(
+      onFinish: () {},
+      builder: (ctx) {
+      _maybeStartTour(ctx, budgetState);
+      return RateAppLauncher(
+      child: Scaffold(
+        backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: (budgetState.settings.filterBudget != "*") ? 
+            [
+              const Image(image: AssetImage('assets/icons/logo.png'), height: 32,),
+              Flexible(
+                child: Text(
+                  budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  overflow: TextOverflow.ellipsis,
+                ),
               )
             ]
-            else
-            const Icon(Icons.cloud_sync_rounded),
-          ], 
-          if (budgetState.proStatusIsSet())
-          IconButton(
-            icon: const Icon(Icons.camera_alt_rounded),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState,),
-              ),
-            ),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'settings') {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
-                );
-              } else if (value == 'help') {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const HelpScreen(),
-                  ),
-                );
-              } else if (value == 'inAppPurchase') {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const InAppPurchaseScreen(),
-                  ),
-                );
-              } else if (value == "customization") {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const CustomizationScreen(),
-                  ),
-                );
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem(
-                value: 'help',
-                child: Text(I18n.translate("help")),
-              ),
-              if (budgetState.proStatusIsSet(inverted: true))
-              PopupMenuItem(
-                value: 'inAppPurchase',
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TriRhombusIcon(
-                      gap: -2.5,
-                      size: 20, 
-                      rotation: 90, 
-                      colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.lightGreen, Colors.lightBlue, Colors.yellowAccent] : [Colors.pink, Colors.purple, Colors.deepOrange]
-                    ),
-                    const SizedBox(width: 4,),
-                    Text(I18n.translate("upgradeToPro"))
-                  ],
-                )
-              ),
-              if (budgetState.proStatusIsSet())
-              PopupMenuItem(
-                value: 'customization',
-                child: Text(I18n.translate("customization")),
-              ),
-              PopupMenuItem(
-                value: 'settings',
-                child: Text(I18n.translate("settings")),
-              )
+            :
+            [
+              const Image(image: AssetImage('assets/icons/PureBudgetFullImage.png'), height: 48,)
             ],
           ),
-        ],
-      ),
-      body: switch (tabindex) {
-        0 => bankAccounts(context, budgetState, setState),
-        1 => const StatisticsScreen(),
-        3 => Column(
-              children: [
-                AddCategory(budgetState: budgetState, pro: budgetState.proStatusIsSet()),
-                categoryList(budgetState, setState),
+          actions: [
+            if(budgetState.settings.sharedDbUrl != "none")
+            ...[
+              if (!budgetState.syncInProgress)
+              ...[
+                if (budgetState.sharedDbConnected)
+                IconButton(
+                  icon: const Icon(Icons.cloud_queue_rounded),
+                  onPressed: () => budgetState.syncSharedDb(manual: true),
+                )
+                else
+                IconButton(
+                  icon: const Icon(Icons.cloud_off_rounded),
+                  onPressed: () => budgetState.syncSharedDb(manual: true),
+                )
+              ]
+              else
+              const Icon(Icons.cloud_sync_rounded),
+            ],
+            if(designState.intervalStyle == 1)
+            ... [
+              IconButton(
+                icon: Icon(budgetState.range == 0 ? Icons.calendar_month_rounded : Icons.history_rounded),
+                onPressed: () {
+                  selectInterval(context, budgetState);
+                },
+              ),
+            ],
+            if (budgetState.proStatusIsSet())
+            IconButton(
+              icon: const Icon(Icons.camera_alt_rounded),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ReceiptPage(baseCurrency: budgetState.settings.currency, budgetState: budgetState, designState: designState,),
+                ),
+              ),
+            ),
+            AppTour.step(
+              stepKey: AppTour().keySettingsMenu,
+              titleKey: "tourSettingsTitle",
+              descKey: "tourSettingsDesc",
+              tooltipPosition: TooltipPosition.bottom,
+              child: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'settings') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                } else if (value == 'help') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const HelpScreen(),
+                    ),
+                  );
+                } else if (value == 'inAppPurchase') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const InAppPurchaseScreen(),
+                    ),
+                  );
+                } else if (value == "customization") {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const CustomizationScreen(),
+                    ),
+                  );
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem(
+                  value: 'help',
+                  child: Text(I18n.translate("help")),
+                ),
+                if (budgetState.proStatusIsSet(inverted: true))
+                PopupMenuItem(
+                  value: 'inAppPurchase',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TriRhombusIcon(
+                        gap: -2.5,
+                        size: 20, 
+                        rotation: 90, 
+                        colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.lightGreen, Colors.lightBlue, Colors.yellowAccent] : [Colors.pink, Colors.purple, Colors.deepOrange]
+                      ),
+                      const SizedBox(width: 4,),
+                      Text(I18n.translate("upgradeToPro"))
+                    ],
+                  )
+                ),
+                if (budgetState.proStatusIsSet())
+                PopupMenuItem(
+                  value: 'customization',
+                  child: Text(I18n.translate("customization")),
+                ),
+                PopupMenuItem(
+                  value: 'settings',
+                  child: Text(I18n.translate("settings")),
+                )
               ],
             ),
-        4 => Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: (!designState.appBackgroundSolid) ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
-                    borderRadius: BorderRadius.circular(8),
+            ), // AppTour.step closes
+          ],
+        ),
+        body: switch (tabindex) {
+          0 => bankAccounts(context, budgetState, setState),
+          1 => const StatisticsScreen(),
+          3 => Column(
+                children: [
+                  AddCategory(budgetState: budgetState, pro: budgetState.proStatusIsSet()),
+                  categoryList(budgetState, setState),
+                ],
+              ),
+          4 => Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: (!designState.appBackgroundSolid) ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      I18n.translate("autoexpenses"),
+                    ),
                   ),
-                  child: Text(
-                    style: Theme.of(context).textTheme.headlineSmall,
-                    I18n.translate("autoexpenses"),
-                  ),
-                ),
-                autoExpenseList(budgetState)
-              ]
+                  autoExpenseList(budgetState)
+                ]
+              ),
+          _ => AppTour.step(
+              stepKey: AppTour().keyBudgetSummary,
+              titleKey: "tourBudgetTitle",
+              descKey: "tourBudgetDesc",
+              tooltipPosition: TooltipPosition.bottom,
+              child: const BudgetSummary(),
             ),
-        _ => const BudgetSummary(),
-      },
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          BottomNavigationBar(
-            selectedItemColor: isDarkMode ? Colors.blue[100] : Colors.blue[900],
-            unselectedItemColor: isDarkMode ? Colors.purple[50]: Colors.purple[900],
-            backgroundColor: Colors.transparent,
-            items: [
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.wallet_rounded),
-                label: I18n.translate("bankaccount"),
-                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.line_axis_rounded),
-                label: I18n.translate("statistics"),
-                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.home_rounded),
-                label: I18n.translate("start"),
-                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.category_rounded),
-                label: I18n.translate("categories"),
-                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.autorenew_rounded),
-                label: I18n.translate("fixedCost"),
-                backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
-              ),
-            ],
-            currentIndex: tabindex,
-            onTap: (index) {
-              if (index != tabindex) {
-                setState(() {
-                  tabindex = index;
-                });
-              } else if (index == 2 && budgetState.proStatusIsSet()) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ReceiptPage(baseCurrency: budgetState.currency, budgetState: budgetState, designState: designState,),
+        },
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            BottomNavigationBar(
+              selectedItemColor: Theme.of(context).colorScheme.primary,
+              unselectedItemColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: .55),
+              backgroundColor: Colors.transparent,
+              items: [
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.wallet_rounded),
+                  label: I18n.translate("bankaccount"),
+                  backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
+                ),
+                BottomNavigationBarItem(
+                  icon: Showcase(
+                    key: AppTour().keyBottomNavStats,
+                    title: I18n.translate("tourStatsTitle"),
+                    description: I18n.translate("tourStatsDesc"),
+                    tooltipPosition: TooltipPosition.top,
+                    child: const Icon(Icons.line_axis_rounded),
                   ),
-                );
-              }
-            },
-          ),
-          if (budgetState.proStatusIsSet(inverted: true, ignoreDebugMode: true))
-          const MainBanner()
-        ],
-      ),
+                  label: I18n.translate("statistics"),
+                  backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
+                ),
+                BottomNavigationBarItem(
+                  icon: Showcase(
+                    key: AppTour().keyBottomNavHome,
+                    title: I18n.translate("tourHomeTitle"),
+                    description: I18n.translate("tourHomeDesc"),
+                    tooltipPosition: TooltipPosition.top,
+                    child: const Icon(Icons.home_rounded),
+                  ),
+                  label: I18n.translate("start"),
+                  backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.category_rounded),
+                  label: I18n.translate("categories"),
+                  backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.autorenew_rounded),
+                  label: I18n.translate("fixedCost"),
+                  backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5)
+                ),
+              ],
+              currentIndex: tabindex,
+              onTap: (index) {
+                if (index != tabindex) {
+                  setState(() {
+                    tabindex = index;
+                  });
+                } else if (index == 2 && budgetState.proStatusIsSet()) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ReceiptPage(baseCurrency: budgetState.settings.currency, budgetState: budgetState, designState: designState,),
+                    ),
+                  );
+                }
+              },
+            ),
+            if (budgetState.proStatusIsSet(inverted: true, ignoreDebugMode: true))
+            const MainBanner()
+          ],
+        ),
+      )
     );
+    }); // ShowCaseWidget.builder
   }
 }

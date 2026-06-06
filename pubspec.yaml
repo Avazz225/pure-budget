@@ -16,10 +16,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 3.1.2+29
+version: 4.0.1+45
 
 environment:
-  sdk: '>=3.4.0 <4.0.0'
+  sdk: '>=3.9.2 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -32,7 +32,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  sqflite: ^2.3.3+1
+  sqflite: ^2.4.2
   path_provider: ^2.1.5
   path:  ^1.9.0
   provider: ^6.0.5
@@ -48,7 +48,7 @@ dependencies:
   in_app_purchase: ^3.2.1
   url_launcher: ^6.3.1
   introduction_screen: ^3.1.17
-  sqflite_common_ffi: ^2.3.3
+  sqflite_common_ffi: ^2.4.0+1
   flutter_staggered_grid_view: ^0.6.2
   http: ^1.4.0
   flutter_secure_storage: ^9.2.4
@@ -68,9 +68,22 @@ dependencies:
   pdf_image_renderer: ^1.0.1
   camera: ^0.11.2
   image: ^4.5.4
-  home_widget: ^0.8.0
+  home_widget: ^0.7.0
   tray_manager: ^0.5.0
   window_manager: ^0.5.1
+  mail_sender: ^0.0.3
+  flutter_local_notifications: ^19.4.2
+  timezone: ^0.10.0
+  flutter_native_timezone_latest: ^1.0.0
+  rate_my_app: ^2.3.2
+  play_age_signals: ^0.0.1
+  pdf: ^3.10.0
+  showcaseview: ^3.0.0
+  sqlite3: ^3.1.1
+
+dependency_overrides:
+  sqlite3_flutter_libs:
+    version: null
 
 dev_dependencies:
   flutter_test:
@@ -78,12 +91,13 @@ dev_dependencies:
 
   flutter_lints: ^3.0.0
   msix: ^3.16.10
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter_launcher_icons:
   android: false
   macos:
     generate: true
+    image_path: "logo.png"
   ios: false
   remove_alpha_ios: true
   image_path: "logo.png"

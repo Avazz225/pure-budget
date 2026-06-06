@@ -2,7 +2,9 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/models/settings.dart';
 import 'package:jne_household_app/services/remote/auth.dart' as auth;
 import 'package:jne_household_app/services/remote/google_drive_connector.dart';
 import 'package:jne_household_app/services/remote/one_drive_connector.dart';
@@ -36,7 +38,7 @@ Future<bool> checkRemoteDbExists(String sharedDbFilePath) async {
 class SharedDatabase {
   final DatabaseHelper localDb;
   late final File tempRemoteDbCopyFile;
-  final int remoteDbVersion = 4;
+  final int remoteDbVersion = 9;
   final _logger = Logger();
   int totalChanges = 0;
 
@@ -47,10 +49,15 @@ class SharedDatabase {
     await db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
     await db.execute('CREATE TABLE categories(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, color TEXT, position INTEGER)');
     await db.execute('CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY AUTOINCREMENT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER, principleMode TEXT DEFAULT "monthly", receiverAccountId DEFAULT -1, moneyFlow INTEGER DEFAULT 0, ratePayment INTEGER DEFAULT 0, rateCount INTEGER, firstRateAmount REAL, lastRateAmount REAL)');
-    await db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none")');
-    await db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY AUTOINCREMENT, categoryId INTEGER, accountId INTEGER, budget REAL)');
+    await db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none", isCreditCard INTEGER DEFAULT 0, refillsFrom INTEGER DEFAULT -1, refillPrincipleMode TEXT DEFAULT "monthly")');
+    await db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY AUTOINCREMENT, categoryId INTEGER, accountId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
     await db.execute('CREATE TABLE editLog (id INTEGER PRIMARY KEY AUTOINCREMENT, affectedTable TEXT, affectedId INTEGER, type TEXT, sharedBatchId INTEGER DEFAULT -1)');
     await db.execute('CREATE TABLE registeredDevices (id TEXT PRIMARY KEY, deviceMetadata TEXT, isPro INTEGER DEFAULT 0, blocked INTEGER DEFAULT 0)');
+    await db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY AUTOINCREMENT, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT, categoryId INTEGER)');
+    await db.execute('CREATE TABLE intervals (id INTEGER PRIMARY KEY, start TEXT, end TEXT, accountId INTEGER)');
+    await db.execute('CREATE TABLE realizedCategoryBudgets (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, categoryId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
+    await db.execute('CREATE TABLE realizedBankaccounts (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, balance REAL, income REAL)');
+    await db.execute('CREATE TABLE realizedAutoexpenses (id INTEGER PRIMARY KEY, intervalId INTEGER, autoexpenseId INTEGER, expenseId INTEGER)');
   }
 
   Future<void> _upgradeTables(Database db, int oldVersion, int newVersion) async {
@@ -66,6 +73,29 @@ class SharedDatabase {
       await db.execute('''ALTER TABLE autoexpenses ADD COLUMN rateCount INTEGER''');
       await db.execute('''ALTER TABLE autoexpenses ADD COLUMN firstRateAmount REAL''');
       await db.execute('''ALTER TABLE autoexpenses ADD COLUMN lastRateAmount REAL''');
+    }
+    if (oldVersion < 5) {
+      await db.execute('ALTER TABLE bankaccounts ADD COLUMN isCreditCard INTEGER DEFAULT 0');
+      await db.execute('ALTER TABLE bankaccounts ADD COLUMN refillsFrom INTEGER DEFAULT -1');
+      await db.execute('ALTER TABLE bankaccounts ADD COLUMN refillPrincipleMode TEXT DEFAULT "monthly"');
+    }
+    if (oldVersion < 6) {
+      await db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY AUTOINCREMENT, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT)');
+    }
+    if( oldVersion < 7) {
+      await db.execute('ALTER TABLE creditCardRefills ADD COLUMN categoryId INTEGER');
+    }
+    if (oldVersion < 8) {
+      await db.execute('ALTER TABLE categoryBudgets ADD COLUMN overrideBankAccount INTEGER DEFAULT null');
+    }
+    if (oldVersion < 9) {
+      await db.execute('CREATE TABLE intervals (id INTEGER PRIMARY KEY, start TEXT, end TEXT, accountId INTEGER)');
+      await db.execute('CREATE TABLE realizedCategoryBudgets (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, categoryId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
+      await db.execute('CREATE TABLE realizedBankaccounts (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, balance REAL, income REAL)');
+      await db.execute('CREATE TABLE realizedAutoexpenses (id INTEGER PRIMARY KEY, intervalId INTEGER, autoexpenseId INTEGER, expenseId INTEGER)');
+    }
+    if (newVersion != oldVersion) {
+      _logger.debug("Updated shared database from $oldVersion to $newVersion");
     }
   }
 
@@ -87,9 +117,16 @@ class SharedDatabase {
       if (!remoteDbExists) {
         await EncryptionHelper.generateKey();
         // init new database
-        final newRemoteDb = await openDatabase(tempRemoteDbCopyFile.absolute.path, version: remoteDbVersion, onCreate: (db, version) async {
-          await _createTables(db);
-        });
+        final newRemoteDb = await openDatabase(
+          tempRemoteDbCopyFile.absolute.path, 
+          version: remoteDbVersion, 
+          onCreate: (db, version) async {
+            await _createTables(db);
+          },
+          onUpgrade: (db, oldVersion, newVersion) async {
+            await _upgradeTables(db, oldVersion, newVersion);
+          }
+        );
 
         // insert local database into remote db
         await _initialDbSync(await localDb.database, newRemoteDb, true);
@@ -97,7 +134,6 @@ class SharedDatabase {
         await newRemoteDb.close();
 
         // upload database to directory
-        
         await uploadFile(sharedDbFilePath, tempRemoteDbCopyFile);
 
         _logger.debug("Initialized and uploaded new shared database", tag: "sharedDatabase");
@@ -111,13 +147,15 @@ class SharedDatabase {
           throw Exception("DB download failed.");
         }
 
+        Settings settings = await localDb.getSettings();
         if (newConnection) {
           await localDb.resetDatabase(true);
-          await localDb.updateSettings("lastProcessedBatchId", "-1");
+          settings.lastProcessedBatchId = -1;
         }
 
         List result = await syncWithRemote(sharedDbFilePath, initial: true, isPro: isPro);
-        await localDb.updateSettings("isPro", result[1] ? "1": "0");
+        settings.isPro = result[1];
+        await settings.save();
 
         return result[0];
       }
@@ -218,6 +256,7 @@ class SharedDatabase {
   
       await uploadFile(sharedDbFilePath, tempRemoteDbCopyFile);
       tempRemoteDbCopyFile.deleteSync();
+      
       return true;
     } catch (e) {
       _logger.info("Could not reach shared database: $e", tag: "sharedDatabase");
@@ -226,7 +265,7 @@ class SharedDatabase {
   }
 
   Future<void> _initialDbSync(Database localDatabase, Database remoteDatabase, bool localToRemote) async {
-    List<String> tables = ['expenses', 'categories', 'autoexpenses', 'bankaccounts', 'categoryBudgets'];
+    List<String> tables = ['expenses', 'categories', 'autoexpenses', 'bankaccounts', 'categoryBudgets', 'intervals', 'realizedCategoryBudgets', 'realizedBankaccounts', 'realizedAutoexpenses'];
     final batchId = DateTime.now().millisecondsSinceEpoch;
     List<Map<String, dynamic>> results;
 
@@ -247,6 +286,7 @@ class SharedDatabase {
       } else {
         await localDatabase.transaction((txn) async {
           for (Map<String, dynamic> entry in results) {
+            _logger.debug("Processing entry: $entry", tag: "initialSync");
             txn.insert(table, entry, conflictAlgorithm: ConflictAlgorithm.replace);
           }
         });
@@ -349,10 +389,20 @@ class SharedDatabase {
         totalChanges++;
       }
 
+      final localDatabase = await localDb.database;
+      final settings = await localDatabase.query('settings',
+        columns: ['lastProcessedBatchId'],
+        limit: 1
+      );
+      final lastBatchId = settings.isNotEmpty ? (settings.first['lastProcessedBatchId']) as int : -1;
+
+      // handle realized* and intervals separately
+      totalChanges += await _handleRealizedAndIntervals(remoteDb, lastBatchId);
+
       // push local changes to remote database (important so no id conflict occur)
       await _pushChangesToRemote(remoteDb);
       // pull remote changes to local
-      bool hasPro = await _pullChangesFromRemote(remoteDb);
+      bool hasPro = await _pullChangesFromRemote(remoteDb, lastBatchId);
       await remoteDb.close();
 
       // generate new encryption key if requested
@@ -368,7 +418,9 @@ class SharedDatabase {
       }
 
       // delete local copy
-      tempRemoteDbCopyFile.deleteSync();
+      if (!kDebugMode) {
+        tempRemoteDbCopyFile.deleteSync();
+      }
 
       return [true, (hasPro || ((Platform.isAndroid || Platform.isIOS && isPro)))];
     } catch (e) {
@@ -378,6 +430,66 @@ class SharedDatabase {
       }
       return [false, false, false];
     }
+  }
+
+  Future<int> _handleRealizedAndIntervals(Database remoteDb, int lastBatchId) async {
+    final localDatabase = await localDb.database;
+    if (!await tempRemoteDbCopyFile.exists()) {
+      throw Exception("Shared database file does not exist: ${tempRemoteDbCopyFile.path}");
+    }
+
+    try {
+      // get all relevant changes from remote and local which require handling
+      final List<Map<String, dynamic>> relevantLocalChanges = await localDatabase.rawQuery(
+        "SELECT * FROM editLog WHERE affectedTable IN ('realizedBankaccounts', 'realizedCategoryBudgets', 'realizedAutoexpenses', 'intervals') AND sharedBatchId = -1"
+      );
+
+      // process local changes (only inserts need special treatment)
+      for (final Map<String, dynamic> change in relevantLocalChanges) {
+        final batchId = DateTime.now().millisecondsSinceEpoch;
+
+        if (change['type'] == "insert") {
+          // query for similar entry in remoteDB
+          _logger.debug("Found blocking change of type INSERT. Checking...", tag:"sharedDatabase");
+
+          Map<String, dynamic> result = (await localDatabase.query(change['affectedTable'], where: "id = ?", whereArgs: [change['affectedId']])).first;
+          Map<String, dynamic> localEntry = {...result};
+          final localEntryKeys = localEntry.keys;
+          final keysToRemove = ['id', 'end', 'balance', 'income', 'expenseId', 'budget', 'overrideBankAccount', 'balance', 'income'];
+
+          for (final toRm in keysToRemove) {
+            if (localEntryKeys.contains(toRm)) {
+              localEntry.remove(toRm);
+            }
+          }
+          
+          List<String> where = [];
+          List whereArgs = [];
+          for (final key in localEntry.keys) {
+            where.add("$key = ?");
+            whereArgs.add(localEntry[key]);
+          }
+          final remoteEntry = await remoteDb.query(change['affectedTable'], where: where.join(" AND "), whereArgs: whereArgs);
+
+          // if has entry: remove local entry
+          if (remoteEntry.isNotEmpty){
+            _logger.debug("Found similar remote entry. Deleting local entry.", tag:"sharedDatabase");
+            localDb.genericDelete(change['affectedTable'], change['id']);
+            // update sharedBatchId
+            await localDatabase.update('editLog', {'sharedBatchId': batchId}, where: 'id = ?', whereArgs: [change['id']]);
+          } else {
+            _logger.debug("Didnt find similar change. Sheduling local change for push", tag:"sharedDatabase");
+          }
+        }
+      }
+    } catch (e) {
+      _logger.error("Error during handling realized and intervals: $e", tag: "sharedDatabase");
+      rethrow;
+    }
+
+    _logger.debug("Finished realized and intervals changes", tag: "sharedDatabase");
+
+    return 1;
   }
 
   Future<void> _pushChangesToRemote(Database remoteDb) async {
@@ -406,57 +518,69 @@ class SharedDatabase {
       List<Map<String, dynamic>> changedIds = [];
       await remoteDb.transaction((txn) async {
         for (Map<String, dynamic> change in changes) {
-          final table = change['affectedTable'] as String;
-          final type = change['type'];
-          int id = change['affectedId'];
+          try {
+            final table = change['affectedTable'] as String;
 
-          if (type == 'insert') {
-            List<Map<String, dynamic>> immutableData = await localDatabase.query(table, where: 'id = ?', whereArgs: [id]);
-            List<Map<String, dynamic>> data = List.from(
-                immutableData.map((map) => Map<String, dynamic>.from(map))
-            );
-            
-            if (data.first.keys.contains("sharedBatchId")) {
-              data.first.remove("sharedBatchId");
-            }
+            final type = change['type'];
+            int id = change['affectedId'];
 
-            if (data.isNotEmpty) {
-              final entry = Map<String, dynamic>.from(data.first)..remove("id");
-              final newId = await txn.insert(table, entry);
-              if (newId != id) {
-                changedIds.add({"table": table, "oldId": id, "newId": newId});
-                id = newId;
+            if (type == 'insert') {
+              List<Map<String, dynamic>> immutableData = await localDatabase.query(table, where: 'id = ?', whereArgs: [id]);
+              List<Map<String, dynamic>> data = List.from(
+                  immutableData.map((map) => Map<String, dynamic>.from(map))
+              );
+              
+              if (data.first.keys.contains("sharedBatchId")) {
+                data.first.remove("sharedBatchId");
               }
-            }
-          } else if (type == 'update') {
-            List<Map<String, dynamic>> immutableData = await localDatabase.query(table, where: 'id = ?', whereArgs: [id]);
-            List<Map<String, dynamic>> data = List.from(
-                immutableData.map((map) => Map<String, dynamic>.from(map))
-            );
 
-            if (data.first.keys.contains("sharedBatchId")) {
-              data.first.remove("sharedBatchId");
+              if (data.isNotEmpty) {
+                final entry = Map<String, dynamic>.from(data.first)..remove("id");
+                final newId = await txn.insert(table, entry);
+                if (newId != id) {
+                  changedIds.add({"table": table, "oldId": id, "newId": newId});
+                  id = newId;
+                }
+              }
+            } else if (type == 'update') {
+              List<Map<String, dynamic>> immutableData = await localDatabase.query(table, where: 'id = ?', whereArgs: [id]);
+              List<Map<String, dynamic>> data = List.from(
+                  immutableData.map((map) => Map<String, dynamic>.from(map))
+              );
+
+              if (data.first.keys.contains("sharedBatchId")) {
+                data.first.remove("sharedBatchId");
+              }
+
+              if (data.isNotEmpty) {
+                await txn.update(table, data.first, where: 'id = ?', whereArgs: [id]);
+              }
+            } else if (type == 'delete') {
+              await txn.delete(table, where: 'id = ?', whereArgs: [id]);
             }
 
-            if (data.isNotEmpty) {
-              await txn.update(table, data.first, where: 'id = ?', whereArgs: [id]);
-            }
-          } else if (type == 'delete') {
-            await txn.delete(table, where: 'id = ?', whereArgs: [id]);
-          }
-
-          // await localDatabase.update('editLog', {'sharedBatchId': batchId}, where: 'id = ?', whereArgs: [change['id']]);
-          Map<String, dynamic> mutableChange = Map<String, dynamic>.from(change);
-          mutableChange['sharedBatchId'] = batchId;
-          mutableChange['affectedId'] = id;
-          mutableChange.remove("id");
-          await txn.insert("editLog", mutableChange);
+            await localDatabase.update('editLog', {'sharedBatchId': batchId}, where: 'id = ?', whereArgs: [change['id']]);
+            Map<String, dynamic> mutableChange = Map<String, dynamic>.from(change);
+            mutableChange['sharedBatchId'] = batchId;
+            mutableChange['affectedId'] = id;
+            mutableChange.remove('id');
+            
+            await txn.insert("editLog", mutableChange);
+          } catch (e) {
+          _logger.error("Error during push of change $change: $e", tag: "sharedDatabase");
         }
 
-        // change local IDs from last (highest ID) to first to prevent ID conflicts
-        for (Map<String, dynamic> change in changedIds.reversed) {
-          await localDatabase.update(change['table'], {'id': change['newId']}, where: 'id = ?', whereArgs: [change['oldId']]);
-          await localDatabase.update("editLog", {'affectedId': change['newId']}, where: 'affectedId = ? AND affectedTable = ?', whereArgs: [change['oldId'], change['table']]);
+          // change local IDs from last (highest ID) to first to prevent ID conflicts
+          if (changedIds.isNotEmpty) {
+            for (Map<String, dynamic> change in changedIds.reversed) {
+              try {
+                await localDatabase.update(change['table'], {'id': change['newId']}, where: 'id = ?', whereArgs: [change['oldId']]);
+                await localDatabase.update("editLog", {'affectedId': change['newId']}, where: 'affectedId = ? AND affectedTable = ?', whereArgs: [change['oldId'], change['table']]);
+              } catch (e) {
+                _logger.error("Error updating local IDs during push: $e", tag: "sharedDatabase");
+              }
+            }
+          }
         }
       });
     } catch (e) {
@@ -465,15 +589,10 @@ class SharedDatabase {
     }
   }
 
-  Future<bool> _pullChangesFromRemote(Database remoteDb) async {
+  Future<bool> _pullChangesFromRemote(Database remoteDb, int lastBatchId) async {
     // Get the last processed batch ID
     Database localDatabase = await localDb.database;
-    final settings = await localDatabase.query('settings',
-      columns: ['lastProcessedBatchId'],
-      limit: 1
-    );
-    final lastBatchId = settings.isNotEmpty ? settings.first['lastProcessedBatchId'] : -1;
-
+  
     try {
       // Fetch changes from remote database
       final immutableChanges = await remoteDb.rawQuery(
@@ -486,6 +605,12 @@ class SharedDatabase {
 
       if (immutableChanges.isNotEmpty) {
         List<Map<String, dynamic>> changes = _reduceImmutableChanges(immutableChanges);
+
+        if (kDebugMode) {
+          for (final entry in changes) {
+            _logger.debug("Processing: $entry", tag: "sharedDatabase");
+          }
+        }
         
         _logger.debug("Downstream pulling changes, cleaned: ${changes.length}", tag: "sharedDatabase");
 
@@ -493,34 +618,38 @@ class SharedDatabase {
         await localDatabase.transaction((txn) async {
           for (final change in changes) {
             final table = change['affectedTable'] as String;
-            final type = change['type'];
-            final id = change['affectedId'];
+            try {
+              final type = change['type'];
+              final id = change['affectedId'];
 
-            if (type == 'insert') {
-              final immutableData = await remoteDb.query(table, where: 'id = ?', whereArgs: [id]);
-              List<Map<String, dynamic>> data = List.from(
-                immutableData.map((map) => Map<String, dynamic>.from(map))
-              );
-              if (data.first.keys.contains("sharedBatchId")) {
-                data.first.remove("sharedBatchId");
-              }
-              if (data.isNotEmpty) {
-                await txn.insert(table, data.first, conflictAlgorithm: ConflictAlgorithm.replace);
-              }
-            } else if (type == 'update') {
-              final immutableData = await remoteDb.query(table, where: 'id = ?', whereArgs: [id]);
-              List<Map<String, dynamic>> data = List.from(
+              if (type == 'insert') {
+                final immutableData = await remoteDb.query(table, where: 'id = ?', whereArgs: [id]);
+                List<Map<String, dynamic>> data = List.from(
                   immutableData.map((map) => Map<String, dynamic>.from(map))
-              );
+                );
+                if (data.first.keys.contains("sharedBatchId")) {
+                  data.first.remove("sharedBatchId");
+                }
+                if (data.isNotEmpty) {
+                  await txn.insert(table, data.first, conflictAlgorithm: ConflictAlgorithm.replace);
+                }
+              } else if (type == 'update') {
+                final immutableData = await remoteDb.query(table, where: 'id = ?', whereArgs: [id]);
+                List<Map<String, dynamic>> data = List.from(
+                    immutableData.map((map) => Map<String, dynamic>.from(map))
+                );
 
-              if (data.first.keys.contains("sharedBatchId")) {
-                data.first.remove("sharedBatchId");
+                if (data.first.keys.contains("sharedBatchId")) {
+                  data.first.remove("sharedBatchId");
+                }
+                if (data.isNotEmpty) {
+                  await txn.update(table, data.first, where: 'id = ?', whereArgs: [id]);
+                }
+              } else if (type == 'delete') {
+                await txn.delete(table, where: 'id = ?', whereArgs: [id]);
               }
-              if (data.isNotEmpty) {
-                await txn.update(table, data.first, where: 'id = ?', whereArgs: [id]);
-              }
-            } else if (type == 'delete') {
-              await txn.delete(table, where: 'id = ?', whereArgs: [id]);
+            } catch (e) {
+              _logger.error("Could not pull change ${change['affectedTable']}-${change['affectedId']}: $e", tag: "sharedDatabase");
             }
           }
           
@@ -586,7 +715,7 @@ class SharedDatabase {
         reducedChanges.addAll(changes);
       }
     }
-
+    reducedChanges.sort((a, b) => a['id'].compareTo(b['id']));
     return reducedChanges;
   }
 }

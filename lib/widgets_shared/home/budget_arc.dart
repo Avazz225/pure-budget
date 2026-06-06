@@ -191,7 +191,7 @@ void paint(Canvas canvas, Size size) {
   );
 
   // Basisbogen
-  basePaint.color = baseColor.withOpacity(0.25);
+  basePaint.color = baseColor.withValues(alpha: 0.25);
   canvas.drawArc(
     Rect.fromCircle(center: center, radius: radius),
     startAngle,

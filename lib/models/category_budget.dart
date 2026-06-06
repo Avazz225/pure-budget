@@ -9,6 +9,7 @@ class CategoryBudget {
   double spent;
   int position;
   Color color;
+  int? overrideBankAccount;
 
   CategoryBudget({
     required this.category,
@@ -16,7 +17,8 @@ class CategoryBudget {
     required this.budget,
     required this.spent,
     required this.position,
-    this.color = Colors.grey
+    this.color = Colors.grey,
+    required this.overrideBankAccount,
   });
 
   Map<String, Object> toWidgetData(double unassignedBudget) {

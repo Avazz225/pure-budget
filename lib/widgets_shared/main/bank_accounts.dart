@@ -11,8 +11,6 @@ import 'package:jne_household_app/widgets_shared/main/money_flows.dart';
 import 'package:jne_household_app/widgets_mobile/main/upgrade_to_pro.dart';
 
 
-// ToDo: Löschbtn verschieben
-
 Widget bankAccounts(context, BudgetState budgetState, Function setState) {
   final comma = I18n.commaAsSeparator;
 
@@ -39,7 +37,7 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
       children: [
         if (allowMoreAcc)
           TextButton(
-            onPressed: () => addOrEditAutoExpenseDialog(context),
+            onPressed: () => addOrEditAutoExpenseDialog(context, budgetState.bankAccounts),
             style: btnNeutralStyle,
             child: Text(I18n.translate("addAccount")),
           )
@@ -80,7 +78,7 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          IconButton(onPressed: () => addOrEditAutoExpenseDialog(context, accountId: bankAccount.id), icon: const Icon(Icons.edit_rounded))
+                          IconButton(onPressed: () => addOrEditAutoExpenseDialog(context, budgetState.bankAccounts, accountId: bankAccount.id), icon: const Icon(Icons.edit_rounded))
                         ],
                       )
                     ],
@@ -91,13 +89,26 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
                       if (bankAccount.description != "")
                         Text(bankAccount.description),
                       Row(
-                        children: [
+                        children: (bankAccount.isCreditCard) ? [
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              I18n.translate("refillsFrom2", placeholders: {
+                                "account": budgetState.bankAccounts.where((acc) => acc.id == bankAccount.refillsFrom).isNotEmpty ? budgetState.bankAccounts.firstWhere((acc) => acc.id == bankAccount.refillsFrom).name : I18n.translate("unassignedAccount"),
+                              }),
+                              textAlign: TextAlign.center,
+                              style: bodyLarge,
+                            ),
+                          ),
+                        ] 
+                        :
+                        [
                           Expanded(
                             flex: 1,
                             child: Text(
                               I18n.translate("accountIncome", placeholders: {
                                 "income": convertValue(bankAccount.income + bankAccount.transfers),
-                                "currency": budgetState.currency.toString(),
+                                "currency": budgetState.settings.currency.toString(),
                               }),
                               textAlign: TextAlign.center,
                               style: bodyLarge,
@@ -114,7 +125,7 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
                             child: Text(
                               I18n.translate("accountBalance", placeholders: {
                                 "balance": convertValue(bankAccount.balance),
-                                "currency": budgetState.currency.toString(),
+                                "currency": budgetState.settings.currency.toString(),
                               }),
                               textAlign: TextAlign.center,
                               style: bodyLarge,
@@ -122,45 +133,55 @@ Widget bankAccounts(context, BudgetState budgetState, Function setState) {
                           ),
                         ],
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: TextButton(
-                              onPressed: () =>
-                                  moneyFlowManual(context, bankAccount.id, bankAccount.name),
-                              style: btnNeutralStyle,
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.add_rounded),
-                                  Text(I18n.translate("moneyTransfer")),
-                                ],
+                      if (!bankAccount.isCreditCard)
+                      ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: TextButton(
+                                onPressed: () =>
+                                    moneyFlowManual(context, bankAccount.id!, bankAccount.name),
+                                style: btnNeutralStyle,
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.add_rounded),
+                                    Text(I18n.translate("moneyTransfer")),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8,),
-                          Expanded(
-                            flex: 1,
-                            child: TextButton(
-                              onPressed: () =>
-                                  addOrEditMoneyFlowDialog(context, bankAccount.id),
-                              style: btnNeutralStyle,
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.account_balance_wallet_rounded),
-                                  Text(I18n.translate("addMonthlyTransfer")),
-                                ],
+                            const SizedBox(width: 8,),
+                            Expanded(
+                              flex: 1,
+                              child: TextButton(
+                                onPressed: () =>
+                                    addOrEditMoneyFlowDialog(context, bankAccount.id!),
+                                style: btnNeutralStyle,
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.account_balance_wallet_rounded),
+                                    Text(I18n.translate("addMonthlyTransfer")),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      ExpansionTile(
-                        title: Text(I18n.translate("monthlyTransfers")),
-                        children: [
-                          moneyFlows(budgetState, bankAccount.id, context),
-                        ],
-                      ),
+                          ],
+                        ),
+                        ExpansionTile(
+                          title: Text(I18n.translate("monthlyTransfers")),
+                          children: [
+                            moneyFlows(budgetState, bankAccount.id!, context),
+                          ],
+                        ),
+                      ] 
+                      else 
+                      ... [
+                        Text(
+                          I18n.translate("monthlyRefill", placeholders: {"day": I18n.translate(bankAccount.budgetResetPrinciple, placeholders: {'day': bankAccount.budgetResetDay.toString()})}),
+                          style: bodyLarge,
+                        ),
+                      ]
                     ],
                   ),
                 ),

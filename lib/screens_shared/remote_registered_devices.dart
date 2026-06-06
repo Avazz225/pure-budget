@@ -93,9 +93,11 @@ class RemoteRegisteredDevicesState extends State<RemoteRegisteredDevices> {
                           }
                         } catch (e) {
                           Logger().error("Error blocking device devices: $e", tag: "deviceManagement");
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(e.toString())),
-                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
+                          }
                         } finally {
                           setState(() {
                             processing = false;

@@ -1,7 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/keys.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
@@ -88,10 +84,6 @@ class _HelpScreenState extends State<HelpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
-      ScreenshotManager().takeScreenshot(name: "help");
-    }
-
     final filteredIds = searchQuery.length < 3
     ? HelpScreen.helpIds
     : HelpScreen.helpIds.where((id) {

@@ -1,7 +1,6 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/services/remote/auth.dart';
@@ -62,11 +61,12 @@ class RemoteDatabaseState extends State<RemoteDatabase> {
     "manual"
   ];
 
-  void handleConnect(String selectedPath) async {
+  Future<void> handleConnect(String selectedPath) async {
     if (selectedPath != "none") {
       await EncryptionHelper.generateKey();
     }
     bool sharedDbExists = await checkRemoteDbExists(selectedPath);
+    if (!mounted) return;
     await connectSharedDbDialog(context, widget.budgetState, selectedPath, sharedDbExists);
   }
 
@@ -105,8 +105,8 @@ class RemoteDatabaseState extends State<RemoteDatabase> {
   @override
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
-    frequencyMode = calcFrequencyMode(budgetState.syncFrequency);
-    controller.text = calcFrequency(budgetState.syncFrequency, frequencyMode!);
+    frequencyMode = calcFrequencyMode(budgetState.settings.syncFrequency);
+    controller.text = calcFrequency(budgetState.settings.syncFrequency, frequencyMode!);
 
     return Scaffold(
       appBar: AppBar(
@@ -118,7 +118,7 @@ class RemoteDatabaseState extends State<RemoteDatabase> {
           child: Column(
             spacing: 8,
             children: [
-              if (budgetState.sharedDbUrl != "none")
+              if (budgetState.settings.sharedDbUrl != "none")
               Card(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -127,7 +127,7 @@ class RemoteDatabaseState extends State<RemoteDatabase> {
                     children: [
                       Text(I18n.translate("syncMode")),
                       DropdownButton<String>(
-                        value: budgetState.syncMode,
+                        value: budgetState.settings.syncMode,
                         items: syncModes.map((entry) {
                           return DropdownMenuItem<String>(
                             value: entry,
@@ -144,7 +144,7 @@ class RemoteDatabaseState extends State<RemoteDatabase> {
                   ),
                 )
               ),
-              if (budgetState.sharedDbUrl != "none" && budgetState.syncMode == "frequently")
+              if (budgetState.settings.sharedDbUrl != "none" && budgetState.settings.syncMode == "frequently")
               Card(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -190,7 +190,7 @@ class RemoteDatabaseState extends State<RemoteDatabase> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  children:(budgetState.sharedDbUrl == "none") ?
+                  children:(budgetState.settings.sharedDbUrl == "none") ?
                   [
                     DropdownButton<String>(
                       value: selected,
@@ -211,7 +211,7 @@ class RemoteDatabaseState extends State<RemoteDatabase> {
                     if (selected == "rmDBlocal")
                     localFile(context, budgetState, handleConnect),
                     if (selected == "rmDBsmb")
-                    smbFolderSelector(budgetState: budgetState, handleConnect: handleConnect),
+                    SmbFolderSelector(budgetState: budgetState, handleConnect: handleConnect),
                     if (selected == "rmDBiCloud")
                     iCloudSelector(context, budgetState, handleConnect),
                     if (selected == "rmDBgoogleDrive")
@@ -237,7 +237,7 @@ List<Widget> connected(BuildContext context, BudgetState budgetState, bool loadi
     Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8), 
       child: Text(
-        I18n.translate("connectedTo", placeholders: {"path": budgetState.sharedDbUrl}),
+        I18n.translate("connectedTo", placeholders: {"path": budgetState.settings.sharedDbUrl}),
         style: Theme.of(context).textTheme.bodyLarge,
       )
     ),
@@ -245,14 +245,15 @@ List<Widget> connected(BuildContext context, BudgetState budgetState, bool loadi
     ElevatedButton(
       style: btnPositiveStyle,
       onPressed: () async {
+        final navigator = Navigator.of(context);
         updateState("loading", true);
         List<Map<String, dynamic>> regDev = await budgetState.getRegisteredRemoteDevices();
         String uuid = await loadKey("pureBudgetDeviceId");
         updateState("loading", false);
-        Navigator.of(context).push(MaterialPageRoute(
+        navigator.push(MaterialPageRoute(
           builder: (context) => RemoteRegisteredDevices(budgetState: budgetState, registeredDevices: regDev, uuid: uuid),
-        ),);
-      }, 
+        ));
+      },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -267,11 +268,12 @@ List<Widget> connected(BuildContext context, BudgetState budgetState, bool loadi
       style: btnNeutralStyle,
       onPressed: () async {
         String encryptionKey = await EncryptionHelper.loadKey();
+        if (!context.mounted) return;
         showDialog(
           context: context,
           builder: (context) => KeySharingDialog(encryptionKey: encryptionKey),
         );
-      }, 
+      },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -330,6 +332,13 @@ List<Widget> connected(BuildContext context, BudgetState budgetState, bool loadi
       }, 
     ),
     const SizedBox(height: 8,),
+    if (kDebugMode)
+    ElevatedButton(
+      onPressed: () async {
+        await budgetState.initSharedDb();
+      }, 
+      child: const Text("DEBUG: Force reinit")
+    )
   ];
 }
 
@@ -348,7 +357,7 @@ Future<bool> keyChangeInfo(BuildContext context) async {
           },
           child: Text(I18n.translate("cancel")),
         ),
-        TextButton(
+        FilledButton(
           onPressed: () {
             doChange = true;
             Navigator.of(context).pop();

@@ -1,4 +1,5 @@
 import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/models/interval.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:flutter_charts/flutter_charts.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -10,8 +11,8 @@ Map<String, List<Map<String, dynamic>>> getTableData(BudgetState state, String t
     return {"": [{}]};
   }
 
-  String currency = state.currency;
-  List<Map<String, dynamic>> data = state.statistics;
+  String currency = state.settings.currency;
+  List<Map<String, dynamic>> data = state.statistics["data"]!;
 
   if (type == "history_months") {
     return {"all": prepareTableData(data, currency)};
@@ -119,7 +120,7 @@ ChartData getChartData(BuildContext context, BudgetState state, String type, Str
 
   ChartOptions chartOptions = ChartOptions(
     yContainerOptions: YContainerOptions(
-      yLabelUnits: state.currency
+      yLabelUnits: state.settings.currency
     ),
     iterativeLayoutOptions: const IterativeLayoutOptions(),
     lineChartOptions: const LineChartOptions(
@@ -132,9 +133,11 @@ ChartData getChartData(BuildContext context, BudgetState state, String type, Str
   );
 
   Map<String, Map<String, double>> groupedData = {};
-  final Map<String, DateTime> targetRange = state.budgetRanges[state.range];
+  final PBInterval targetRange = state.budgetRanges[state.range];
+  final data = state.statistics["data"]!;
+  final budgets = state.statistics["totalBudget"] ?? [];
 
-  for (var expense in state.statistics) {
+  for (var expense in data) {
     if (filter == "") {
       final date = (intramonth) ? expense['date'].split(' ')[0] : expense['date'];
       final category = expense['category'] ?? I18n.translate("total");
@@ -175,7 +178,7 @@ ChartData getChartData(BuildContext context, BudgetState state, String type, Str
   List<Color> dataRowsColors;
   
   if (!showTotal) {
-    dataRowsColors = extractColorsInOrder(state.statistics, dataRowsLegends);
+    dataRowsColors = extractColorsInOrder(data, dataRowsLegends);
   } else if (dataRowsLegends.length == 2) {
     dataRowsColors = [Colors.blue, Colors.red[300]!];
   } else {
@@ -183,7 +186,7 @@ ChartData getChartData(BuildContext context, BudgetState state, String type, Str
   }
 
   if (dataRows.isNotEmpty) {
-    dataRows = prepareDataRows(dataRows, state.totalBudget, intramonth, showTotal);
+    dataRows = prepareDataRows(dataRows, budgets, intramonth, showTotal, state.totalBudget);
   } else {
     dataRows = List.generate(
       dataRowsColors.length,
@@ -205,7 +208,16 @@ ChartData getChartData(BuildContext context, BudgetState state, String type, Str
   if (!showTotal && filter != "") {
     dataRowsColors.add(Colors.red[300]!);
     dataRowsLegends.add(I18n.translate("budgetPerMonth"));
-    dataRows.add(List.filled(dataRows[0].length, state.getCategoryBudget(filter)));
+    if (intramonth) {
+      dataRows.add(List.filled(dataRows[0].length, state.getCategoryBudget(filter)));
+    } else {
+      try {
+        final totals = budgets.where((entry) => entry['category'] == filter).map((entry) => entry['income'] as double).toList();
+        dataRows.add(totals.sublist(totals.length - dataRows[0].length));
+      } catch (e) {
+        dataRows.add(List.filled(dataRows[0].length, state.getCategoryBudget(filter)));
+      }
+    }
   }
 
   return ChartData(
@@ -230,9 +242,9 @@ List<double> calculateMean(List<double> dataRow) {
   return runningMean;
 }
 
-Map<String, Map<String, double>> processIntramonth(Map<String, Map<String, double>> groupedData, Map<String, DateTime> targetRange) {
-  DateTime start = targetRange['start']!;
-  DateTime end = targetRange['end']!;
+Map<String, Map<String, double>> processIntramonth(Map<String, Map<String, double>> groupedData, PBInterval targetRange) {
+  DateTime start = targetRange.start;
+  DateTime end = targetRange.end;
 
   while (start.isBefore(end)) {
     final dateKey = start.toIso8601String().split('T')[0]; // Format: YYYY-MM-DD
@@ -255,7 +267,7 @@ List<Color> extractColorsInOrder(List<Map<String, dynamic>> data, List<String> o
   return order.map((category) => categoryColorMap[category] ?? Colors.grey[700]!).toList();
 }
 
-List<List<double>> prepareDataRows(List<List<double>> dataRows, double totalBudget, bool addUp, bool showTotal) {
+List<List<double>> prepareDataRows(List<List<double>> dataRows, List<Map<String, dynamic>> totalBudget, bool addUp, bool showTotal, double totalBudgetValue) {
   List<List<double>> cumulativeDataRows = [];
 
   for (var row in dataRows) {
@@ -275,7 +287,11 @@ List<List<double>> prepareDataRows(List<List<double>> dataRows, double totalBudg
   }
 
   if (showTotal){
-    cumulativeDataRows.add(List<double>.filled(cumulativeDataRows[0].length, totalBudget));
+    if (addUp) {
+      cumulativeDataRows.add(List<double>.filled(cumulativeDataRows[0].length, totalBudgetValue));
+    } else {
+      cumulativeDataRows.add(totalBudget.map((entry) => entry['income'] as double).toList());
+    }
   }
 
   return cumulativeDataRows;

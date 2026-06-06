@@ -5,6 +5,7 @@ import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/booking_principles.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/decimal_amount_field.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/main/datepicker.dart';
 import 'package:provider/provider.dart';
@@ -31,6 +32,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
     bool lastRateDifferent = false;
 
     final budgetState = Provider.of<BudgetState>(context, listen: false);
+    final formKey = GlobalKey<FormState>();
 
     AutoExpense? existingExpense;
     if (expenseId != null) {
@@ -66,7 +68,10 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
             return AdaptiveAlertDialog(
               title: Text(expenseId == null ? I18n.translate("addAutoExpense") : I18n.translate("editExpense")),
               content: SingleChildScrollView(
-                child: Column(
+                child: Form(
+                  key: formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Column(
                   children: [
                     Row(
                       children: [
@@ -76,7 +81,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                           )
                         ),
                         Switch(
-                          activeColor: Colors.green,
+                          activeThumbColor: Colors.green,
                           value: ratePayment, 
                           onChanged: (value) {
                             setState(() {
@@ -95,7 +100,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                           )
                         ),
                         Switch(
-                          activeColor: Colors.green,
+                          activeThumbColor: Colors.green,
                           value: firstRateDifferent, 
                           onChanged: (value) {
                             setState(() {
@@ -114,7 +119,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                           )
                         ),
                         Switch(
-                          activeColor: Colors.green,
+                          activeThumbColor: Colors.green,
                           value: lastRateDifferent, 
                           onChanged: (value) {
                             setState(() {
@@ -154,92 +159,53 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                         return null;
                       },
                     ),
-                    TextFormField(
+                    DecimalAmountField(
                       controller: amountController,
                       focusNode: amountFocusNode,
-                      decoration: InputDecoration(labelText: I18n.translate((ratePayment) ? "rate" : "budget")),
-                      textInputAction: (ratePayment) ?  TextInputAction.next : TextInputAction.done,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
+                      labelKey: ratePayment ? "rate" : "budget",
+                      textInputAction: ratePayment ? TextInputAction.next : TextInputAction.done,
+                      setState: setState,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return I18n.translate("numberRequired");
                         }
                         return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          if (I18n.comma()){
-                            amountController.text = value.replaceAll('.', ",");
-                          }
-                          amountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: amountController.text.length),
-                          );
-                        });
                       },
                     ),
                     if (ratePayment && firstRateDifferent)
-                    TextFormField(
+                    DecimalAmountField(
                       controller: firstRateAmountController,
                       focusNode: firstRateAmountFocusNode,
-                      decoration: InputDecoration(labelText: I18n.translate("firstRate")),
-                      textInputAction: lastRateDifferent ?  TextInputAction.next : TextInputAction.done,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
+                      labelKey: "firstRate",
+                      textInputAction: lastRateDifferent ? TextInputAction.next : TextInputAction.done,
+                      setState: setState,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return I18n.translate("numberRequired");
                         }
                         return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          if (I18n.comma()){
-                            firstRateAmountController.text = value.replaceAll('.', ",");
-                          }
-                          firstRateAmountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: firstRateAmountController.text.length),
-                          );
-                        });
                       },
                     ),
                     if (ratePayment && lastRateDifferent)
-                    TextFormField(
+                    DecimalAmountField(
                       controller: lastRateAmountController,
                       focusNode: lastRateAmountFocusNode,
-                      decoration: InputDecoration(labelText: I18n.translate("lastRate")),
+                      labelKey: "lastRate",
                       textInputAction: TextInputAction.done,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
+                      setState: setState,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return I18n.translate("numberRequired");
                         }
                         return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          if (I18n.comma()){
-                            lastRateAmountController.text = value.replaceAll('.', ",");
-                          }
-                          lastRateAmountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: lastRateAmountController.text.length),
-                          );
-                        });
                       },
                     ),
                     const Divider(),
                     DropdownButtonFormField<String>(
-                      value: principleMode,
+                      initialValue: principleMode,
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          
+
                           setState(() {
                             principleMode = newValue;
                             bookingPrinciple = newValue == "weekly" ? availableWeekDays[0] : (newValue == "yearly" ? DateTime.now().toIso8601String(): availablePrinciples[0]);
@@ -256,24 +222,28 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                         labelText: I18n.translate("interval"),
                       ),
                     ),
-                    if (principleMode == "weekly" || principleMode == "monthly" )
-                    DropdownButtonFormField<String>(
-                      value: bookingPrinciple,
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            bookingPrinciple = newValue;
-                          });
-                        }
-                      },
-                      items: (principleMode == "monthly" ? availablePrinciples : availableWeekDays).map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(I18n.translate(value, placeholders: {"day": "x"})),
-                        );
-                      }).toList(),
+                    if (principleMode == "weekly" || principleMode == "monthly")
+                    InputDecorator(
                       decoration: InputDecoration(
                         labelText: I18n.translate("principle"),
+                      ),
+                      child: DropdownButton<String>(
+                        value: bookingPrinciple,
+                        isExpanded: true,
+                        underline: const SizedBox(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              bookingPrinciple = newValue;
+                            });
+                          }
+                        },
+                        items: (principleMode == "monthly" ? availablePrinciples : availableWeekDays).map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(I18n.translate(value, placeholders: {"day": "x"})),
+                          );
+                        }).toList(),
                       ),
                     ),
                     if (principleMode == "monthly" && !principleWithoutDay.contains(bookingPrinciple))
@@ -299,14 +269,14 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                         )
                       ],
                     ),
-                    if (budgetState.filterBudget == "*" && budgetState.bankAccounts.length > 1)
+                    if (budgetState.settings.filterBudget == "*" && budgetState.bankAccounts.length > 1)
                     DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: I18n.translate("filterBankAccount"),
                       ),
-                      value: selectedIndex,
+                      initialValue: selectedIndex,
                       items: budgetState.bankAccounts.map((entry) {
-                        int index = entry.id;
+                        int index = entry.id!;
                         String displayText = entry.name;
                         return DropdownMenuItem<String>(
                           value: index.toString(),
@@ -320,6 +290,7 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                   ],
                 ),
               ),
+            ),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -327,53 +298,96 @@ void addOrEditAutoExpenseDialog(BuildContext context, int categoryId, {int? expe
                   },
                   child: Text(I18n.translate("cancel")),
                 ),
+                if (expenseId != null)
                 TextButton(
-                  onPressed: () {
+                  style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AdaptiveAlertDialog(
+                        title: Text(I18n.translate("delete")),
+                        content: Text(I18n.translate("confirmDeleteAutoExpense")),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            child: Text(I18n.translate("cancel")),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            child: Text(I18n.translate("delete")),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed != true || !context.mounted) return;
+                    final navigator = Navigator.of(context);
+                    final toDelete = AutoExpense(
+                      categoryId: categoryId,
+                      amount: 0,
+                      description: descriptionController.text,
+                      bookingPrinciple: bookingPrinciple,
+                      bookingDay: bookingDay,
+                      principleMode: principleMode,
+                      accountId: -1,
+                      moneyFlow: false,
+                      receiverAccountId: -1,
+                      ratePayment: ratePayment,
+                    )..id = expenseId;
+                    await budgetState.updateOrDeleteAutoExpense(toDelete);
+                    navigator.pop();
+                  },
+                  child: Text(I18n.translate("delete")),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    if (!(formKey.currentState?.validate() ?? false)) return;
+                    final navigator = Navigator.of(context);
                     if (principleWithoutDay.contains(bookingPrinciple)){
                       bookingDay = 1;
                     }
-                    Map<String, dynamic> newAutoExpense = {
-                      "categoryId": categoryId,
-                      "amount": double.parse(amountController.text.replaceAll(",", ".")),
-                      "description": descriptionController.text,
-                      "bookingPrinciple": bookingPrinciple,
-                      "bookingDay": bookingDay,
-                      "principleMode": principleMode,
-                      "receiverAccountId": -1,
-                      "moneyFlow": 0,
-                    };
-                    if (budgetState.filterBudget != "*") {
-                      selectedIndex = budgetState.filterBudget;
-                    }
 
+
+                    final newAE = AutoExpense(
+                        categoryId: categoryId,
+                        amount: double.parse(amountController.text.replaceAll(",", ".")),
+                        description: descriptionController.text,
+                        bookingPrinciple: bookingPrinciple, 
+                        bookingDay: bookingDay,
+                        principleMode: principleMode,
+                        accountId: (budgetState.settings.filterBudget != "*") ? int.parse(budgetState.settings.filterBudget) : -1,
+                        moneyFlow: false,
+                        receiverAccountId: -1,
+                        ratePayment: ratePayment
+                      );
+                      
                     if (!ratePayment) {
                       if (expenseId == null) {
-                        budgetState.addAutoExpense(newAutoExpense, selectedIndex);
+                        await budgetState.addAutoExpense(newAE);
                       } else {
-                        budgetState.updateOrDeleteAutoExpense(newAutoExpense, expenseId, selectedIndex);
+                        newAE.id = expenseId;
+                        budgetState.updateOrDeleteAutoExpense(newAE);
                       }
                     } else {
-                      newAutoExpense['rateCount'] = int.parse(rateAmountController.text);
-                      newAutoExpense['ratePayment'] = 1;
+                      newAE.rateCount = int.parse(rateAmountController.text);
+                      newAE.ratePayment = true;
                       if (firstRateDifferent) {
-                        newAutoExpense['firstRateAmount'] = double.parse(firstRateAmountController.text.replaceAll(",", "."));
+                        newAE.firstRateAmount = double.parse(firstRateAmountController.text.replaceAll(",", "."));
                       }
                       if (lastRateDifferent) {
-                        newAutoExpense['lastRateAmount'] = double.parse(lastRateAmountController.text.replaceAll(",", "."));
+                        newAE.lastRateAmount = double.parse(lastRateAmountController.text.replaceAll(",", "."));
                       }
 
                       if (expenseId == null) {
-                        budgetState.addRateAutoExpense(newAutoExpense, selectedIndex);
+                        await budgetState.addRateAutoExpense(newAE);
                       } else {
-                        budgetState.updateOrDeleteRateAutoExpense(newAutoExpense, expenseId, selectedIndex);
+                        newAE.id = expenseId;
+                        await budgetState.updateOrDeleteRateAutoExpense(newAE);
                       }
                     }
-                    Navigator.of(context).pop();
+                    navigator.pop();
                   },
-                  child: (amountController.text.isNotEmpty) ? Text((double.parse(amountController.text.replaceAll(",", ".")) == 0.0 && expenseId != null) 
-                  ? I18n.translate("delete") 
-                  : I18n.translate("save")) 
-                  : Text(I18n.translate("save")),
+                  child: Text(I18n.translate("save")),
                 ),
               ],
             );

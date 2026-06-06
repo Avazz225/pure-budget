@@ -1,10 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
-import 'package:jne_household_app/logger.dart';
-import 'package:jne_household_app/services/debug_screenshot_manager.dart';
+import 'package:jne_household_app/models/expense.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/services/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -18,20 +16,33 @@ Future<bool> showExpenseDialog({
     required BuildContext context,
     String? category,
     int? categoryId,
-    Map<String, dynamic>? expense,
+    Expense? expense,
     required String accountId, 
     required List<BankAccount> bankAccounts,
     required int bankAccoutCount,
     String? defaultVal,
     bool allowCamera = false,
+    int? overrideBankAccount,
   }) async {
-    Logger().debug("PARAMS:\n\tcategory: $category\n\tcategoryId: $categoryId\n\taccountId: $accountId\n\tdefaultVal: $defaultVal", tag: "EXP_DIALOG");
     final bool isEditing = expense != null;
+    
+    if (!isEditing) {
+      expense = Expense({
+        "accountId": accountId,
+        "categoryId": categoryId,
+        "description": '',
+        "date": formatForSqlite(DateTime.now()),
+        "amount": '',
+        "auto": 0,
+        "autoId": -1
+      });
+    }
+
     final TextEditingController amountController = TextEditingController(
       text: isEditing
           ? (I18n.comma()
-              ? expense['amount'].toString().replaceAll(".", ",")
-              : expense['amount'].toString())
+              ? expense.amount.toString().replaceAll(".", ",")
+              : expense.amount.toString())
           : 
           (defaultVal != null) ?
           (I18n.comma()
@@ -41,25 +52,34 @@ Future<bool> showExpenseDialog({
     );
 
     final TextEditingController descriptionController = TextEditingController(
-      text: isEditing ? expense['description'].toString() : '',
+      text: isEditing ? expense.description.toString() : '',
     );
 
     final FocusNode descriptionFocusNode = FocusNode();
     final FocusNode amountFocusNode = FocusNode();
 
-    final String filter = context.read<BudgetState>().filterBudget;
+    final String filter = context.read<BudgetState>().settings.filterBudget;
 
     bool openCamera = false;
 
-    DateTime selectedDate = isEditing
-        ? DateTime.parse(expense['date'])
-        : DateTime.now();
-
+    DateTime selectedDate = expense.date;
 
     String selectedIndex = (accountId != "*") ? accountId : bankAccounts.first.id.toString();
 
-    if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
-      ScreenshotManager().takeScreenshot(name: "expenseAdd");
+    List<BankAccount> filteredAccounts = [];
+    if (accountId != "*" || filter != "*") {
+      if (bankAccounts.where((acc) => acc.id.toString() == accountId).first.isCreditCard) {
+        int mainId = bankAccounts.where((acc) => acc.id.toString() == accountId).first.refillsFrom;
+        filteredAccounts = bankAccounts.where((acc) => (acc.isCreditCard) ? (acc.refillsFrom == mainId) : (acc.id == mainId)).toList();
+      } else {
+        filteredAccounts = bankAccounts.where((acc) => (acc.isCreditCard) ? (acc.refillsFrom.toString() == accountId) : (acc.id.toString() == accountId)).toList();
+      }
+    } else {
+      filteredAccounts = bankAccounts;
+    }
+
+    if (!isEditing && (overrideBankAccount != null && bankAccounts.where((acc) => acc.id == overrideBankAccount).isNotEmpty)) {
+      selectedIndex = overrideBankAccount.toString();
     }
 
     await showDialog(
@@ -143,29 +163,30 @@ Future<bool> showExpenseDialog({
                         ),
                       ],
                     ),
-                    if ((accountId == "*" || (isEditing && filter == "*")) && bankAccoutCount > 1)
-                    const SizedBox(height: 10),
-                    if ((accountId == "*" || (isEditing && filter == "*")) && bankAccoutCount > 1)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(I18n.translate("filterBankAccount")),
-                        DropdownButton<String>(
-                          value: selectedIndex,
-                          items: bankAccounts.map((entry) {
-                            int index = entry.id;
-                            String displayText = entry.name;
-                            return DropdownMenuItem<String>(
-                              value: index.toString(),
-                              child: Text(displayText),
-                            );
-                          }).toList(),
-                          onChanged: (String? filter) async {
-                            setState(() => selectedIndex = filter!);
-                          },
-                        )
-                      ],
-                    ),
+                    if (filteredAccounts.length > 1)
+                    ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(I18n.translate("filterBankAccount")),
+                          DropdownButton<String>(
+                            value: selectedIndex,
+                            items: bankAccounts.map((entry) {
+                              int index = entry.id!;
+                              String displayText = entry.name;
+                              return DropdownMenuItem<String>(
+                                value: index.toString(),
+                                child: Text(displayText),
+                              );
+                            }).toList(),
+                            onChanged: (String? filter) async {
+                              setState(() => selectedIndex = filter!);
+                            },
+                          )
+                        ],
+                      ),
+                    ]
                   ],
                 )
               ),
@@ -184,62 +205,61 @@ Future<bool> showExpenseDialog({
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(I18n.translate("cancel")),
                 ),
+                if (isEditing)
                 TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AdaptiveAlertDialog(
+                        title: Text(I18n.translate("delete")),
+                        content: Text(I18n.translate("confirmDeleteExpense")),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            child: Text(I18n.translate("cancel")),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            child: Text(I18n.translate("delete")),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed != true || !context.mounted) return;
+                    final navigator = Navigator.of(context);
+                    await context.read<BudgetState>().deleteExpense(expense!);
+                    navigator.pop();
+                  },
+                  child: Text(I18n.translate("delete")),
+                ),
+                FilledButton(
                   onPressed: () async {
                     final double? amount = double.tryParse(
                       amountController.text.replaceAll(",", "."),
                     );
-                    final String description = descriptionController.text;
-                    final String formattedDate = formatForSqlite(selectedDate);
 
-                    if (amount == null) {
+                    if (amount == null || amount == 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(I18n.translate("validAmount"))),
                       );
                       return;
                     }
+                    expense!.description = descriptionController.text;
+                    expense.date = selectedDate;
+                    expense.amount = amount;
+                    expense.accountId = int.parse(selectedIndex);
 
+                    final navigator = Navigator.of(context);
                     if (isEditing) {
-                      if (amount == 0) {
-                        await context.read<BudgetState>().deleteExpense(
-                          expense['id'],
-                          formattedDate,
-                          int.parse(selectedIndex)
-                        );
-                      } else {
-                        await context.read<BudgetState>().updateExpense(
-                          expense['id'],
-                          expense['categoryId'],
-                          amount,
-                          description,
-                          formattedDate,
-                          int.parse(selectedIndex)
-                        );
-                      }
+                      await context.read<BudgetState>().saveExpense(expense);
                     } else {
-                      if (amount != 0 && category != null && categoryId != null) {
-                        await context.read<BudgetState>().addExpense(
-                          category,
-                          categoryId,
-                          amount,
-                          description,
-                          formattedDate,
-                          int.parse(selectedIndex)
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(I18n.translate("validAmount"))),
-                        );
-                        return;
-                      }
+                      await context.read<BudgetState>().saveExpense(expense);
                     }
-
-                    Navigator.of(context).pop();
+                    navigator.pop();
                   },
-                  child: Text((double.tryParse(amountController.text.replaceAll(",", "."),) != 0) 
-                    ? I18n.translate("save") 
-                    : I18n.translate("delete")
-                  ),
+                  child: Text(I18n.translate("save")),
                 ),
               ],
             );
@@ -248,4 +268,5 @@ Future<bool> showExpenseDialog({
       },
     );
     return openCamera;
+
   }

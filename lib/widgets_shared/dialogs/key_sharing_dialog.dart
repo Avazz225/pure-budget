@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -50,8 +48,9 @@ class _KeySharingDialogState extends State<KeySharingDialog> {
       setState(() {});
     } catch (e) {
       Logger().warning("User authentication failed: $e", tag: "auth");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text( I18n.translate("authFailed", placeholders: {'error': e.toString()}))),
+        SnackBar(content: Text(I18n.translate("authFailed", placeholders: {'error': e.toString()}))),
       );
       Navigator.of(context).pop();
     }

@@ -96,7 +96,7 @@ void moneyFlowManual(BuildContext context, int spenderId, String spenderName) {
                                   onPressed: () async {
                                     dynamic amount = double.tryParse(amountController.text.replaceAll(",", "."))!;
                                     if (amount != null && amount != 0.0) {
-                                      context.read<BudgetState>().moneyFlowOnce(spenderId, spenderName, target.id, target.name, amount);
+                                      context.read<BudgetState>().moneyFlowOnce(spenderId, spenderName, target.id!, target.name, amount);
                                       Navigator.of(context).pop();
                                     }
                                   },

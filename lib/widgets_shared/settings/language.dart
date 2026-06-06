@@ -40,7 +40,7 @@ class Language extends StatelessWidget {
             )
           ),
           DropdownButton<String>(
-            value: budgetState.language,
+            value: budgetState.settings.language,
             items: availableLanguages.entries.map((entry) {
               String index = entry.key;
               String displayText = entry.value;

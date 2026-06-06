@@ -31,7 +31,7 @@ Widget moneyFlows(BudgetState budgetState, int spenderId, BuildContext context) 
                 Text((budgetState.bankAccounts.firstWhere((cat) => cat.id == flow.receiverAccountId).name))
               ],
             ),
-            subtitle: Text(I18n.translate("expenseAmount", placeholders: {"amount": amount, "currency":budgetState.currency})),
+            subtitle: Text(I18n.translate("expenseAmount", placeholders: {"amount": amount, "currency":budgetState.settings.currency})),
             trailing: IconButton(
               onPressed: () => addOrEditMoneyFlowDialog(context, spenderId, expenseId: flow.id), 
               icon: const Icon(Icons.edit_rounded)

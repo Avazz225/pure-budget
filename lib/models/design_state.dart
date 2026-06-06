@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:jne_household_app/database_helper.dart';
 
@@ -15,15 +17,18 @@ class DesignState extends ChangeNotifier {
   String customBackgroundPath;
   bool customBackgroundBlur; // only if customBackground is used
   int mainMenuStyle; // button style for main menu
-  double blurIntensity;
+  double blurIntensity; // blur of background image
+  Map<String, dynamic> customGradient; // custom gradient for background
+  int intervalStyle; // style for interval display
+  bool goMobileBannerDismissed; // user permanently closed the go-mobile banner
 
   DesignState._({
     required this.layoutMainVertical,
     required this.categoryMainStyle,
-    required this.addExpenseStyle, 
-    required this.arcStyle, 
+    required this.addExpenseStyle,
+    required this.arcStyle,
     required this.arcPercent,
-    required this.arcWidth, 
+    required this.arcWidth,
     required this.arcSegmentsRounded,
     required this.dialogSolidBackground,
     required this.appBackgroundSolid,
@@ -31,7 +36,10 @@ class DesignState extends ChangeNotifier {
     required this.customBackgroundBlur,
     required this.customBackgroundPath,
     required this.mainMenuStyle,
-    required this.blurIntensity
+    required this.blurIntensity,
+    required this.customGradient,
+    required this.intervalStyle,
+    required this.goMobileBannerDismissed,
   });
 
   factory DesignState({
@@ -48,7 +56,10 @@ class DesignState extends ChangeNotifier {
     required bool customBackgroundBlur,
     required String customBackgroundPath,
     required int mainMenuStyle,
-    required double blurIntensity
+    required double blurIntensity,
+    required String customGradient,
+    required int intervalStyle,
+    required bool goMobileBannerDismissed,
   }) {
     return DesignState._(
       layoutMainVertical: layoutMainVertical,
@@ -64,7 +75,10 @@ class DesignState extends ChangeNotifier {
       customBackgroundBlur: customBackgroundBlur,
       customBackgroundPath: customBackgroundPath,
       mainMenuStyle: mainMenuStyle,
-      blurIntensity: blurIntensity
+      blurIntensity: blurIntensity,
+      customGradient: decodeCustomGradient(customGradient),
+      intervalStyle: intervalStyle,
+      goMobileBannerDismissed: goMobileBannerDismissed,
     );
   }
 
@@ -82,9 +96,12 @@ class DesignState extends ChangeNotifier {
     required bool customBackgroundBlur,
     required String customBackgroundPath,
     required int mainMenuStyle,
-    required double blurIntensity
+    required double blurIntensity,
+    required String customGradient,
+    required int intervalStyle,
+    required bool goMobileBannerDismissed,
   }) {
-    final instance = DesignState(
+    return DesignState(
       layoutMainVertical: layoutMainVertical,
       categoryMainStyle: categoryMainStyle,
       addExpenseStyle: addExpenseStyle,
@@ -98,11 +115,65 @@ class DesignState extends ChangeNotifier {
       customBackgroundBlur: customBackgroundBlur,
       customBackgroundPath: customBackgroundPath,
       mainMenuStyle: mainMenuStyle,
-      blurIntensity: blurIntensity
+      blurIntensity: blurIntensity,
+      customGradient: customGradient,
+      intervalStyle: intervalStyle,
+      goMobileBannerDismissed: goMobileBannerDismissed,
     );
-
-    return instance;
   } 
+
+  static Map<String, dynamic> decodeCustomGradient(String jsonString) {
+    final Map<String, dynamic> data = json.decode(jsonString);
+
+    if (data["colors"] == null || data["type"] == null) {
+      return {
+        "colors": [Colors.blue, Colors.purple],
+        "type": 0,
+      };
+    }
+    
+    final colors = (data["colors"] as List)
+        .map((v) => Color(v as int))
+        .toList();
+
+    final type = data["type"] as int;
+
+    return {
+      "colors": colors,
+      "type": type,
+    };
+  }
+
+  bool getListTileBlur() {
+    // cards are solid
+    if (categoryMainStyle == 0) {
+      return false;
+    }
+
+    // uses custom background image
+    if (customBackgroundPath != "none") {
+      return true;
+    }
+
+    return false;
+  }
+
+  Future<void> updateCustomGradient(Map<String, dynamic> data) async {
+    customGradient = data;
+
+    final Map<String, dynamic> processed = {
+      "colors": data['colors'].map((c) => c.value).toList(),
+      "type": data['type'],
+    };
+    
+    await DatabaseHelper().updateDesign("customGradient", json.encode(processed));
+  }
+
+  Future<void> updateGoMobileBannerDismissed(bool dismissed) async {
+    goMobileBannerDismissed = dismissed;
+    await DatabaseHelper().updateDesign("goMobileBannerDismissed", dismissed ? 1 : 0);
+    notifyListeners();
+  }
 
   Future<void> updateMainMenuStyle(int index) async {
     mainMenuStyle = index;
@@ -185,6 +256,12 @@ class DesignState extends ChangeNotifier {
   Future<void> updateBlurIntensity(double blur) async {
     blurIntensity = blur;
     await DatabaseHelper().updateDesign("blurIntensity", blur);
+    notifyListeners();
+  }
+
+  Future<void> updateIntervalStyle(int index) async {
+    intervalStyle = index;
+    await DatabaseHelper().updateDesign("intervalStyle", index);
     notifyListeners();
   }
 }

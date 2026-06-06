@@ -37,6 +37,8 @@ migrate_working_dir/
 /dummydata/*.json
 /dummydata/*.py
 
+todo.md
+
 
 # Symbolication related
 app.*.symbols
@@ -64,3 +66,6 @@ license_formatter.py
 
 *.xcf
 _template
+
+CLAUDE.md
+.claude

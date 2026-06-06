@@ -15,7 +15,7 @@ class OverlayHelper {
           // Hintergrund: Blockiert Interaktionen
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.8),
+              color: Colors.black.withValues(alpha:0.8),
             ),
           ),
           // Vordergrund: Overlay-Inhalt
@@ -25,7 +25,7 @@ class OverlayHelper {
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha:0.9),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: const [
                     BoxShadow(

@@ -1,12 +1,24 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:jne_household_app/models/category_budget_plain.dart';
+import 'package:jne_household_app/models/category_plain.dart';
+import 'package:jne_household_app/models/expense.dart';
+import 'package:jne_household_app/models/interval.dart';
+import 'package:jne_household_app/models/realized_autoexpenses.dart';
+import 'package:jne_household_app/models/realized_bankaccounts.dart';
+import 'package:jne_household_app/models/realized_category_budgets.dart';
+import 'package:jne_household_app/models/reminder_settings.dart';
+import 'package:jne_household_app/models/reset_principles.dart';
+import 'package:jne_household_app/models/settings.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/services/remote/auth.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:jne_household_app/models/category.dart';
@@ -29,226 +41,299 @@ class DatabaseHelper {
     return _database!;
   }
 
+  /// Injects a pre-opened database. Only for use in tests.
+  @visibleForTesting
+  static void overrideDatabaseForTesting(Database db) => _database = db;
+
+  /// Resets the database singleton. Call in tearDown to ensure test isolation.
+  @visibleForTesting
+  static void resetForTesting() => _database = null;
+
   Future<Database> _initDatabase() async {
     String dbPath;
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
+      if (!Platform.isMacOS) {
+        // IMPORTANT:
+        // Do NOT call sqfliteFfiInit() on macOS.
+        // It forces sqlite3 FFI which bundles sqlite3arm64macos.framework
+        // -> rejected by Mac App Store.
+        sqfliteFfiInit();
+        databaseFactory = databaseFactoryFfi;
+      }
+
       final dir = await getApplicationSupportDirectory();
       dbPath = dir.path;
+      _logger.debug("DB path: $dbPath", tag: "db");
     } else {
       dbPath = await getDatabasesPath();
     }
     
     return openDatabase(
       join(dbPath, (kDebugMode) ? 'debug_budget.db' : 'budget.db'),
-      version: 30,
+      version: 41,
       onCreate: (db, version) {
         db.execute('CREATE TABLE expenses(id INTEGER PRIMARY KEY, date TEXT, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
         db.execute('CREATE TABLE categories(id INTEGER PRIMARY KEY, name TEXT, color TEXT, position INTEGER)');
-        db.execute('CREATE TABLE settings (id INTEGER PRIMARY KEY, currency TEXT, language TEXT DEFAULT "auto", includePlanned INTEGER DEFAULT 0, lastAutoExpenseRun TEXT DEFAULT "none", showAvailableBudget INTEGER DEFAULT 0, isPro INTEGER DEFAULT 0, useBalance INTEGER DEFAULT 0, filterBudget TEXT DEFAULT "*", lastAdFail TEXT DEFAULT "none", lastAdSuccess TEXT DEFAULT "none", lastSavingRun TEXT DEFAULT "none", lastProcessedBatchId INTEGER DEFAULT -1, sharedDbUrl TEXT DEFAULT "none", syncMode TEXT DEFAULT "instant", syncFrequency INTEGER DEFAULT 1, lastSync TEXT DEFAULT "none", lockApp INTEGER DEFAULT 0, isDesktopPro INTEGER DEFAULT 0, selectedScanCategory INTEGER DEFAULT -1)');
+        db.execute('CREATE TABLE settings (id INTEGER PRIMARY KEY, currency TEXT, language TEXT DEFAULT "auto", includePlanned INTEGER DEFAULT 0, lastAutoExpenseRun TEXT DEFAULT "none", showAvailableBudget INTEGER DEFAULT 0, isPro INTEGER DEFAULT 0, useBalance INTEGER DEFAULT 0, filterBudget TEXT DEFAULT "*", lastAdFail TEXT DEFAULT "none", lastAdSuccess TEXT DEFAULT "none", lastSavingRun TEXT DEFAULT "none", lastProcessedBatchId INTEGER DEFAULT -1, sharedDbUrl TEXT DEFAULT "none", syncMode TEXT DEFAULT "instant", syncFrequency INTEGER DEFAULT 1, lastSync TEXT DEFAULT "none", lockApp INTEGER DEFAULT 0, isDesktopPro INTEGER DEFAULT 0, selectedScanCategory INTEGER DEFAULT -1, reminder TEXT DEFAULT "{}", lastCreditCardRefillRun TEXT DEFAULT "none", tourCompleted INTEGER DEFAULT 0)');
         db.execute('CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY, amount REAL, accountId INTEGER DEFAULT -1, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER, principleMode TEXT DEFAULT "monthly", receiverAccountId DEFAULT -1, moneyFlow INTEGER DEFAULT 0, ratePayment INTEGER DEFAULT 0, rateCount INTEGER, firstRateAmount REAL, lastRateAmount REAL)');
-        db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none")');
-        db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY, categoryId INTEGER, accountId INTEGER, budget REAL)');
+        db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER, lastSavingRun TEXT DEFAULT "none", isCreditCard INTEGER DEFAULT 0, refillsFrom INTEGER DEFAULT -1, refillPrincipleMode TEXT DEFAULT "monthly")');
+        db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY, categoryId INTEGER, accountId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
         db.execute('CREATE TABLE editLog (id INTEGER PRIMARY KEY, affectedTable TEXT, affectedId INTEGER, type TEXT, sharedBatchId INTEGER DEFAULT -1)');
-        db.execute('CREATE TABLE design (id INTEGER PRIMARY KEY, layoutMainVertical INTEGER DEFAULT 1, categoryMainStyle INTEGER DEFAULT 0, addExpenseStyle INTEGER DEFAULT 1, arcStyle INTEGER DEFAULT 0, arcPercent REAL DEFAULT 50.0, arcWidth REAL DEFAULT 0.8, arcSegmentsRounded INTEGER DEFAULT 1, dialogSolidBackground INTEGER DEFAULT 1, appBackgroundSolid INTEGER DEFAULT 1, appBackground INTEGER DEFAULT 0, customBackgroundBlur INTEGER DEFAULT 0, customBackgroundPath TEXT DEFAULT "none", mainMenuStyle INTEGER DEFAULT 0, blurIntensity REAL DEFAULT 0.1 )');
+        db.execute('CREATE TABLE design (id INTEGER PRIMARY KEY, layoutMainVertical INTEGER DEFAULT 1, categoryMainStyle INTEGER DEFAULT 0, addExpenseStyle INTEGER DEFAULT 1, arcStyle INTEGER DEFAULT 0, arcPercent REAL DEFAULT 50.0, arcWidth REAL DEFAULT 0.8, arcSegmentsRounded INTEGER DEFAULT 1, dialogSolidBackground INTEGER DEFAULT 1, appBackgroundSolid INTEGER DEFAULT 1, appBackground INTEGER DEFAULT 0, customBackgroundBlur INTEGER DEFAULT 0, customBackgroundPath TEXT DEFAULT "none", mainMenuStyle INTEGER DEFAULT 0, blurIntensity REAL DEFAULT 0.1, customGradient TEXT DEFAULT "{}", intervalStyle INTEGER DEFAULT 0, goMobileBannerDismissed INTEGER DEFAULT 0)');
+        db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT, categoryId INTEGER)');
+        db.execute('CREATE TABLE intervals (id INTEGER PRIMARY KEY, start TEXT, end TEXT, accountId INTEGER)');
+        db.execute('CREATE TABLE realizedCategoryBudgets (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, categoryId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
+        db.execute('CREATE TABLE realizedBankaccounts (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, balance REAL, income REAL)');
+        db.execute('CREATE TABLE realizedAutoexpenses (id INTEGER PRIMARY KEY, intervalId INTEGER, autoexpenseId INTEGER, expenseId INTEGER)');
 
         int arcStyle = (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ? 1 : 0;
+        DateTime tdy = DateTime.now();
+        String start = formatForSqlite(DateTime(tdy.year, tdy.month));
+        String end = formatForSqlite(DateTime(tdy.year, tdy.month + 1));
+
+        final defaultColor = colorToHex(Colors.grey[700]!);
+        final unassignedName = I18n.translate("unassignedAccount");
         db.execute('INSERT INTO design (id, arcStyle) VALUES (1, $arcStyle)');
-        db.execute('INSERT INTO settings (currency) VALUES ("€")');
-        db.execute('INSERT INTO categories (id, name, color, position) VALUES (-1, "__undefined_category_name__", "${colorToHex(Colors.grey[700]!)}", 0)');
-        db.execute('INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, "${I18n.translate("unassignedAccount")}", 0, 0, "monthStart", 1)');
+        db.execute("INSERT INTO settings (currency) VALUES ('€')");
+        db.execute("INSERT INTO categories (id, name, color, position) VALUES (-1, '__undefined_category_name__', '$defaultColor', 0)");
+        db.execute("INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, '$unassignedName', 0, 0, 'monthStart', 1)");
         db.execute('INSERT INTO categoryBudgets (categoryId, accountId, budget) VALUES (-1, -1, 0)');
+        db.execute("INSERT INTO intervals (start, end, accountId) VALUES ('$start', '$end', -1)");
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 3) {
-          await db.execute('''
-            CREATE TABLE settings(
-              id INTEGER PRIMARY KEY,
-              totalBudget REAL
-            )
-          ''');
-          await db.execute('''INSERT INTO settings (totalBudget) VALUES (0)''');
-        }
-
-        if (oldVersion < 5) {
-          await db.execute("ALTER TABLE settings ADD COLUMN currency TEXT DEFAULT '€'");
-          await db.execute("ALTER TABLE settings ADD COLUMN budgetResetPrinciple TEXT DEFAULT 'monthStart'");
-          await db.execute("ALTER TABLE settings ADD COLUMN budgetResetDay INTEGER DEFAULT 1");
-        }
-
-        if (oldVersion < 6) {
-          await db.execute("CREATE TABLE autoexpenses (id INTEGER PRIMARY KEY, amount REAL, categoryId INTEGER, description TEXT, bookingPrinciple TEXT, bookingDay INTEGER)");
-          await db.execute('ALTER TABLE settings ADD COLUMN language TEXT DEFAULT "auto"');
-          await db.execute("ALTER TABLE expenses ADD COLUMN auto TEXT DEFAULT 0");
-          await db.execute("ALTER TABLE expenses ADD COLUMN autoId TEXT DEFAULT -1");
-        }
-
-        if (oldVersion < 7) {
-          await db.execute("ALTER TABLE expenses ADD COLUMN categoryId INTEGER DEFAULT -1");
-          await db.execute("UPDATE expenses SET categoryId = (SELECT id FROM categories WHERE name = category);");
-          await db.transaction((txn) async {
-            await txn.execute('CREATE TABLE expenses_new(id INTEGER PRIMARY KEY, date TEXT, amount REAL, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
-            await txn.execute('''
-              INSERT INTO expenses_new (id, date, amount, description, auto, autoId, categoryId)
-              SELECT id, date, amount, description, auto, autoId, categoryId FROM expenses;
-            ''');
-            await txn.execute('DROP TABLE expenses;');
-            await txn.execute('ALTER TABLE expenses_new RENAME TO expenses;');
-          });
-          await db.execute("ALTER TABLE categories ADD COLUMN position INTEGER DEFAULT 0");
-        }
-
-        if (oldVersion < 9) {
-          db.execute('''INSERT INTO categories (id, name, budget, color, position) VALUES (-1, "__undefined_category_name__", 0.0, "${colorToHex(Colors.grey[700]!)}", 0)''');
-        }
-
-        if (oldVersion < 10){
-          await db.transaction((txn) async {
-            await txn.execute('CREATE TABLE expenses_new(id INTEGER PRIMARY KEY, date TEXT, amount REAL, categoryId INTEGER, description TEXT, auto INTEGER DEFAULT 0, autoId INTEGER DEFAULT -1)');
-            await txn.execute('''
-              INSERT INTO expenses_new (id, date, amount, description, auto, autoId, categoryId)
-              SELECT id, date, amount, description, auto, autoId, categoryId FROM expenses;
-            ''');
-            await txn.execute('DROP TABLE expenses;');
-          });
-        }
-
-        if (oldVersion < 11){
-          await db.execute('ALTER TABLE expenses_new RENAME TO expenses;');
-        }
-
-        if (oldVersion < 12){
-          await db.execute('ALTER TABLE settings ADD COLUMN includePlanned INTEGER DEFAULT 0');
-        }
-
-        if (oldVersion < 13){
-          await db.execute('UPDATE categories SET color = "${colorToHex(Colors.grey[700]!)}" WHERE id = -1;');
-        }
-
-        if (oldVersion < 14){
-          await db.execute('''ALTER TABLE settings ADD COLUMN lastAutoExpenseRun TEXT DEFAULT "none"''');
-        } 
-
-        if (oldVersion < 15){
-          await db.execute('''UPDATE expenses SET date = REPLACE(date, 'T', ' ')''');
-          await db.execute('''UPDATE settings SET lastAutoExpenseRun = REPLACE(lastAutoExpenseRun, 'T', ' ')''');
-        }
-
-        if (oldVersion < 16){
-          await db.execute('''ALTER TABLE settings ADD COLUMN showAvailableBudget INTEGER DEFAULT 0''');
-        }
-
-        if (oldVersion < 17){
-          await db.execute('''ALTER TABLE settings ADD COLUMN isPro INTEGER DEFAULT 0''');
-        }
-
-        if (oldVersion < 18){
-          
-          await db.execute('INSERT OR IGNORE INTO categories (id, name, budget, color, position) VALUES (-1, "__undefined_category_name__", 0, "${colorToHex(Colors.grey[700]!)}", 0)');
-        }
-
-        if (oldVersion < 19){
-          await db.execute('ALTER TABLE autoexpenses ADD COLUMN principleMode TEXT DEFAULT "monthly"');
-        }
-
-        if (oldVersion < 20){
-          await db.execute('CREATE TABLE bankaccounts (id INTEGER PRIMARY KEY, name TEXT, balance REAL, income REAL, description TEXT, budgetResetPrinciple TEXT, budgetResetDay INTEGER)');
-          Map<String, dynamic> result = (await db.query('settings'))[0];
-          
-          await db.execute('INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, "${I18n.translate("unassignedAccount")}", 0, ?, ?, ?)', [result['totalBudget'], result['budgetResetPrinciple'], result['budgetResetDay']], );
-          await db.execute('ALTER TABLE expenses ADD COLUMN accountId INTEGER DEFAULT -1');
-          await db.execute('ALTER TABLE autoexpenses ADD COLUMN accountId INTEGER DEFAULT -1');
-          await db.execute('ALTER TABLE settings ADD COLUMN useBalance INTEGER DEFAULT 0');
-          await db.execute('ALTER TABLE settings ADD COLUMN filterBudget TEXT DEFAULT "*"');
-        }
-
-        if (oldVersion < 21) {
-          // transform data to new tables
-          await db.execute('ALTER TABLE settings ADD COLUMN lastAdFail TEXT DEFAULT "none"');
-          await db.execute('ALTER TABLE settings ADD COLUMN lastAdSuccess TEXT DEFAULT "none"');
-          await db.execute('CREATE TABLE categoryBudgets(id INTEGER PRIMARY KEY, categoryId INTEGER, accountId INTEGER, budget REAL)');
-          List<Map<String, dynamic>> categories = await db.query('categories');
-          List<Map<String, dynamic>> bankaccounts = await db.query('bankaccounts');
-
-          for (Map<String, dynamic> acc in bankaccounts) {
-            for (Map<String, dynamic> cat in categories) {
-              await db.execute("INSERT INTO categoryBudgets (categoryId, accountId, budget) VALUES (?, ?, ?)", [cat['id'], acc['id'], acc['id'] == -1 ? cat['budget'] : 0]);
-            }
-          }
-
-          // remove dead columns from tables
-          // settings
-          await db.transaction((txn) async {
-            await txn.execute('CREATE TABLE settings_new (id INTEGER PRIMARY KEY, currency TEXT, language TEXT DEFAULT "auto", includePlanned INTEGER DEFAULT 0, lastAutoExpenseRun TEXT DEFAULT "none", showAvailableBudget INTEGER DEFAULT 0, isPro INTEGER DEFAULT 0, useBalance INTEGER DEFAULT 0, filterBudget TEXT DEFAULT "*", lastAdFail TEXT DEFAULT "none", lastAdSuccess TEXT DEFAULT "none")');
-            await txn.execute('''
-              INSERT INTO settings_new (id, currency, language, includePlanned, lastAutoExpenseRun, showAvailableBudget, isPro, useBalance, filterBudget, lastAdFail, lastAdSuccess)
-              SELECT id, currency, language, includePlanned, lastAutoExpenseRun, showAvailableBudget, isPro, useBalance, filterBudget, lastAdFail, lastAdSuccess FROM settings;
-            ''');
-            await txn.execute('DROP TABLE settings;');
-            await txn.execute('ALTER TABLE settings_new RENAME TO settings;');
-          });
-
-          // categories
-          await db.transaction((txn) async {
-            await txn.execute('CREATE TABLE categories_new (id INTEGER PRIMARY KEY, name TEXT, color TEXT, position INTEGER)');
-            await txn.execute('''
-              INSERT INTO categories_new (id, name, color, position)
-              SELECT id, name, color, position FROM categories;
-            ''');
-            await txn.execute('DROP TABLE categories;');
-            await txn.execute('ALTER TABLE categories_new RENAME TO categories;');
-          });
-        }
-
-        if (oldVersion < 22) {
-          await db.execute('''ALTER TABLE bankaccounts ADD COLUMN lastSavingRun TEXT DEFAULT "none"''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN receiverAccountId DEFAULT -1''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN moneyFlow INTEGER DEFAULT 0''');
-        }
-
-        if (oldVersion < 23) {
-          await db.execute('''ALTER TABLE settings ADD COLUMN lastProcessedBatchId INTEGER DEFAULT -1''');
-          await db.execute('CREATE TABLE editLog (id INTEGER PRIMARY KEY, affectedTable TEXT, affectedId INTEGER, type TEXT, sharedBatchId INTEGER DEFAULT -1)');
-          await db.execute('''ALTER TABLE settings ADD COLUMN sharedDbUrl TEXT DEFAULT "none"''');
-        }
-
-        if (oldVersion < 24) {
-          await db.execute('''ALTER TABLE settings ADD COLUMN syncMode TEXT DEFAULT "instant"''');
-          await db.execute('''ALTER TABLE settings ADD COLUMN syncFrequency INTEGER DEFAULT 1''');
-          await db.execute('''ALTER TABLE settings ADD COLUMN lastSync TEXT DEFAULT "none"''');
-        }
-
-        if (oldVersion < 25) {
-          await db.execute('''ALTER TABLE settings ADD COLUMN lockApp INTEGER DEFAULT 0''');
-        }
-
-        if (oldVersion < 26) {
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN ratePayment INTEGER DEFAULT 0''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN rateCount INTEGER''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN firstRateAmount REAL''');
-          await db.execute('''ALTER TABLE autoexpenses ADD COLUMN lastRateAmount REAL''');
-        }
-
-        if (oldVersion < 27) {
-          await db.execute('CREATE TABLE design (id INTEGER PRIMARY KEY, layoutMainVertical INTEGER DEFAULT 1, categoryMainStyle INTEGER DEFAULT 0, addExpenseStyle INTEGER DEFAULT 1, arcStyle INTEGER DEFAULT 0, arcPercent REAL DEFAULT 50.0, arcWidth REAL DEFAULT 0.8, arcSegmentsRounded INTEGER DEFAULT 1, dialogSolidBackground INTEGER DEFAULT 1, appBackgroundSolid INTEGER DEFAULT 1, appBackground INTEGER DEFAULT 0, customBackgroundBlur INTEGER DEFAULT 0, customBackgroundPath TEXT DEFAULT "none", mainMenuStyle INTEGER DEFAULT 0)');
-          int arcStyle = (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ? 1 : 0;
-          db.execute('INSERT INTO design (id, arcStyle) VALUES (1, $arcStyle)');
-        }
-
-        if (oldVersion < 28) {
-          await db.execute('ALTER TABLE settings ADD COLUMN isDesktopPro INTEGER DEFAULT 0');
-        }
-
-        if (oldVersion < 29) {
-          await db.execute('ALTER TABLE settings ADD COLUMN selectedScanCategory INTEGER DEFAULT -1');
-        }
-
+        _logger.debug("Upgrading database from version $oldVersion to $newVersion", tag: "database");
         if (oldVersion < 30) {
           await db.execute("ALTER TABLE design ADD COLUMN blurIntensity REAL DEFAULT 0.1");
         }
+
+        if (oldVersion < 31) {
+          await db.execute('ALTER TABLE design ADD COLUMN customGradient TEXT DEFAULT "{}"');
+        }
+
+        if (oldVersion < 32) {
+          await db.execute('ALTER TABLE settings ADD COLUMN reminder TEXT DEFAULT "{}"');
+        }
+
+        if (oldVersion < 33) {
+          await db.execute('ALTER TABLE bankaccounts ADD COLUMN isCreditCard INTEGER DEFAULT 0');
+          await db.execute('ALTER TABLE bankaccounts ADD COLUMN refillsFrom INTEGER DEFAULT -1');
+          await db.execute('ALTER TABLE bankaccounts ADD COLUMN refillPrincipleMode TEXT DEFAULT "monthly"');
+        }
+
+        if (oldVersion < 34) {
+          await db.execute('ALTER TABLE settings ADD COLUMN lastCreditCardRefillRun TEXT DEFAULT "none"');
+          await db.execute('CREATE TABLE creditCardRefills (id INTEGER PRIMARY KEY, accountId INTEGER, creditAccountId INTEGER, amount REAL, date TEXT)');
+        }
+
+        if (oldVersion < 35) {
+          await db.execute('ALTER TABLE creditCardRefills ADD COLUMN categoryId INTEGER');
+        }
+
+        if (oldVersion < 36) {
+          await db.execute('ALTER TABLE categoryBudgets ADD COLUMN overrideBankAccount INTEGER DEFAULT null');
+        }
+
+        if (oldVersion < 37) {
+          await db.execute('CREATE TABLE intervals (id INTEGER PRIMARY KEY, start TEXT, end TEXT, accountId INTEGER)');
+          await db.execute('CREATE TABLE realizedCategoryBudgets (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, categoryId INTEGER, budget REAL, overrideBankAccount INTEGER DEFAULT null)');
+          await db.execute('CREATE TABLE realizedBankaccounts (id INTEGER PRIMARY KEY, intervalId INTEGER, accountId INTEGER, balance REAL, income REAL)');
+          await db.execute('CREATE TABLE realizedAutoexpenses (id INTEGER PRIMARY KEY, intervalId INTEGER, autoexpenseId INTEGER, expenseId INTEGER)');
+          await migrateTo37(db);
+        }
+
+        if (oldVersion < 38) {
+          await db.execute('ALTER TABLE design ADD COLUMN intervalStyle INTEGER DEFAULT 0');
+        }
+
+        if (oldVersion < 39) {
+          await cleanupData(db);
+        }
+
+        if (oldVersion < 40) {
+          await db.execute('ALTER TABLE settings ADD COLUMN tourCompleted INTEGER DEFAULT 0');
+        }
+
+        if (oldVersion < 41) {
+          await db.execute('ALTER TABLE design ADD COLUMN goMobileBannerDismissed INTEGER DEFAULT 0');
+        }
+
+        if (oldVersion < newVersion) {
+          _logger.debug("Database upgraded to version $newVersion", tag: "database");
+        }
       },
     );
+  }
+
+  Future<void> cleanupData(Database db) async {
+    List<Expense> expenses = (await db.query("expenses")).map((e) => Expense(e)).toList();
+    final Map<String, List<Expense>> groups = {};
+
+    for (final exp in expenses) {
+      final key = [
+        exp.date,
+        exp.amount,
+        exp.accountId,
+        exp.categoryId,
+        exp.description,
+        exp.auto,
+        exp.autoId
+      ].join("|");
+
+      groups.putIfAbsent(key, () => []).add(exp);
+    }
+
+    for (final group in groups.values) {
+      if (group.length <= 1) continue;
+      group.sort((a, b) => a.id!.compareTo(b.id!));
+      for (int i = 1; i < group.length; i++) {
+        await group[i].delete(dbObj: db);
+      }
+    }
+  }
+
+  Future<void> migrateTo37(Database db) async {
+    _logger.debug("Starting database migration", tag: "dbMigration");
+    // read all necessary data
+    final List<BankAccount> bankAccounts = await getBankAccounts(null, dbObj: db);
+    final List<CategoryBudgetPlain> catgoryBudgets = await getCategoryBudgets(dbObj: db);
+    final List<dynamic> allBookedAutoExepenses = (await genericSelect("expenses", filter: "autoId != ?", filterArgs: [-1], dbObj: db)).map((exp) => Expense(exp)).toList();
+    final List<AutoExpense> autoExpenses = await getAutoExpenses(dbObj: db);
+    _logger.debug("Fetched data ${bankAccounts.length} bankAccounts, ${catgoryBudgets.length} catgoryBudgets, ${autoExpenses.length} autoExpenses, ${allBookedAutoExepenses.length} boooked autoExpenses", tag: "dbMigration");
+
+    List<PBInterval> intervals = [];
+    // create all intervals
+    _logger.debug("Starting interval migration", tag: "dbMigration");
+    for (BankAccount ba in bankAccounts) {
+      // read first expense
+      final firstExpense = await genericSelect("expenses", onlyFirst: true, dbObj: db);
+      DateTime firstDate;
+      if (firstExpense != null) {
+        firstDate = DateTime.parse(firstExpense['date']);
+      } else {
+        firstDate = DateTime.now();
+      }
+      
+      final resetInfo = {
+        "principle": ba.budgetResetPrinciple,
+        "day": ba.budgetResetDay
+      };
+      List<PBInterval> rawIntervals = getMultipleRanges(resetInfo, 1000, firstDate, ba.id!).reversed.map((i) => PBInterval({'accountId': ba.id, 'start': i.start, 'end': i.end})).toList();
+      for (PBInterval r in rawIntervals) {
+        await r.save(dbObj: db);
+      }
+      intervals.addAll(rawIntervals);
+    }
+    _logger.debug("Finished interval migration", tag: "dbMigration");
+
+    _logger.debug("Starting bankaccount migration", tag: "dbMigration");
+    // create all realizedBankaccounts
+    for (PBInterval i in intervals) {
+      for (BankAccount ba in bankAccounts) {
+        if (i.accountId != ba.id) {
+          continue;
+        }
+        final n = RealizedBankaccounts({
+          "intervalId": i.id,
+          "accountId": ba.id,
+          "balance": ba.balance,
+          "income": ba.income
+        });
+        await n.save(dbObj: db);
+      }
+    }
+    _logger.debug("Finished bankaccount migration", tag: "dbMigration");
+
+    _logger.debug("Starting categoryBudget migration", tag: "dbMigration");
+    // create all realizedCategoryBudgets
+    for (PBInterval i in intervals) {
+      for (CategoryBudgetPlain cb in catgoryBudgets) {
+        if (i.accountId != cb.accountId) {
+          continue;
+        }
+        final n = RealizedCategoryBudgets({
+          "intervalId": i.id,
+          "accountId": cb.accountId,
+          "categoryId": cb.categoryId,
+          "budget": cb.budget,
+          "overrideBankAccount": cb.overrideBankAccount
+        });
+        await n.save(dbObj: db);
+      }
+    }
+    _logger.debug("Finished categoryBudget migration", tag: "dbMigration");
+    _logger.debug("Starting autoexpense migration", tag: "dbMigration");
+    // create all realizedAutoexpenses
+    for (Expense exp in allBookedAutoExepenses) {
+      final intervalID = intervals.firstWhere((i) => (i.accountId == exp.accountId && exp.date.isAfter(i.start) && exp.date.isBefore(i.end)), orElse: () => PBInterval({"id": -1, "start": DateTime.now(), "end": DateTime.now(), "accountId": -1}),).id;
+      if (intervalID == -1) {
+        logger.debug("Deleting expense with id ${exp.id}");
+        await exp.delete(dbObj: db);
+      } else {
+        final ae = autoExpenses.where((ae) => ae.id == exp.autoId).toList();
+        final RealizedAutoexpenses e = RealizedAutoexpenses({
+          'intervalId': intervalID,
+          'autoexpenseId': ae.isEmpty ? -1 : ae.first.id,
+          'expenseId': exp.id
+        });
+        await e.save(dbObj: db);
+      }
+    }
+
+    _logger.debug("Finished autoexpense migration", tag: "dbMigration");
+  }
+
+  Map<String, dynamic> cleanupMap(Map<String, dynamic> values) {
+    for (final key in values.keys) {
+      if (values[key] == true) {
+        values[key] = 1;
+      } else if (values[key] == false) {
+        values[key] = 0;
+      }
+    }
+    return values;
+  }
+
+  Future<int> genericInsert(String table, Map<String, dynamic> values, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    values = cleanupMap(values);
+    int id = (await db.insert(table, values));
+    await genericInsertLog(table, id, "insert", dbObj: db);
+    return id;
+  }
+
+  Future<void> genericUpdate(String table, Map<String, dynamic> values, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    values = cleanupMap(values);
+    await db.update(table, values, where: "id = ?", whereArgs: [values['id']]);
+    await genericInsertLog(table, values['id'],"update", dbObj: db);
+  }
+
+  Future<void> genericDelete(String table, int id, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    await db.delete(table, where: "id = ?", whereArgs: [id]);
+    await genericInsertLog(table, id, "delete", dbObj: db);
+  }
+
+  Future<dynamic> genericSelect(String table, {bool onlyFirst = false, String? filter, List? filterArgs, String? order, Database? dbObj, int? limit}) async {
+    final db = dbObj ?? await database;
+    List res = await db.query(table, where: filter, whereArgs: filterArgs, orderBy: order, limit: limit);
+    if (onlyFirst) {
+      try {
+        return res.first;
+      } catch (e) {
+        return null;
+      }
+    } else {
+      return res;
+    }
+  }
+
+  Future<void> genericInsertLog(table, id, method, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    if (["settings", "design", "editLog"].contains(table)) {
+      return;
+    }
+    await insertEditLog(table, id, method, dbObj: db);
   }
 
   Future<void> insertEditLog(String table, int affectedId, String type, {Database? dbObj}) async {
@@ -266,7 +351,7 @@ class DatabaseHelper {
         await db.insert("editLog", change);
         _logger.debug("Inserted update into editLog", tag: "database");
       } else {
-        _logger.debug("Already have ebtry for this change", tag: "database");
+        _logger.debug("Already have entry for this change", tag: "database");
       }
     } else if (type == "delete") {
       List<Map<String, dynamic>> entries = (await db.query("editLog", where: "affectedId = ? and affectedTable = ?", whereArgs: [affectedId, table]));
@@ -282,9 +367,11 @@ class DatabaseHelper {
 
   void createDefaultData() async {
     final db = await database;
-    await db.execute('INSERT INTO settings (currency) VALUES ("€")');
-    await db.execute('INSERT INTO categories (id, name, color, position) VALUES (-1, "__undefined_category_name__", "${colorToHex(Colors.grey[700]!)}", 0)');
-    await db.execute('INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, "${I18n.translate("unassignedAccount")}", 0, 0, "monthStart", 1)');
+    final defaultColor = colorToHex(Colors.grey[700]!);
+    final unassignedName = I18n.translate("unassignedAccount");
+    await db.execute("INSERT INTO settings (currency) VALUES ('€')");
+    await db.execute("INSERT INTO categories (id, name, color, position) VALUES (-1, '__undefined_category_name__', '$defaultColor', 0)");
+    await db.execute("INSERT INTO bankaccounts (id, name, balance, income, budgetResetPrinciple, budgetResetDay) VALUES (-1, '$unassignedName', 0, 0, 'monthStart', 1)");
     await db.execute('INSERT INTO categoryBudgets (categoryId, accountId, budget) VALUES (-1, -1, 0)');
 
     await insertEditLog("categories", -1, "insert", dbObj: db);
@@ -292,17 +379,16 @@ class DatabaseHelper {
     await insertEditLog("categoryBudgets", -1, "insert", dbObj: db);
   }
 
-  Future<Map<String, dynamic>> getDesignData() async {
-    final db = await database;
-    return (await db.query("design")).first;
-  }
-
   Future<void> updateDesign(String key, dynamic value) async {
     final db = await database;
-    await db.update("design", {key: value}, where: 'id = 1');
+    Map<String, dynamic> values = {
+      "id": 1,
+      key: value
+    };
+    await genericUpdate("design", values, dbObj: db);
   }
 
-  Future<void> processSavings(int accountId, Map<String, DateTime> range) async {
+  Future<void> processSavings(int accountId, Map<String, DateTime> range, logger) async {
     final db = await database;
     double income = (await getTotalBudget(accountId.toString()))['totalIncome'];
     String query  = '''SELECT SUM(amount) as totalSpent
@@ -315,6 +401,8 @@ class DatabaseHelper {
     dynamic spent = (await db.rawQuery(query, params))[0]['totalSpent'];
     spent ??= 0.0;
 
+    logger.debug("Spent $spent", tag: "balance clac");
+
     dynamic balance = (await db.query("bankaccounts", columns: ['balance'], where: 'id = ?', whereArgs: [accountId]))[0]['balance'] as double;
     balance ??= 0.0;
 
@@ -324,9 +412,9 @@ class DatabaseHelper {
     await insertEditLog("bankaccounts", accountId, "update", dbObj: db);
   }
 
-  Future<Map<String, dynamic>> getSettings() async {
+  Future<Settings> getSettings() async {
     final db = await database;
-    return (await db.query('settings'))[0];
+    return Settings((await db.query('settings'))[0]);
   }
 
   Future<Map<String, dynamic>> getTotalBudget(dynamic filterBudget) async {
@@ -345,14 +433,13 @@ class DatabaseHelper {
 
       dynamic extra = (await db.rawQuery("SELECT SUM(amount) AS addition FROM autoexpenses WHERE moneyFlow = ? AND receiverAccountId = ?", [1, filterBudget]))[0]["addition"];
       extra ??= 0.0;
-
       return {"totalIncome": result['totalIncome'] + extra, "totalBalance": result['totalBalance']};
     }
   }
 
-  Future<void> updateSettings(String key, dynamic value) async {
-    final db = await database;
-    await db.update('settings', {key: value}, where: 'id = 1');
+  Future<ReminderSettings> loadReminder() async {
+    Map<String, dynamic> res = json.decode((await getSettings()).reminder);
+    return ReminderSettings.fromJson(res);
   }
 
   Future<void> updatePositions(List<Map<String, int>> positions) async {
@@ -363,34 +450,55 @@ class DatabaseHelper {
     }
   }
 
-  Future<double> getSpentForCurrentMonth(int categoryId, String accountId, Map<String, DateTime> range, bool includePlanned) async {
+  Future<double> getSpentForCurrentMonth(int categoryId, String accountId, PBInterval range, bool includePlanned, List<BankAccount> bankAccounts)async {
     final db = await database;
     final now = DateTime.now();
-    final nowAfterEnd = range['end']!.isBefore(now);
+    final nowAfterEnd = range.end.isBefore(now);
     String query;
     List params = [];
-
-    if (accountId == "*") {
-      query = '''SELECT SUM(amount) as totalSpent
-        FROM expenses
-        WHERE categoryId = ?
-          AND date >= ?
-          AND date < ?
-      ''';
-      params = [categoryId, formatForSqlite(range['start']!), (includePlanned || nowAfterEnd) ? formatForSqlite(range['end']!) : formatForSqlite(now)];
-    } else {
-      query  = '''SELECT SUM(amount) as totalSpent
+    double result = 0.0;
+    query  = '''SELECT SUM(amount) as totalSpent
       FROM expenses
       WHERE categoryId = ?
         AND accountID = ?
         AND date >= ?
         AND date < ?''';
-      params = [categoryId, accountId, formatForSqlite(range['start']!), (includePlanned || nowAfterEnd) ? formatForSqlite(range['end']!) : formatForSqlite(now)];
+
+    for (final account in bankAccounts.where((acc) => (accountId == "*") ? true : (acc.isCreditCard) ? (acc.refillsFrom.toString() == accountId) : (acc.id.toString() == accountId))) {
+      if (!account.isCreditCard) {
+        params = [categoryId, account.id.toString(), formatForSqlite(range.start), (includePlanned || nowAfterEnd) ? formatForSqlite(range.end) : formatForSqlite(now)];
+      } else {
+        PBInterval adaptRange = await getIntervals(dbObj: db, onlyFirst: true, filter: "accountId = ?", filterArgs: [account.id], order: "id DESC");
+        if (dateAfterRange(range, adaptRange.end)) {
+          _logger.debug("Skipping this account as the range is in the future", tag: "database");
+          continue;
+        }
+        params = [categoryId, account.id.toString(), formatForSqlite(adaptRange.start), (includePlanned || nowAfterEnd) ? formatForSqlite(adaptRange.end) : formatForSqlite(now)];
+      }
+      result += (await db.rawQuery(query, params)).first['totalSpent'] as double? ?? 0.0;
     }
 
-    final result = await db.rawQuery(query, params);
+    return result;
+  }
 
-    return (result.first['totalSpent'] as double?) ?? 0.0;
+  Future<double> getBudgetForCurrentInterval(int intervalId, int categoryId, String accountId) async {
+    if (accountId == "*") {
+      accountId = "-1";
+    }
+
+    _logger.debug("Getting budget for interval $intervalId, category $categoryId, account $accountId", tag: "database");
+
+    final db = await database;
+    final data = await genericSelect(
+      "realizedCategoryBudgets",
+      filter: "intervalId = ? AND categoryId = ? AND accountId = ?",
+      filterArgs: [intervalId, categoryId, accountId],
+      dbObj: db
+    );
+    if (data.isEmpty) {
+      return 0.0;
+    }
+    return data.first['budget'] as double? ?? 0.0;
   }
 
   Future<void> insertCategoryBudget(Map<String, dynamic> catBudget, {Database? dbObj}) async {
@@ -416,7 +524,7 @@ class DatabaseHelper {
     }
 
     for (BankAccount acc in bankAccounts) {
-      int budId = await db.insert("categoryBudgets", {"categoryId": id, "accountId": acc.id, "budget": (filter == acc.id.toString()) ? category['budget'] : 0});
+      int budId = await db.insert("categoryBudgets", {"categoryId": id, "accountId": acc.id, "budget": (filter == acc.id.toString()) ? category['budget'] : 0, "overrideBankAccount": category["overrideBankAccount"]});
       await insertEditLog("categoryBudgets", budId, "insert", dbObj: db);
     }
 
@@ -446,12 +554,6 @@ class DatabaseHelper {
     return id;
   }
 
-  Future<void> updateAutoExpense(Map<String, dynamic> autoExpense, int id) async {
-    final db = await database;
-    await db.update('autoexpenses', autoExpense, where: "id = ?", whereArgs: [id]);
-    await insertEditLog("autoexpenses", id, "update", dbObj: db);
-  }
-
   Future<void> deleteAutoExpense(int id) async {
     final db = await database;
 
@@ -461,27 +563,36 @@ class DatabaseHelper {
 
   Future<int> insertBankAccount(Map<String, dynamic> bankAccount, {Database? dbObj}) async {
     final db = dbObj ?? await database;
+    // isCreditCard may arrive as int (0/1) from a backup file — convert safely
+    bankAccount['isCreditCard'] =
+        (bankAccount['isCreditCard'] == true || bankAccount['isCreditCard'] == 1) ? 1 : 0;
     int id = await db.insert('bankaccounts', bankAccount);
     await insertEditLog("bankaccounts", id, "insert", dbObj: db);
     List<Category> cats = await getCategories("*");
     for (Category cat in cats) {
-      int cbId = await db.insert("categoryBudgets", {"accountId": id, "categoryId": cat.id, "budget": 0});
+      int cbId = await db.insert("categoryBudgets", {"accountId": id, "categoryId": cat.category.id, "budget": 0});
       await insertEditLog("categoryBudgets", cbId, "insert", dbObj: db);
     }
 
     return id;
   }
 
-  Future<void> updateBankAccount(Map<String, dynamic> bankAccount, id) async {
-    final db = await database;
-    await db.update('bankaccounts', bankAccount, where: "id = ?", whereArgs: [id]);
-    await insertEditLog("bankaccounts", id, "update", dbObj: db);
-  }
-
   Future<void> deleteBankAccount(int id) async {
     final db = await database;
     await db.delete('bankaccounts', where: "id = ?", whereArgs: [id]);
     await insertEditLog("bankaccounts", id, "delete", dbObj: db);
+
+    List<Map<String, dynamic>> affectedBankAccounts = await db.query('bankaccounts', where: "refillsFrom = ?", whereArgs: [id]);
+    for (Map<String, dynamic> acc in affectedBankAccounts) {
+      await db.update('bankaccounts', {"refillsFrom": -1}, where: "id = ?", whereArgs: [acc['id']]);
+      await insertEditLog("bankaccounts", acc['id'], "update", dbObj: db);
+    }
+
+    List<Map<String, dynamic>> affectedRefills = await db.query('creditCardRefills', where: "accountId = ?", whereArgs: [id]);
+    for (Map<String, dynamic> entry in affectedRefills) { 
+      await db.update('creditCardRefills', {"accountId": -1}, where: "accountId = ?", whereArgs: [id]);
+      await insertEditLog("creditCardRefills", entry['id'], "delete", dbObj: db);
+    }
 
     List<Map<String, dynamic>> affected = await db.query('categoryBudgets', where: "accountId = ?", whereArgs: [id]);
     await db.delete('categoryBudgets', where: "accountId = ?", whereArgs: [id]);
@@ -508,87 +619,84 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> deleteCategory(int id) async {
-    final db = await database;
-    await db.delete('categories', where: 'id = ?', whereArgs: [id]);
-    await insertEditLog("categories", id, "delete", dbObj: db);
+  Future<List<CategoryPlain>> getCategoriesPlain() async {
+    final List<Map<String, dynamic>> result = await genericSelect("categories", order: 'position DESC');
+    return result.map((exp) => CategoryPlain(exp)).toList();
+  }
 
-    List<Map<String, dynamic>> affected = await db.query('categoryBudgets', where: 'categoryId = ?', whereArgs: [id]);
-    await db.delete('categoryBudgets', where: 'categoryId = ?', whereArgs: [id]);
-    for (Map<String, dynamic> entry in affected) {
-      await insertEditLog("categoryBudgets", entry['id'], "delete", dbObj: db);
-    }
-
-    affected = await db.query('expenses', where: 'categoryId = ?', whereArgs: [id]);
-    await db.update('expenses', {'categoryId': "-1"}, where: 'categoryId = ?', whereArgs: [id]);
-    for (Map<String, dynamic> entry in affected) {
-      await insertEditLog("expenses", entry['id'], "update", dbObj: db);
-    }
-
-    List<Map<String, dynamic>> autoexpensesId = await db.query("autoexpenses", columns: ["id"], where: 'categoryId = ?', whereArgs: [id]);
-    await db.update("autoexpenses", {"categoryId": -1}, where: 'categoryId = ?', whereArgs: [id]);
-    for (Map<String, dynamic> id in autoexpensesId) {
-      await insertEditLog("autoexpenses", id['id'], "update", dbObj: db);
-
-      affected = await db.query("expenses", where: "autoId = ?", whereArgs: [id['id']]);
-      await db.update("expenses", {"categoryId": -1}, where: "autoId = ?", whereArgs: [id['id']]);
-      for (Map<String, dynamic> entry in affected) {
-        await insertEditLog("expenses", entry['id'], "update", dbObj: db);
-      }
-    }
+  Future<List<CategoryBudgetPlain>> getCategoryBudgets({Database? dbObj}) async {
+    final List<Map<String, dynamic>> result = await genericSelect("categoryBudgets", dbObj: dbObj);
+    return result.map((exp) => CategoryBudgetPlain(exp)).toList();
   }
 
   Future<List<Category>> getCategories(String filter) async {
-    final db = await database;
-    final List<Map<String, dynamic>> categoryData = await db.query('categories', orderBy: 'position DESC');
-    final List<Map<String, dynamic>> catBudgetData = await db.query("categoryBudgets");
+    final categoriesPlain = await getCategoriesPlain();
+    final categoryBudgets = await getCategoryBudgets();
 
-    return categoryData.map((data) {
+    return categoriesPlain.map((data) {
       double budget;
+      List<CategoryBudgetPlain> selectedCategoryBudgets;
       if (filter == "*") {
-        budget = catBudgetData
-          .where((cb) => cb['categoryId'] == data['id'])
-          .fold(0.0, (sum, cb) => sum + (cb['budget'] ?? 0.0));
+        budget = categoryBudgets
+          .where((cb) => cb.categoryId == data.id)
+          .fold(0.0, (sum, cb) => sum + (cb.budget));
+        selectedCategoryBudgets = categoryBudgets.where((cb) => cb.categoryId == data.id).toList();
       } else {
-        budget = catBudgetData.firstWhere((cb) => cb['categoryId'] == data['id'] && cb['accountId'].toString() == filter)['budget'];
+        selectedCategoryBudgets = [categoryBudgets.firstWhere((cb) => cb.categoryId == data.id && cb.accountId.toString() == filter)];
+        budget = selectedCategoryBudgets.first.budget;
       }
-
       return Category(
-        id: data['id'] as int,
-        name: data['name'] as String,
         budget: budget,
-        position: data['position'],
-        color: data['color'] != null ?hexToColor(data['color'] as String) : Colors.grey, // Farbe umwandeln
+        categoryBudgetsPlain: selectedCategoryBudgets,
+        category: data
       );
-    }).toList();
+    }).where((c) => (c.budget != 0.0 || c.category.id == -1)).toList();
   }
 
-  Future<List<BankAccount>> getBankAccounts(List<AutoExpense> moneyFlows) async {
-    final db = await database;
+  Future<List<BankAccount>> getBankAccounts(List<AutoExpense>? moneyFlows, {Database? dbObj, int? intervalId}) async {
+    final db = dbObj ?? await database;
     final List<Map<String, dynamic>> bankaccountdata = List.from(await db.query('bankaccounts'));
-    // Konvertiere die Datenbankzeilen in Category-Objekte
-    return bankaccountdata.map((data) {
-      return BankAccount(
+    List<BankAccount> result = [];
+
+    for (Map<String, dynamic> data in bankaccountdata) {
+      double income = data['income'] as double;
+      double balance = data['balance'] as double;
+      if (intervalId != null) {
+        final result = (await genericSelect(
+          "realizedBankaccounts",
+          filter: "intervalId = ? AND accountId = ?",
+          filterArgs: [intervalId, data['id']],
+          dbObj: db
+        ));
+        if (result.isNotEmpty) {
+          income = result.first['income'] as double;
+          balance = result.first['balance'] as double;
+        }
+      }
+      result.add(BankAccount(
         id: data['id'] as int,
         name: data['name'] as String,
-        income: data['income'] as double,
-        balance: data['balance'] as double,
+        income: income,
+        balance: balance,
         description: data['description'] != null ? data['description'] as String : "",
         budgetResetPrinciple: data['budgetResetPrinciple'] as String,
         budgetResetDay: data['budgetResetDay'] as int,
         lastSavingRun: data['lastSavingRun'] as String,
-        transfers: moneyFlows.where((mf) => mf.receiverAccountId == data['id']).fold(0, (sum, mf) => sum + mf.amount)
-      );
-    }).toList();
+        transfers: moneyFlows != null ? moneyFlows.where((mf) => mf.receiverAccountId == data['id']).fold(0, (sum, mf) => sum + mf.amount) : 0.0,
+        isCreditCard: data['isCreditCard'] == 1,
+        refillsFrom: data['refillsFrom'] as int,
+        refillPrincipleMode: data['refillPrincipleMode'] as String
+      ));
+    }
+    return result;
   }
 
-  Future<List<AutoExpense>> getAutoExpenses({bool noMoneyFlow = true}) async {
-    final db = await database;
+  Future<List<AutoExpense>> getAutoExpenses({bool noMoneyFlow = true, Database? dbObj}) async {
+    final db = dbObj ?? await database;
     final List<Map<String, dynamic>> autoExpenseList = (noMoneyFlow) ?
       List.from(await db.query('autoexpenses', where: 'moneyFlow = ?', whereArgs: [0]))
       :
       List.from(await db.query('autoexpenses'));
-
     return autoExpenseList.map((data) {
       return AutoExpense(
         id: data['id'] as int,
@@ -630,90 +738,54 @@ class DatabaseHelper {
     }).toList();
   }
 
-  Future<void> updateCategoryBase(Category category, String filter) async {
-    final db = await database;
-    await db.update(
-      'categories',
-      {
-        'name': category.name,
-        'color': colorToHex(category.color),
-        'position': category.position
-      },
-      where: 'id = ?',
-      whereArgs: [category.id],
-    );
-
-    await insertEditLog("categories", category.id, "update", dbObj: db);
-
-    if (filter == "*") {
-      filter = "-1";
-    }
-
-    List<Map<String, dynamic>> affected = await db.query('categoryBudgets', where: 'categoryId = ? AND accountId = ?', whereArgs: [category.id, filter]);
-    await db.update('categoryBudgets', {"budget": category.budget}, where: 'categoryId = ? AND accountId = ?', whereArgs: [category.id, filter]);
-    for (Map<String, dynamic> entry in affected) {
-      await insertEditLog("categoryBudgets", entry['id'], "update", dbObj: db);
-    }
-    
-  }
-
-  Future<bool> checkAutoExpense(int autoId, int categoryId, String date) async {
-    final db = await database;
-    return (await db.query("expenses", where: "autoId = ? AND categoryId = ? AND date = ?", whereArgs: [autoId, categoryId, formatForSqliteFromStr(date)])).isNotEmpty;
-  }
-
   Future<Map<String, dynamic>> getFirstExpense() async {
     final db = await database;
     return (await db.query('expenses', limit: 1, orderBy: "date ASC"))[0];
   }
 
-  Future<void> insertExpense(Map<String, dynamic> expense, {Database? dbObj}) async {
+  Future<dynamic> getIntervals({Database? dbObj, int? limit, String? filter, List<dynamic>? filterArgs, String? order, bool onlyFirst = false}) async {
     final db = dbObj ?? await database;
-    int id = await db.insert('expenses', expense);
-    await insertEditLog("expenses", id, "insert", dbObj: db);
+    final List<Map<String, dynamic>> result = await genericSelect("intervals", limit: limit, filter: filter, filterArgs: filterArgs, order: order, dbObj: db);
+    if (onlyFirst){
+      return PBInterval(result.first);
+    } else {
+      return result.map((res) => PBInterval(res)).toList();
+    }
   }
 
-  Future<void> updateExpense(Map<String, dynamic> expense) async {
-    final db = await database;
-    await db.update('expenses', expense, where: 'id = ?', whereArgs: [expense['id']]);
-    await insertEditLog("expenses", expense['id'], "update", dbObj: db);
+  Future<dynamic> getRealizedBankAccounts({Database? dbObj, int? limit, String? filter, List<dynamic>? filterArgs, String? order, bool onlyFirst = false}) async {
+    final db = dbObj ?? await database;
+    final dynamic result = await genericSelect("realizedBankaccounts", limit: limit, filter: filter, filterArgs: filterArgs, order: order, onlyFirst: onlyFirst, dbObj: db);
+    if (onlyFirst){
+      return RealizedBankaccounts(result);
+    } else {
+      return result.map((res) => RealizedBankaccounts(res)).toList();
+    }
   }
 
-  Future<void> deleteExpense(Map<String, dynamic> expense) async {
-    final db = await database;
-    await db.delete('expenses', where: 'id = ?', whereArgs: [expense['id']]);
-    await insertEditLog("expenses", expense['id'], "delete", dbObj: db);
-  }
-
-  Future<List<Map<String, dynamic>>> getExpenses(int categoryId, String accountId, Map<String, DateTime> range) async {
-    final db = await database;
+  Future<List<Expense>> getExpenses(int categoryId, String accountId, PBInterval range, List<BankAccount> bankAccounts) async {
     String where;
     List whereParams = [];
 
     if (accountId == "*") {
       where = "categoryId = ? AND date >= ? AND date <= ?";
-      whereParams = [categoryId, formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
+      whereParams = [categoryId, formatForSqlite(range.start), formatForSqlite(range.end)];
     } else {
-      where = "categoryId = ? AND accountId = ? AND date >= ? AND date <= ?";
-      whereParams = [categoryId, accountId, formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
+      whereParams = [categoryId];
+      String inlay = "";
+      for (BankAccount acc in bankAccounts.where((acc) => (acc.isCreditCard) ? (acc.refillsFrom.toString() == accountId) : (acc.id.toString() == accountId))) {
+        inlay += "(date >= ? AND date <= ? AND accountId = ?) OR ";
+        if (acc.isCreditCard) {
+          whereParams.addAll([formatForSqlite(getCreditCardStartDayLastMonth({"principle": acc.budgetResetPrinciple, "day": acc.budgetResetDay}, acc.id!)), formatForSqlite(range.end), acc.id]);
+        } else {
+          whereParams.addAll([formatForSqlite(range.start), formatForSqlite(range.end), acc.id]);
+        }
+      }
+      where = "categoryId = ? AND (${inlay.substring(0, inlay.length - 3)})";
     }
 
-    List<Map<String, dynamic>>result = await db.query('expenses', where: where, whereArgs: whereParams, orderBy: "date ASC");
-    return result;
-  }
-
-  Future<Map<String, dynamic>> getExpense(int id) async {
-    final db = await database;
-    return (await db.query('expenses', where: 'id = ?', whereArgs: [id]))[0];
-  }
-
-  Future<void> deleteAutoExpRealizations(int autoId, String date) async {
-    final db = await database;
-    List<Map<String, dynamic>> affected = await db.query("expenses", where: 'autoId = ? AND date > ?', whereArgs: [autoId, formatForSqliteFromStr(date)]);
-    await db.delete('expenses', where: 'autoId = ? AND date > ?', whereArgs: [autoId, formatForSqliteFromStr(date)]);
-    for (Map<String, dynamic> entry in affected) {
-      await insertEditLog("expenses", entry['id'], "delete", dbObj: db);
-    }
+    final List<Map<String, dynamic>> result = await genericSelect("expenses", filter: where, filterArgs: whereParams, order: "date ASC");
+    return result.map((exp) => Expense(exp)).toList();
   }
 
   Future<List<Map<String, dynamic>>> exportTable(String table) async {
@@ -726,9 +798,9 @@ class DatabaseHelper {
     List<String> tables;
 
     if (keepSettings) {
-      tables = ['expenses', 'categories', 'autoexpenses', 'bankaccounts', 'categoryBudgets', 'editLog'];
+      tables = ['expenses', 'categories', 'autoexpenses', 'bankaccounts', 'categoryBudgets', 'editLog', 'intervals', 'realizedCategoryBudgets', 'realizedBankaccounts', 'realizedAutoexpenses'];
     } else {
-      tables = ['expenses', 'categories', 'settings', 'autoexpenses', 'bankaccounts', 'categoryBudgets', 'editLog'];
+      tables = ['expenses', 'categories', 'settings', 'autoexpenses', 'bankaccounts', 'categoryBudgets', 'editLog', 'intervals', 'realizedCategoryBudgets', 'realizedBankaccounts', 'realizedAutoexpenses'];
     }
 
     for (final table in tables) {
@@ -739,168 +811,107 @@ class DatabaseHelper {
   Future<void> importData(Map<String, dynamic> data) async {
     final db = await database;
 
-    await resetDatabase();
+    // Wrap everything in a transaction so the DB is never left in a partial state.
+    // If any insert fails, SQLite rolls back to the state before the import started.
+    await db.transaction((txn) async {
+      // Clear existing data inside the transaction
+      const tables = [
+        'expenses', 'categories', 'settings', 'autoexpenses', 'bankaccounts',
+        'categoryBudgets', 'editLog', 'intervals', 'realizedCategoryBudgets',
+        'realizedBankaccounts', 'realizedAutoexpenses',
+      ];
 
-    for (Map<String, dynamic> expense in data['expenses']){
-      await insertExpense(expense, dbObj: db);
-    }
+      _logger.debug("Loading data from keys: ${data.keys}r" ,tag: "import");
 
-    for (Map<String, dynamic> autoexpenses in data['autoexpenses']){
-      await insertAutoExpense(autoexpenses, dbObj: db);
-    }
-
-    if (data.keys.contains('bankaccounts')) {
-      for (Map<String, dynamic> settings in data['settings']){
-        settings.remove("isPro");
-        await insertSettings(settings, dbObj: db);
+      _logger.debug("Deleting old data", tag: "import");
+      for (final t in tables) {
+        await txn.delete(t);
       }
 
-      for (Map<String, dynamic> bankaccount in data['bankaccounts']){
-        await insertBankAccount(bankaccount, dbObj: db);
-      }
-    } else {
-      Map<String, dynamic> setting = {
-        "id": data['settings'][0]['id'],
-        "currency": data['settings'][0]['currency'],
-        "language": data['settings'][0]['language'],
-        "includePlanned": data['settings'][0]['includePlanned'],
-        "lastAutoExpenseRun": data['settings'][0]['lastAutoExpenseRun'],
-        "showAvailableBudget": data['settings'][0]['showAvailableBudget'],
-        "isPro": data['settings'][0]['isPro']
-      };
-      await insertSettings(setting, dbObj: db);
-
-      Map<String, dynamic> bank = {
-        "id": -1,
-        "name": "__undefined_account_name__",
-        "balance": 0,
-        "income": data['settings'][0]['totalBudget'],
-        "budgetResetPrinciple": data['settings'][0]['budgetResetPrinciple'],
-        "budgetResetDay": data['settings'][0]['budgetResetDay']
-      };
-      await insertBankAccount(bank, dbObj: db);
-    }
-
-    final moneyFlows = await getMoneyFlows();
-    
-    if (data.keys.contains('categoryBudgets')) {
-      for (Map<String, dynamic> categoryBudgets in data['categoryBudgets']){
-        await insertCategoryBudget(categoryBudgets, dbObj: db);
+      _logger.debug("Inserting expenses", tag: "import");
+      for (final row in (data['expenses'] as List)) {
+        await txn.insert('expenses', row as Map<String, dynamic>);
       }
 
-      for (Map<String, dynamic> categories in data['categories']){
-        await insertCategoryFlat(categories, dbObj: db);
-      }
-    } else {
-      List<BankAccount> bankAccounts = await getBankAccounts(moneyFlows);
-      for (BankAccount bankAcc in bankAccounts){
-        for (Map<String, dynamic> cat in data['categories']){
-          Map<String, dynamic> catBudget = {
-            "accountId": bankAcc.id,
-            "categoryId": cat['id'],
-            "budget": bankAcc.id == -1 && cat.keys.contains('budget') ? cat['budget'] : 0
-          };
-          await insertCategoryBudget(catBudget, dbObj: db);
-        }
+      _logger.debug("Inserting autoexpenses", tag: "import");
+      for (final row in (data['autoexpenses'] as List)) {
+        await txn.insert('autoexpenses', row as Map<String, dynamic>);
       }
 
-      for (Map<String, dynamic> cat in data['categories']){
-        cat.remove('budget');
-        await insertCategoryFlat(cat, dbObj: db);
+      _logger.debug("Inserting settings", tag: "import");
+      for (final row in (data['settings'] as List)) {
+        final s = Map<String, dynamic>.from(row as Map)..remove('isPro');
+        await txn.insert('settings', s);
       }
-    }
 
-    db.delete("editLog");
+      _logger.debug("Inserting bankaccounts", tag: "import");
+      for (final row in (data['bankaccounts'] as List)) {
+        final acc = Map<String, dynamic>.from(row as Map);
+        acc['isCreditCard'] =
+            (acc['isCreditCard'] == true || acc['isCreditCard'] == 1) ? 1 : 0;
+        await txn.insert('bankaccounts', acc);
+      }
 
-    if (data.keys.contains('editLog')) {
-      for (Map<String, dynamic> editLog in data['editLog']){
-      await insertEditLogFlat(editLog, dbObj: db);
-    }
-    }
+      _logger.debug("Inserting categoryBudgets", tag: "import");
+      for (final row in (data['categoryBudgets'] as List)) {
+        await txn.insert('categoryBudgets', row as Map<String, dynamic>);
+      }
+
+      _logger.debug("Inserting categories", tag: "import");
+      for (final row in (data['categories'] as List)) {
+        await txn.insert('categories', row as Map<String, dynamic>);
+      }
+
+      _logger.debug("Inserting creditCardRefills", tag: "import");
+      for (final row in (data['creditCardRefills'] as List)) {
+        await txn.insert('creditCardRefills', row as Map<String, dynamic>);
+      }
+
+      _logger.debug("Inserting intervals", tag: "import");
+      for (final row in (data['intervals'] as List)) {
+        await txn.insert('intervals', row as Map<String, dynamic>);
+      }
+
+      _logger.debug("Inserting realized_bankaccounts", tag: "import");
+      for (final row in (data['realized_bankaccounts'] as List)) {
+        await txn.insert('realizedBankaccounts', row as Map<String, dynamic>);
+      }
+
+      _logger.debug("Inserting realized_categorybudgets", tag: "import");
+      for (final row in (data['realized_categorybudgets'] as List)) {
+        await txn.insert('realizedCategoryBudgets', row as Map<String, dynamic>);
+      }
+
+      _logger.debug("Inserting realized_autoexpenses", tag: "import");
+      for (final row in (data['realized_autoexpenses'] as List)) {
+        await txn.insert('realizedAutoexpenses', row as Map<String, dynamic>);
+      }
+
+      _logger.debug("Inserting editLog", tag: "import");
+      for (final row in (data['editLog'] as List)) {
+        await txn.insert('editLog', row as Map<String, dynamic>);
+      }
+
+      _logger.debug("Finished inserting", tag: "import");
+    });
+    _logger.debug("Finished import", tag: "import");
   }
 
-  Future<List<Map<String, dynamic>>> statisticMonthTotal(Map<String, DateTime> range, dynamic filter) async {
-    final db = await database;
-    String query;
-    List<dynamic> params = [];
-
-    if (filter == "*") {
-      query = "SELECT SUM(amount) as amount, date FROM expenses WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL GROUP BY DATE(date)";
-      params = [formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
-    } else {
-      query = "SELECT SUM(amount) as amount, date FROM expenses WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL AND accountId = ? GROUP BY DATE(date)";
-      params = [formatForSqlite(range['start']!), formatForSqlite(range['end']!), filter];
-    }
-    return await db.rawQuery(query, params);
+  Future<void> insertRefill(Map<String, dynamic> refill, {Database? dbObj}) async {
+    final db = dbObj ?? await database;
+    int id = await db.insert('creditCardRefills', refill);
+    await insertEditLog("creditCardRefills", id, "insert", dbObj: db);
   }
 
-  Future<List<Map<String, dynamic>>> statisticMonthTotalByCat(Map<String, DateTime> range, dynamic filter) async {
-    final db = await database;
-    String query;
-    List<dynamic> params = [];
+  // statisticMonthTotal … lastMonthsCatBudget → StatisticsRepository
 
-    if (filter == "*") {
-      query = "SELECT SUM(amount) as amount, date, name as category, color FROM expenses LEFT JOIN categories ON expenses.categoryId = categories.id WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL GROUP BY DATE(date), category";
-      params = [formatForSqlite(range['start']!), formatForSqlite(range['end']!)];
-    } else {
-      query = "SELECT SUM(amount) as amount, date, name as category, color FROM expenses LEFT JOIN categories ON expenses.categoryId = categories.id WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL AND accountId = ? GROUP BY DATE(date), category";
-      params = [formatForSqlite(range['start']!), formatForSqlite(range['end']!), filter];
-    }
-    return await db.rawQuery(query, params);
-  }
-
-  Future<List<Map<String, dynamic>>> lastMonthsTotal(List<Map<String, DateTime>> ranges, dynamic filter) async {
-    final db = await database;
-    String query;
-    List<String> params = [];
-
-    if (filter == "*") {
-      query = "SELECT SUM(amount) as amount FROM expenses WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL";
-    } else {
-      query = "SELECT SUM(amount) as amount FROM expenses WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL AND accountId = ?";
-      params = [filter.toString()];
-    }
-
-    List<Map<String, dynamic>> result = [];
-    for (Map<String, DateTime> range in ranges) {
-      String label = createLabel(range);
-      result.add({"date": label, "amount": (await db.rawQuery(query, [formatForSqlite(range['start']!), formatForSqlite(range['end']!)] + params))[0]['amount'] ?? 0.0});
-    }
-
-    return result.reversed.toList();
-  }
-
-  Future<List<Map<String, dynamic>>> lastMonthsByCat(List<Map<String, DateTime>> ranges, dynamic filter) async {
-    final db = await database;
-    String query;
-    List<String> params = [];
-
-    if (filter == "*") {
-      query = "SELECT SUM(amount) as amount, name as category, color FROM expenses LEFT JOIN categories ON expenses.categoryId = categories.id WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL GROUP BY category";
-    } else {
-      query = "SELECT SUM(amount) as amount, name as category, color FROM expenses LEFT JOIN categories ON expenses.categoryId = categories.id WHERE date >= ? AND date <= ? AND categoryId IS NOT NULL AND accountId = ? GROUP BY category";
-      params = [filter.toString()];
-    }
-
-    List<Map<String, dynamic>> result = [];
-    for (Map<String, DateTime> range in ranges) {
-      String label = createLabel(range);
-      List<Map<String, dynamic>> rows = await db.rawQuery(query, [formatForSqlite(range['start']!), formatForSqlite(range['end']!)] + params);
-      for (Map<String, dynamic> row in rows) {
-        result.add({"date": label, "amount": row['amount'], "category": row['category'], "color": row['color']});
-      }
-    }
-
-    return result.reversed.toList();
-  }
-
-  Future<void> moveExpense(id, newCatid, newAccountId) async {
+  Future<void> moveExpense(int id, int newCatid, int newAccountId) async {
     final db = await database;
     await db.update("expenses", {"categoryId": newCatid, "accountId": newAccountId}, where: "id = ?", whereArgs: [id]);
     await insertEditLog("expenses", id, "update", dbObj: db);
   }
 
-  Future<void> moveAutoExpense(id, newCatid, newAccountId) async {
+  Future<void> moveAutoExpense(int id, int newCatid, int newAccountId) async {
     final db = await database;
     final now = DateTime.now();
 
@@ -924,16 +935,16 @@ class DatabaseHelper {
   }
 }
 
-String createLabel(Map<String, DateTime> range) {
-  if (range['start']!.day == 1 && range['end']!.day == 1) {
-    return shortMonthYr(range['start']!);
+String createLabel(PBInterval range) {
+  if (range.start.day == 1 && range.end.day == 1) {
+    return shortMonthYr(range.start);
   } else {
-    return "${shortMonthYr(range['start']!)} / ${shortMonthYr(range['end']!)}";
+    return "${shortMonthYr(range.start)} / ${shortMonthYr(range.end)}";
   }
 }
 
 String colorToHex(Color color) {
-  return color.value.toRadixString(16).padLeft(8, '0');
+  return color.toARGB32().toRadixString(16).padLeft(8, '0');
 }
 
 Color hexToColor(String hex) {
@@ -942,8 +953,4 @@ Color hexToColor(String hex) {
 
 String formatForSqlite(DateTime dt) {
   return dt.toIso8601String().replaceFirst("T", " ").split(".").first;
-}
-
-String formatForSqliteFromStr(String dt) {
-  return dt.replaceFirst("T", " ").split(".").first;
 }

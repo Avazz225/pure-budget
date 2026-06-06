@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -38,16 +36,18 @@ void showDummyImportDialog(BuildContext context, BudgetState budgetState) {
                     '$code.pbstate',
                   );
                   logger.debug("Starting import of $path dummydata", tag:"dummyImport");
+                  final dialogNavigator = Navigator.of(dialogContext);
+                  final messenger = ScaffoldMessenger.of(context);
 
                   if (await BackupManager.importDataFromFile(path: path)) {
                     await budgetState.updateLanguage(code);
                     await budgetState.reloadData();
                     logger.debug("Loaded data from $path", tag:"dummyImport");
-                    Navigator.of(dialogContext).pop();
+                    dialogNavigator.pop();
                   } else {
                     logger.debug("Failed to load data from $path", tag:"dummyImport");
-                    Navigator.of(dialogContext).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    dialogNavigator.pop();
+                    messenger.showSnackBar(
                       SnackBar(content: Text('Data not found: $path')),
                     );
                   }

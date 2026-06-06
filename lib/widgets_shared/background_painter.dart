@@ -13,7 +13,7 @@ class _DynamicBackgroundScreenState extends State<DynamicBackgroundScreen> {
   @override
   void initState() {
     super.initState();
-    currentBrightness = MediaQueryData.fromView(WidgetsBinding.instance.window).platformBrightness;
+    currentBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
     WidgetsBinding.instance.addObserver(_PlatformBrightnessObserver(_onBrightnessChange));
   }
 
@@ -99,7 +99,7 @@ class _PlatformBrightnessObserver extends WidgetsBindingObserver {
 
   @override
   void didChangePlatformBrightness() {
-    final brightness = WidgetsBinding.instance.window.platformBrightness;
+    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
     onBrightnessChange(brightness);
   }
 }

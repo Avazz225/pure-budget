@@ -1,10 +1,7 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -30,17 +27,18 @@ Future<void> connectSharedDbDialog(BuildContext context, BudgetState budgetState
                     I18n.translate(sharedDbExists ? "sharedDbAlreadyExists" : "newSharedDb")
                   ),
                   const SizedBox(height: 16,),
-                  ElevatedButton(
-                    style: btnNeutralStyle,
+                  FilledButton(
                     onPressed: () async {
-                      if(sharedDbExists) {
+                      final navigator = Navigator.of(context);
+                      if (sharedDbExists) {
                         if (!(await keyDialog(context))) {
-                          Navigator.of(context).pop();
+                          navigator.pop();
+                          return;
                         }
                       }
                       bool result = await budgetState.updateSharedDbUrl(selectedPath ?? "none");
-                      
-                      if (!result) {
+
+                      if (!result && context.mounted) {
                         await showDialog(context: context, builder: (context) {
                           return AdaptiveAlertDialog(
                             title: Text(I18n.translate("sDbConnectionFail")),
@@ -48,8 +46,8 @@ Future<void> connectSharedDbDialog(BuildContext context, BudgetState budgetState
                           );
                         });
                       }
-                      Navigator.of(context).pop();
-                    }, 
+                      navigator.pop();
+                    },
                     child: Text(I18n.translate("connect"))
                   )
                 ],
@@ -106,7 +104,7 @@ Future<bool> keyDialog(BuildContext context) async {
                           final String code = barcode.barcodes.first.displayValue!;
                           Logger().debug("Scanned: $code", tag: "sharedDatabase");
                           await EncryptionHelper.saveKey(code);
-                          Navigator.of(context).pop(true);
+                          if (context.mounted) Navigator.of(context).pop(true);
                         },
                       ),
                     ),
@@ -153,7 +151,7 @@ Future<bool> keyDialog(BuildContext context) async {
                               Navigator.of(context).push(MaterialPageRoute(
                                 builder: (_) => ScannerPage(onCodeScanned: (code) async {
                                   await EncryptionHelper.saveKey(code);
-                                  Navigator.of(context).pop(true); // zurück zur vorherigen Seite
+                                  if (context.mounted) Navigator.of(context).pop(true);
                                 }),
                               ));
                             }
@@ -174,12 +172,12 @@ Future<bool> keyDialog(BuildContext context) async {
                 },
                 child: Text(I18n.translate("cancel")),
               ),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () async {
                   if (keyInput.isNotEmpty) {
                     await EncryptionHelper.saveKey(keyInput.replaceAll(" ", ""));
                   }
-                  Navigator.of(context).pop(true);
+                  if (context.mounted) Navigator.of(context).pop(true);
                 },
                 child: Text(I18n.translate("continue")),
               ),

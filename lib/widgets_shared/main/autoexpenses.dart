@@ -1,10 +1,7 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/helper/btn_styles.dart';
-import 'package:jne_household_app/services/debug_screenshot_manager.dart';
 import 'package:jne_household_app/services/format_date.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
@@ -14,10 +11,6 @@ import 'package:jne_household_app/widgets_shared/dialogs/move_dialog.dart';
 import 'package:provider/provider.dart';
 
 Widget autoExpenseList(dynamic budgetState) {
-  if (kDebugMode && !Platform.isAndroid && !Platform.isIOS) {
-    ScreenshotManager().takeScreenshot(name: "autoexpenses");
-  }
-
   List<Widget> buildAutoExpensesForCategory(context, int categoryId) {
     final budgetState = Provider.of<BudgetState>(context);
     var allowNewAutoExpense = (budgetState.autoExpenses.length < maxAutoExpenses) || budgetState.proStatusIsSet(simplePro: true);
@@ -68,12 +61,12 @@ Widget autoExpenseList(dynamic budgetState) {
           expenseAmount = expenseAmount.replaceAll(".", ",");
         }
 
-        if (budgetState.filterBudget == "*" || expense.accountId.toString() == budgetState.filterBudget) {
+        if (budgetState.settings.filterBudget == "*" || expense.accountId.toString() == budgetState.settings.filterBudget) {
           return Card( 
             child: ListTile(
-              title: Text("${expense.description}${(expense.ratePayment) ? " (${I18n.translate("ratePayment")})" : ""}"),
+              title: Text("${expense.description} ${(expense.ratePayment) ? " (${I18n.translate("ratePayment")})" : ""}"),
               subtitle: Text(
-                '${I18n.translate("expenseAmount", placeholders: {"amount": expenseAmount, "currency": budgetState.currency})} - $principle${budgetState.filterBudget == "*" && budgetState.bankAccounts.length > 1 ? "\n${budgetState.bankAccounts.where((exp) => exp.id == expense.accountId).first.name}" : ""}'
+                '${I18n.translate("expenseAmount", placeholders: {"amount": expenseAmount, "currency": budgetState.settings.currency})} - $principle${budgetState.settings.filterBudget == "*" && budgetState.bankAccounts.length > 1 ? "\n${budgetState.bankAccounts.where((exp) => exp.id == expense.accountId).first.name}" : ""}'
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -81,7 +74,7 @@ Widget autoExpenseList(dynamic budgetState) {
                   IconButton(
                     icon: const Icon(Icons.swap_horiz_rounded),
                     onPressed: () async {
-                      await showMoveDialog(context: context, categoryId: categoryId, targetId: expense.id, autoExpense: true, accountId: expense.accountId);
+                      await showMoveDialog(context: context, categoryId: categoryId, targetId: expense.id!, autoExpense: true, accountId: expense.accountId);
                     }
                   ),
                   IconButton( icon: const Icon(Icons.edit_rounded), onPressed: () =>  addOrEditAutoExpenseDialog(context, categoryId, expenseId: expense.id))

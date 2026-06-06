@@ -33,7 +33,7 @@ Future<Map<String, dynamic>> showCustomDeviceNameDialog({
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(I18n.translate("cancel")),
               ),
-              TextButton(
+              FilledButton(
                 onPressed: () async {
                   if (!processing) {
                     setState(() {
@@ -44,7 +44,7 @@ Future<Map<String, dynamic>> showCustomDeviceNameDialog({
                       'customname': controller.text.trim(),
                     };
 
-                    if (await budgetState.updateRemoteDeviceMetadata(uuid, updatedMetadata)){
+                    if (await budgetState.updateRemoteDeviceMetadata(uuid, updatedMetadata) && context.mounted){
                       Navigator.of(context).pop(updatedMetadata);
                     }
                   }

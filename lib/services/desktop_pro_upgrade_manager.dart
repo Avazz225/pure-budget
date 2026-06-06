@@ -19,7 +19,7 @@ class ProUpgradeManager {
       bool result = false;
       if (Platform.isMacOS) {
         await _restorePurchase(budgetState);
-        if (budgetState.isDesktopPro) {
+        if (budgetState.settings.isDesktopPro) {
           return;
         }
         await _buyOnMac(budgetState);

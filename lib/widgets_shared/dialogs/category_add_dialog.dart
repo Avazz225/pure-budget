@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:jne_household_app/database_helper.dart';
+import 'package:jne_household_app/models/bankaccount.dart';
+import 'package:jne_household_app/models/category.dart';
+import 'package:jne_household_app/models/category_budget_plain.dart';
+import 'package:jne_household_app/models/category_plain.dart';
 import 'package:jne_household_app/services/brightness.dart';
-import 'package:jne_household_app/services/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/screens_shared/settings.dart';
+import 'package:jne_household_app/widgets_shared/decimal_amount_field.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/color_picker_dialog.dart';
 import 'package:provider/provider.dart';
 
-Future<void> addCategory(context) async {
+Future<void> addCategory(context, List<BankAccount> bankAccounts) async {
     String name = '';
-    double budget = 0.0;
     Color selectedColor = availableColors.first;
     final FocusNode descriptionFocusNode = FocusNode();
     final FocusNode amountFocusNode = FocusNode();
+    final TextEditingController amountController = TextEditingController();
+    int? overrideBankAccount;
 
     await showDialog(
       context: context,
@@ -34,18 +40,39 @@ Future<void> addCategory(context) async {
                         name = value;
                       },
                     ),
-                    TextField(
-                      decoration: InputDecoration(labelText: I18n.translate("budget")),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    DecimalAmountField(
+                      controller: amountController,
                       focusNode: amountFocusNode,
+                      labelKey: "budget",
                       textInputAction: TextInputAction.done,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
-                      onChanged: (value) {
-                        budget = double.tryParse(value.replaceAll(",", ".")) ?? 0.0;
-                      },
+                      setState: setState,
                     ),
+                    if (bankAccounts.length > 1)
+                    ...[
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<int?>(
+                        initialValue: overrideBankAccount,
+                        decoration: InputDecoration(
+                          labelText: I18n.translate("overrideAccount"),
+                        ),
+                        items: [
+                          DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text(I18n.translate("defaultAccount")),
+                          ),
+                          ...bankAccounts.map((account) {
+                            return DropdownMenuItem<int?>(
+                              value: account.id,
+                              child: Text(account.name),
+                            );
+                          }),
+                        ],
+                      onChanged: (value) {
+                        setState(() {
+                          overrideBankAccount = value;
+                        });
+                      },
+                    )],
                     const SizedBox(height: 10),
                     Text(I18n.translate("pickColor")),
                     Padding(
@@ -90,9 +117,10 @@ Future<void> addCategory(context) async {
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(I18n.translate("cancel")),
                 ),
-                TextButton(
+                FilledButton(
                   onPressed: () {
-                    if (name.isNotEmpty && budget > 0) {
+                    final v = double.tryParse(amountController.text.replaceAll(",", ".")) ?? 0.0;
+                    if (name.isNotEmpty && v > 0) {
                       Navigator.of(context).pop(true);
                     }
                   },
@@ -105,14 +133,33 @@ Future<void> addCategory(context) async {
       }
     );
 
+    final double budget = double.tryParse(amountController.text.replaceAll(",", ".")) ?? 0.0;
     if (name.isNotEmpty && budget > 0) {
       final budgetState = Provider.of<BudgetState>(context, listen: false);
-      final newCategory = {
-        'name': name,
-        'budget': budget,
-        'color': selectedColor.value.toRadixString(16),
-        'raw_color': selectedColor
-      };
-      await budgetState.insertCategory(newCategory);
+      CategoryPlain c = CategoryPlain({
+        "name": name,
+        "color": colorToHex(selectedColor),
+        "position": budgetState.categories.length
+      });
+
+      await c.save();
+
+      int filter = budgetState.settings.filterBudget == "*" ? -1 : int.parse(budgetState.settings.filterBudget);
+
+      double de = 0.0;
+
+      List<CategoryBudgetPlain> l = budgetState.bankAccounts.map((ba) => CategoryBudgetPlain({
+        'categoryId': c.id,
+        'accountId': ba.id,
+        'budget': ba.id == filter ? budget : de,
+        "overrideBankAccount": overrideBankAccount
+      })).toList();
+
+      Category newC = Category(
+        budget: budget,
+        categoryBudgetsPlain: l,
+        category: c
+      );
+      await budgetState.insertCategory(newC);
     }
   }

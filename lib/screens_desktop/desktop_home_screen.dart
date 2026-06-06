@@ -5,9 +5,11 @@ import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/screens_shared/customization_screen.dart';
 import 'package:jne_household_app/screens_shared/help_screen.dart';
+import 'package:jne_household_app/widgets_desktop/go_mobile_banner.dart';
 import 'package:jne_household_app/widgets_desktop/home/statistics.dart';
 import 'package:jne_household_app/widgets_shared/background_painter.dart';
 import 'package:jne_household_app/widgets_shared/buttons.dart';
+import 'package:jne_household_app/widgets_shared/dialogs/interval_picker.dart';
 import 'package:jne_household_app/widgets_shared/main/autoexpenses.dart';
 import 'package:jne_household_app/widgets_shared/home/budget_summary.dart';
 import 'package:jne_household_app/screens_shared/settings.dart';
@@ -62,9 +64,27 @@ class HomeScreenState extends State<DesktopHomeScreen> {
       backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
       appBar: AppBar(
         backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
-        title: Text("${I18n.translate('appTitle')} ${budgetState.filterBudget != "*" ? "- ${budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.filterBudget).first.name}" : ""}"),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: (budgetState.settings.filterBudget != "*") ?
+          [
+            const Image(image: AssetImage('assets/icons/logo.png'), height: 48),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                budgetState.bankAccounts.where((acc) => acc.id.toString() == budgetState.settings.filterBudget).first.name,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ]
+          :
+          [
+            const Image(image: AssetImage('assets/icons/PureBudgetFullImage.png'), height: 48),
+          ],
+        ),
         actions: [
-          if(budgetState.sharedDbUrl != "none" && budgetState.sharedDbConnected && !budgetState.syncInProgress)
+          if(budgetState.settings.sharedDbUrl != "none" && budgetState.sharedDbConnected && !budgetState.syncInProgress)
           buttonBuilder(
             context,
             () {
@@ -72,7 +92,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
             },
             icon: Icons.cloud_queue_rounded
           ),
-          if(budgetState.sharedDbUrl != "none" && !budgetState.sharedDbConnected && !budgetState.syncInProgress)
+          if(budgetState.settings.sharedDbUrl != "none" && !budgetState.sharedDbConnected && !budgetState.syncInProgress)
           buttonBuilder(
             context,
             () {
@@ -80,12 +100,23 @@ class HomeScreenState extends State<DesktopHomeScreen> {
             },
             icon: Icons.cloud_off_rounded,
           ),
-          if(budgetState.sharedDbUrl != "none" && budgetState.syncInProgress)
+          if(budgetState.settings.sharedDbUrl != "none" && budgetState.syncInProgress)
           buttonBuilder(
             context,
             () {},
             icon: Icons.cloud_sync_rounded
           ),
+          if(designState.intervalStyle == 1)
+          ... [
+            const SizedBox(width: 8,),
+            buttonBuilder(
+              context,
+              () {
+                selectInterval(context, budgetState);
+              },
+              icon: budgetState.range == 0 ? Icons.calendar_month_rounded : Icons.history_rounded,
+            ),
+          ],
           const SizedBox(width: 16,)
         ],
       ),
@@ -151,7 +182,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           );
                         },
                       ),
-                      if (budgetState.isDesktopPro || kDebugMode)
+                      if (budgetState.settings.isDesktopPro || kDebugMode)
                       buildActionButton(
                         context,
                         label: I18n.translate("customization"),
@@ -163,7 +194,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           );
                         },
                       ),
-                      if (!budgetState.isDesktopPro || kDebugMode)
+                      if (!budgetState.settings.isDesktopPro || kDebugMode)
                       buildActionButton(
                         context, 
                         label: I18n.translate("upgradeToPro"), 
@@ -174,7 +205,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.lightGreen, Colors.lightBlue, Colors.yellowAccent] : [Colors.pink, Colors.purple, Colors.deepOrange]),
                         onTap: () async  {
                           await ProUpgradeManager().ensureProUpgrade(
-                            isProLocally: budgetState.isDesktopPro,
+                            isProLocally: budgetState.settings.isDesktopPro,
                             budgetState: budgetState,
                           );
                         } 
@@ -190,21 +221,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                           );
                         },
                       ),
-                      /*if (!budgetState.isPro || kDebugMode)
-                      buildActionButton(
-                        context,
-                        label: I18n.translate("upgradeToPro"),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const InAppPurchaseScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      */
-                      const SizedBox(height: 0,),
-                    ],
+                                    ],
                   ),
                 ],
               ),
@@ -243,6 +260,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: ((budgetState.proStatusIsSet() || budgetState.proStatusIsSet(desktop: true) || budgetState.settings.sharedDbUrl != "none") && !kDebugMode) || designState.goMobileBannerDismissed ? null : const GoMobileBanner(),
     );
   }
 }

@@ -1,9 +1,6 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/btn_styles.dart';
 import 'package:jne_household_app/services/remote/one_drive_connector.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
@@ -49,12 +46,14 @@ class OneDriveSelectorState extends State<OneDriveSelector> {
         final folders = await connector!.readDirectory(currentFolderId ?? "");
 
         if (folders.isEmpty) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(I18n.translate("error_noFolders", placeholders: {"path": currentFolderName!}))),
           );
           return;
         }
 
+        if (!mounted) return;
         final selected = await showDialog<Map<String, dynamic>>(
           context: context,
           builder: (BuildContext dialogContext) {
@@ -129,6 +128,7 @@ class OneDriveSelectorState extends State<OneDriveSelector> {
       }
     } catch (e) {
       Logger().info("Could not browse folder: $e", tag: "oneDrive");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(I18n.translate("error_folderBrowse", placeholders: {"error": e.toString()}))),
       );
@@ -146,23 +146,23 @@ class OneDriveSelectorState extends State<OneDriveSelector> {
             I18n.translate("selectedFolder", placeholders: {"folder": selectedFolderName ?? ""})
           ),
           const SizedBox(height: 8),
-          ElevatedButton(
-            style: (selectedFolderId != null) ? btnPositiveStyle : btnNeutralStyle,
+          OutlinedButton(
             onPressed: openDriveFolderSelector,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               spacing: 8,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Icon(selectedFolderId != null ? Icons.folder_rounded : Icons.folder_open,
+                    semanticLabel: I18n.translate("browseDrive")),
                 Text(I18n.translate("selectDriveFolder")),
-                Icon(Icons.folder_open, semanticLabel: I18n.translate("browseDrive"))
               ],
             ),
           ),
           const SizedBox(height: 8,),
-          ElevatedButton(
-            style: (selectedFolderId != null) ? btnNeutralStyle : btnNegativeStyle,
-            onPressed: () => widget.handleConnect("onedrive://$selectedFolderId"),
+          FilledButton(
+            onPressed: selectedFolderId != null
+                ? () => widget.handleConnect("onedrive://$selectedFolderId")
+                : null,
             child: Text(I18n.translate("continue"))
           )
         ],

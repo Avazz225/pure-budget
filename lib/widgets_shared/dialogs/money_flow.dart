@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/services/text_formatter.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/logger.dart';
 import 'package:jne_household_app/models/autoexpenses.dart';
 import 'package:jne_household_app/models/bankaccount.dart';
 import 'package:jne_household_app/models/booking_principles.dart';
 import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/widgets_shared/decimal_amount_field.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:provider/provider.dart';
 
@@ -57,34 +57,21 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                         return null;
                       },
                     ),
-                    TextFormField(
+                    DecimalAmountField(
                       controller: amountController,
-                      decoration: InputDecoration(labelText: I18n.translate("budget")),
                       focusNode: amountFocusNode,
+                      labelKey: "budget",
                       textInputAction: TextInputAction.done,
-                      inputFormatters: [
-                        DecimalTextInputFormatter(decimalRange: 2),
-                      ],
-                      keyboardType: TextInputType.number,
+                      setState: setState,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return I18n.translate("numberRequired");
                         }
                         return null;
                       },
-                      onChanged: (value) {
-                        setState(() {
-                          if (I18n.comma()){
-                            amountController.text = value.replaceAll('.', ",");
-                          }
-                          amountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: amountController.text.length),
-                          );
-                        });
-                      },
                     ),
                     DropdownButtonFormField<int>(
-                      value: receiverAccountId,
+                      initialValue: receiverAccountId,
                       onChanged: (int? newValue) {
                         if (newValue != null) {
                           
@@ -104,23 +91,27 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                         labelText: I18n.translate("filterBankAccount"),
                       ),
                     ),
-                    DropdownButtonFormField<String>(
-                      value: bookingPrinciple,
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            bookingPrinciple = newValue;
-                          });
-                        }
-                      },
-                      items: (principleMode == "monthly" ? availablePrinciples : availableWeekDays).map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(I18n.translate(value, placeholders: {"day": "x"})),
-                        );
-                      }).toList(),
+                    InputDecorator(
                       decoration: InputDecoration(
                         labelText: I18n.translate("principle"),
+                      ),
+                      child: DropdownButton<String>(
+                        value: bookingPrinciple,
+                        isExpanded: true,
+                        underline: const SizedBox(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              bookingPrinciple = newValue;
+                            });
+                          }
+                        },
+                        items: (principleMode == "monthly" ? availablePrinciples : availableWeekDays).map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(I18n.translate(value, placeholders: {"day": "x"})),
+                          );
+                        }).toList(),
                       ),
                     ),
                     if (principleMode == "monthly" && !principleWithoutDay.contains(bookingPrinciple))
@@ -142,32 +133,36 @@ void addOrEditMoneyFlowDialog(BuildContext context, int spenderId, {int? expense
                   },
                   child: Text(I18n.translate("cancel")),
                 ),
-                TextButton(
-                  onPressed: () {
+                FilledButton(
+                  onPressed: () async {
+                    final navigator = Navigator.of(context);
                     if (principleWithoutDay.contains(bookingPrinciple)){
                       bookingDay = 1;
                     }
 
-                    final newAutoExpense = {
-                      "categoryId": -1,
-                      "amount": double.parse(amountController.text.replaceAll(",", ".")),
-                      "description": descriptionController.text,
-                      "bookingPrinciple": bookingPrinciple,
-                      "bookingDay": bookingDay,
-                      "principleMode": principleMode,
-                      "receiverAccountId": receiverAccountId,
-                      "moneyFlow": 1,
-                    };
+                    final newAutoExpense = AutoExpense(
+                      categoryId: -1,
+                      amount: double.parse(amountController.text.replaceAll(",", ".")),
+                      description: descriptionController.text,
+                      bookingPrinciple: bookingPrinciple,
+                      bookingDay: bookingDay,
+                      principleMode: principleMode,
+                      receiverAccountId: receiverAccountId,
+                      moneyFlow: true,
+                      accountId: spenderId,
+                      ratePayment: false
+                    );
 
                     Logger().debug(newAutoExpense.toString(), tag: "autoExpense");
                     
                     if (expenseId == null) {
-                      budgetState.addAutoExpense(newAutoExpense, spenderId.toString());
+                      await budgetState.addAutoExpense(newAutoExpense);
                     } else {
-                      budgetState.updateOrDeleteAutoExpense(newAutoExpense, expenseId, spenderId.toString());
+                      newAutoExpense.id = expenseId;
+                      await budgetState.updateOrDeleteAutoExpense(newAutoExpense);
                     }
 
-                    Navigator.of(context).pop();
+                    navigator.pop();
 
                   },
                   child: (amountController.text.isNotEmpty) ? Text((double.parse(amountController.text.replaceAll(",", ".")) == 0.0 && expenseId != null) 

@@ -2,26 +2,79 @@
 
 ## Roadmap
 
-### 3.2.0
+### planned (depends on need)
+
+- add connection to iCloud (requires full CloudKit rewrite)
+
+## Changelog
+
+### 4.0.1 bundle 45 (06.06.2026)
+
+- fix multiple creations of autoexpenses when using multiple bank accounts
+
+### 4.0.0 bundle 44 (05.06.2026)
+
+#### Export
+- **PDF export** (Pro) — generates a formatted A4 report with category summary table and full expense list; period is freely selectable from all available intervals
+- **CSV export** — exports all expenses of any period as UTF-8 CSV via the system share sheet; available in all versions
+
+#### UI / UX
+- **In-app tour** — spotlight-based guided tour highlights the 4 key elements of the home screen on first launch after setup; can be replayed from Settings at any time
+- Amounts are now the prominent title on category tiles, category names are secondary
+- Progress bar direction is left-to-right (RTL-aware)
+- All primary actions use `FilledButton`, destructive actions use error colour, secondary actions use `TextButton` — consistent across all dialogs
+- Disconnect dialog: corrected inverted button semantics
+- Folder pickers switch icon from open to filled once a folder is selected
+
+#### Form validation
+- All input dialogs now show inline field errors as soon as the user touches a field (`AutovalidateMode.onUserInteraction`) — affected: expense, auto-expense, bank account, category dialogs
+
+#### Delete confirmations
+- Explicit "Delete" buttons with confirmation dialogs added to expense, auto-expense, bank account, and category dialogs
+- Deleting via "set amount to 0" is no longer needed
+
+#### Notifications
+- Linux notification support enabled
+- macOS notifications re-enabled (were unintentionally excluded)
+
+#### Architecture
+- `budget_state.dart` reduced from 874 to 341 lines (−61 %) via 6 mixins
+- Statistics queries moved from `database_helper.dart` to `StatisticsRepository`
+- 25 integration tests added (expense CRUD, bank account CRUD, auto-expense deduplication, background jobs)
+- DB schema v40: `tourCompleted` flag in settings
+
+#### Bug fixes
+- Fixed fresh-install crash on Linux (SQL double-quote issue in INSERT statements)
+- Fixed `local_auth` crash on Linux (plugin unsupported — skipped)
+- Fixed authentication callback using `ScaffoldMessenger` above `MaterialApp` root
+- Fixed `void` async bank account methods — callers now correctly await them
+- Fixed potential crash when bank account not found in memory list (`indexWhere`)
+- Fixed unawaited `db.delete` in shared-database import
+- Fixed crash in `moveItem` when auto-expense not found
+- Added guard for empty `budgetRanges` before `.first` calls
+
+### 3.3.8 bundle 43
+
+- fix incorrectly or not displayed autoexpenses
+- fix multiple realizations of one autoexpense
+
+### 3.3.6 bundle 40
+
+- support for change history in budgets and income for statistics
+- option for more compact interval selection
+- make remote services available in free version
+- new background task handling to improve reliability and consitency
+- reminder for rating the app
+
+### 3.2.3 bundle 34
 
 - report issue button to submit error reports from within the app
 - custom background gradients
-- notification service
-- "real" credit card bank account
-  - "refills at" from bank account xy
+- notification service [unavailable on windows]
+- credit card bank account type
+  - "refills at" from normal bank account
 - default bank account per category
 - preparation for pure budget browser plugin
-
-```txt
-Developer Info:
-Integration of mobile payment apps is impossible due to privacy reasons maybe push notificaations could be utilized
-```
-
-### planned (depends on need)
-
-- add connection to iCloud
-
-## Changelog
 
 ### 3.1.2 bundle 29 (27.08.2025)
 
