@@ -36,8 +36,8 @@ jobs:
           dart run msix:create `
             --store true `
             --version "${{ steps.version.outputs.version }}" `
-            -n "pureBudget_release"
-            -b "${{ secrets.PUBLISHER }}"
+            -n "pureBudget_release" `
+            -b "${{ secrets.PUBLISHER }}" `
             -i "${{ secrets.IDENTITY }}"
 
       - name: Upload MSIX
