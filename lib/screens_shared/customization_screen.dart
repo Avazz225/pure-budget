@@ -12,6 +12,7 @@ import 'package:jne_household_app/widgets_shared/app_background.dart';
 import 'package:jne_household_app/widgets_shared/buttons.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/color_picker_dialog.dart';
+import 'package:jne_household_app/widgets_shared/glass_surface.dart';
 import 'package:jne_household_app/widgets_shared/home/category_list.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +20,7 @@ const int availableMainMenuDesignCount = 2;
 const int availableAddExpenseStyleCount = 2;
 const int availableArcStyleCount = 3;
 const int categoryMainStyleCount = 4;
+const int navBarStyleCount = 2;
 
 class CustomizationScreen extends StatefulWidget {
   const CustomizationScreen({super.key});
@@ -47,6 +49,8 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
   late int _appBackground;
   late Map<String,dynamic> _customGradient;
   late bool _intervalStyle;
+  late bool _liquidGlassMode;
+  late int _selectedNavBarStyle;
 
   @override
   void initState() {
@@ -70,6 +74,8 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
     _appBackground = designState.appBackground;
     _customGradient = designState.customGradient;
     _intervalStyle = designState.intervalStyle == 1;
+    _liquidGlassMode = designState.liquidGlassMode;
+    _selectedNavBarStyle = designState.navBarStyle;
 
     if (_customGradient.isEmpty || _customGradient['colors'].isEmpty) {
       _customGradient['colors'] = [Colors.blue, Colors.purple];
@@ -297,6 +303,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
     TextStyle smallHeadline = Theme.of(context).textTheme.headlineSmall!;
     TextStyle bigBody = Theme.of(context).textTheme.bodyLarge!;
     final button = (_selectedMainMenuVariant == 0) ? glassButton : flatButton;
+    final isLiquidGlassPro = budgetState.proStatusIsSet(simplePro: true);
 
     return Scaffold(
       appBar: AppBar(
@@ -320,7 +327,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
           child: Column(
             children: [
               if (isDesktop()) ...[
-                Card(
+                GlassCard(
                   child: Padding(
                     padding: const EdgeInsetsGeometry.all(8),
                     child: Column(
@@ -347,7 +354,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                 ),
               ],
               ...[
-                Card(
+                GlassCard(
                   child: Padding(
                     padding: const EdgeInsetsGeometry.all(8),
                     child: Column(
@@ -378,7 +385,65 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                   )
                 ),
               ],
-              Card(
+              ...[
+                GlassCard(
+                  child: Padding(
+                    padding: const EdgeInsetsGeometry.all(8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "${I18n.translate("liquidGlassMode")}${isLiquidGlassPro ? '' : ' ★'}",
+                            style: smallHeadline,
+                          ),
+                        ),
+                        Tooltip(
+                          message: isLiquidGlassPro ? '' : I18n.translate("proFeature"),
+                          child: Switch(
+                            value: _liquidGlassMode,
+                            onChanged: isLiquidGlassPro
+                                ? (value) {
+                                    designState.updateLiquidGlassMode(value);
+                                    setState(() {
+                                      _liquidGlassMode = value;
+                                    });
+                                  }
+                                : null,
+                            activeThumbColor: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              ...[
+                GlassCard(
+                  child: Padding(
+                    padding: const EdgeInsetsGeometry.all(8),
+                    child: Column(
+                      children: [ Text(I18n.translate("navBarStyle"), style: smallHeadline),
+                        const SizedBox(height: 4),
+                        buildVariantDropdown(
+                          variantCount: navBarStyleCount,
+                          selectedIndex: _selectedNavBarStyle,
+                          prefix: "navBarStyle",
+                          onChanged: (newIndex) {
+                            if (newIndex != null) {
+                              designState.updateNavBarStyle(newIndex);
+                              setState(() {
+                                _selectedNavBarStyle = newIndex;
+                              });
+                            }
+                          },
+                        ),
+                      ]
+                    )
+                  )
+                ),
+              ],
+              GlassCard(
                 child: Padding(
                   padding: const EdgeInsetsGeometry.all(8),
                   child: Column(
@@ -404,7 +469,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                 ),
               ),
               if (isDesktop()) ...[
-                Card(
+                GlassCard(
                   child: Padding(
                     padding: const EdgeInsetsGeometry.all(8),
                     child: Column(
@@ -453,7 +518,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                 ),
               ],
               ...[
-                Card(
+                GlassCard(
                   child: Padding(
                     padding: const EdgeInsetsGeometry.all(8),
                     child: Column(
@@ -507,7 +572,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                 ),
               ],
               ...[
-                Card(
+                GlassCard(
                   child: Padding(
                     padding: const EdgeInsetsGeometry.all(8),
                     child: Column(
@@ -545,7 +610,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                 ),
               ],
               ...[
-                Card(
+                GlassCard(
                   child: Padding(
                     padding: const EdgeInsetsGeometry.all(8),
                     child: Column(
@@ -677,7 +742,7 @@ class _CustomizationScreenState extends State<CustomizationScreen> {
                 ),
               ],
               ...[
-                Card(
+                GlassCard(
                   child: Padding(
                     padding: const EdgeInsetsGeometry.all(8),
                     child: Column(

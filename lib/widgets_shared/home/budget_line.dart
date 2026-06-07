@@ -63,8 +63,8 @@ class _BudgetLineWidgetState extends State<BudgetLineWidget>
         children: [
           Container(
             decoration: BoxDecoration(
-              color: (designState.customBackgroundPath != "none") ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
-              borderRadius: const BorderRadius.all(Radius.circular(8))
+              color: (designState.customBackgroundPath != "none") ? Theme.of(context).cardColor.withValues(alpha: .4) : null,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8))
             ),
             child: Text(
               I18n.translate("totalSpent", placeholders: {

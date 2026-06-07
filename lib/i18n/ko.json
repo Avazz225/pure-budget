@@ -463,5 +463,16 @@
   "remaining": "잔액",
   "expenses": "지출",
   "labelSpent": "지출됨",
-  "pdfSaveDialogTitle": "PDF 보고서 저장"
+  "pdfSaveDialogTitle": "PDF 보고서 저장",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "일반",
+  "settingsCategoryAccounts": "계정 및 보안",
+  "settingsCategoryAppearance": "디자인",
+  "settingsCategoryNotifications": "알림",
+  "settingsCategorySync": "동기화 및 데이터",
+  "settingsCategorySupport": "도움말 및 지원",
+  "settingsCategoryAbout": "정보",
+  "navBarStyle": "내비게이션 바 스타일",
+  "navBarStyle_variant_1": "필",
+  "navBarStyle_variant_2": "클래식"
 }

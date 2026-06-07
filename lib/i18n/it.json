@@ -463,5 +463,16 @@
   "remaining": "Rimanente",
   "expenses": "Spese",
   "labelSpent": "Speso",
-  "pdfSaveDialogTitle": "Salva report PDF"
+  "pdfSaveDialogTitle": "Salva report PDF",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "Generale",
+  "settingsCategoryAccounts": "Account e sicurezza",
+  "settingsCategoryAppearance": "Aspetto",
+  "settingsCategoryNotifications": "Notifiche",
+  "settingsCategorySync": "Sincronizzazione e dati",
+  "settingsCategorySupport": "Aiuto e supporto",
+  "settingsCategoryAbout": "Informazioni",
+  "navBarStyle": "Stile barra di navigazione",
+  "navBarStyle_variant_1": "Pillola",
+  "navBarStyle_variant_2": "Classico"
 }

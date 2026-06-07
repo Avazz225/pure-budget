@@ -463,5 +463,16 @@
   "remaining": "Pozostało",
   "expenses": "Wydatki",
   "labelSpent": "Wydano",
-  "pdfSaveDialogTitle": "Zapisz raport PDF"
+  "pdfSaveDialogTitle": "Zapisz raport PDF",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "Ogólne",
+  "settingsCategoryAccounts": "Konta i bezpieczeństwo",
+  "settingsCategoryAppearance": "Wygląd",
+  "settingsCategoryNotifications": "Powiadomienia",
+  "settingsCategorySync": "Synchronizacja i dane",
+  "settingsCategorySupport": "Pomoc i wsparcie",
+  "settingsCategoryAbout": "O aplikacji",
+  "navBarStyle": "Styl paska nawigacji",
+  "navBarStyle_variant_1": "Pigułka",
+  "navBarStyle_variant_2": "Klasyczny"
 }

@@ -463,5 +463,16 @@
   "remaining": "Kalan",
   "expenses": "Harcamalar",
   "labelSpent": "Harcanan",
-  "pdfSaveDialogTitle": "PDF raporunu kaydet"
+  "pdfSaveDialogTitle": "PDF raporunu kaydet",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "Genel",
+  "settingsCategoryAccounts": "Hesaplar ve güvenlik",
+  "settingsCategoryAppearance": "Görünüm",
+  "settingsCategoryNotifications": "Bildirimler",
+  "settingsCategorySync": "Senkronizasyon ve veriler",
+  "settingsCategorySupport": "Yardım ve destek",
+  "settingsCategoryAbout": "Hakkında",
+  "navBarStyle": "Gezinme çubuğu stili",
+  "navBarStyle_variant_1": "Hap",
+  "navBarStyle_variant_2": "Klasik"
 }

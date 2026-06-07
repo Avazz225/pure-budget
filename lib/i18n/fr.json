@@ -463,5 +463,16 @@
   "remaining": "Restant",
   "expenses": "Dépenses",
   "labelSpent": "Dépensé",
-  "pdfSaveDialogTitle": "Enregistrer le rapport PDF"
+  "pdfSaveDialogTitle": "Enregistrer le rapport PDF",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "Général",
+  "settingsCategoryAccounts": "Comptes et sécurité",
+  "settingsCategoryAppearance": "Apparence",
+  "settingsCategoryNotifications": "Notifications",
+  "settingsCategorySync": "Synchronisation et données",
+  "settingsCategorySupport": "Aide et support",
+  "settingsCategoryAbout": "À propos",
+  "navBarStyle": "Style de la barre de navigation",
+  "navBarStyle_variant_1": "Pilule",
+  "navBarStyle_variant_2": "Classique"
 }

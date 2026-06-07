@@ -8,6 +8,20 @@
 
 ## Changelog
 
+### 4.1.0 bundle 46 (07.06.2026)
+
+#### Settings
+- **Settings reworked as a categorised list** (similar to WhatsApp) — grouped into General, Accounts & Security, Appearance, Notifications, Sync & Data, Help & Support, and About; each opens its own screen
+- **Help and Design Customization moved into Settings** — both removed from the app-bar overflow menu, now reachable as Settings categories
+
+#### Customization
+- **"Liquid Glass" look (Pro)** — new translucent, blurred glass style for cards, app bar, and bottom navigation; toggle lives in Customization → Appearance, gated behind Pro
+- DB schema v42: `liquidGlassMode` flag added to `design`
+
+#### Architecture
+- Settings screen split from one large file into 7 focused category screens under `lib/screens_shared/settings/`
+- New shared `glassSurface`/`GlassCard`/`glassBlurWrap` helpers encapsulate the blur/translucency styling used by Liquid Glass
+
 ### 4.0.1 bundle 45 (06.06.2026)
 
 - fix multiple creations of autoexpenses when using multiple bank accounts

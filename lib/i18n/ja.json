@@ -463,5 +463,16 @@
   "remaining": "残り",
   "expenses": "支出",
   "labelSpent": "支出済み",
-  "pdfSaveDialogTitle": "PDFレポートを保存"
+  "pdfSaveDialogTitle": "PDFレポートを保存",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "一般",
+  "settingsCategoryAccounts": "アカウントとセキュリティ",
+  "settingsCategoryAppearance": "外観",
+  "settingsCategoryNotifications": "通知",
+  "settingsCategorySync": "同期とデータ",
+  "settingsCategorySupport": "ヘルプとサポート",
+  "settingsCategoryAbout": "アプリについて",
+  "navBarStyle": "ナビゲーションバーのスタイル",
+  "navBarStyle_variant_1": "ピル型",
+  "navBarStyle_variant_2": "クラシック"
 }

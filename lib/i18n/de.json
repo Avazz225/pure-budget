@@ -463,5 +463,16 @@
   "remaining": "Verbleibend",
   "expenses": "Ausgaben",
   "labelSpent": "Ausgegeben",
-  "pdfSaveDialogTitle": "PDF-Bericht speichern"
+  "pdfSaveDialogTitle": "PDF-Bericht speichern",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "Allgemein",
+  "settingsCategoryAccounts": "Konten & Sicherheit",
+  "settingsCategoryAppearance": "Erscheinungsbild",
+  "settingsCategoryNotifications": "Benachrichtigungen",
+  "settingsCategorySync": "Synchronisation & Daten",
+  "settingsCategorySupport": "Hilfe & Support",
+  "settingsCategoryAbout": "Über die App",
+  "navBarStyle": "Navigationsleisten-Stil",
+  "navBarStyle_variant_1": "Pille",
+  "navBarStyle_variant_2": "Klassisch"
 }

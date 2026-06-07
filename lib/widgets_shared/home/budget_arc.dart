@@ -71,8 +71,8 @@ class _BudgetArcWidgetState extends State<BudgetArcWidget> with SingleTickerProv
         children: [
           Container(
             decoration: BoxDecoration(
-              color: (designState.customBackgroundPath != "none") ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
-              borderRadius: const BorderRadius.all(Radius.circular(8))
+              color: (designState.customBackgroundPath != "none") ? Theme.of(context).cardColor.withValues(alpha: .4) : null,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8))
             ),
             child: Text(
               I18n.translate("totalSpent", placeholders: {"actual": widget.totalSpent.toStringAsFixed(2), "planned": widget.totalBudget.toStringAsFixed(2), "currency": widget.currency.toString()}),

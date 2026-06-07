@@ -21,6 +21,8 @@ class DesignState extends ChangeNotifier {
   Map<String, dynamic> customGradient; // custom gradient for background
   int intervalStyle; // style for interval display
   bool goMobileBannerDismissed; // user permanently closed the go-mobile banner
+  bool liquidGlassMode; // Pro: translucent "liquid glass" look for key surfaces
+  int navBarStyle; // bottom navigation bar style (0 = pill, 1 = classic)
 
   DesignState._({
     required this.layoutMainVertical,
@@ -40,6 +42,8 @@ class DesignState extends ChangeNotifier {
     required this.customGradient,
     required this.intervalStyle,
     required this.goMobileBannerDismissed,
+    required this.liquidGlassMode,
+    required this.navBarStyle,
   });
 
   factory DesignState({
@@ -60,6 +64,8 @@ class DesignState extends ChangeNotifier {
     required String customGradient,
     required int intervalStyle,
     required bool goMobileBannerDismissed,
+    required bool liquidGlassMode,
+    required int navBarStyle,
   }) {
     return DesignState._(
       layoutMainVertical: layoutMainVertical,
@@ -79,6 +85,8 @@ class DesignState extends ChangeNotifier {
       customGradient: decodeCustomGradient(customGradient),
       intervalStyle: intervalStyle,
       goMobileBannerDismissed: goMobileBannerDismissed,
+      liquidGlassMode: liquidGlassMode,
+      navBarStyle: navBarStyle,
     );
   }
 
@@ -100,6 +108,8 @@ class DesignState extends ChangeNotifier {
     required String customGradient,
     required int intervalStyle,
     required bool goMobileBannerDismissed,
+    required bool liquidGlassMode,
+    required int navBarStyle,
   }) {
     return DesignState(
       layoutMainVertical: layoutMainVertical,
@@ -119,8 +129,10 @@ class DesignState extends ChangeNotifier {
       customGradient: customGradient,
       intervalStyle: intervalStyle,
       goMobileBannerDismissed: goMobileBannerDismissed,
+      liquidGlassMode: liquidGlassMode,
+      navBarStyle: navBarStyle,
     );
-  } 
+  }
 
   static Map<String, dynamic> decodeCustomGradient(String jsonString) {
     final Map<String, dynamic> data = json.decode(jsonString);
@@ -172,6 +184,18 @@ class DesignState extends ChangeNotifier {
   Future<void> updateGoMobileBannerDismissed(bool dismissed) async {
     goMobileBannerDismissed = dismissed;
     await DatabaseHelper().updateDesign("goMobileBannerDismissed", dismissed ? 1 : 0);
+    notifyListeners();
+  }
+
+  Future<void> updateLiquidGlassMode(bool value) async {
+    liquidGlassMode = value;
+    await DatabaseHelper().updateDesign("liquidGlassMode", value ? 1 : 0);
+    notifyListeners();
+  }
+
+  Future<void> updateNavBarStyle(int index) async {
+    navBarStyle = index;
+    await DatabaseHelper().updateDesign("navBarStyle", index);
     notifyListeners();
   }
 

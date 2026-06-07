@@ -8,6 +8,7 @@ import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/widgets_shared/buttons.dart';
+import 'package:jne_household_app/widgets_shared/glass_surface.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/expense_dialog.dart';
 import 'package:jne_household_app/widgets_shared/main/expense_list.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
@@ -136,19 +137,24 @@ Widget categoryList(String currency, BudgetState budgetState, BuildContext conte
   }
 }
 
-Widget listTile({required context, required bool allSpent, required bool unassigned, required CategoryBudget category, required Color textColor, required BudgetState budgetState, required String currency, required DesignState designState, required Function buttonBuilder, required VoidCallback showExpensesBottomSheet, required VoidCallback onPressed}) {  
+Widget listTile({required context, required bool allSpent, required bool unassigned, required CategoryBudget category, required Color textColor, required BudgetState budgetState, required String currency, required DesignState designState, required Function buttonBuilder, required VoidCallback showExpensesBottomSheet, required VoidCallback onPressed}) {
   final budget = (!unassigned) ? category.budget : budgetState.notAssignedBudget;
-  
-  return Card(
+  // GlassCard already adds its own BackdropFilter + tinted overlay — stacking
+  // the tile's own blur overlay on top compounds into a washed-out, brighter look.
+  final useGlassCard = glassCardActive(context);
+
+  return GlassCard(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8),
     ),
     color: (designState.categoryMainStyle == 0) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
+    borderRadius: 8,
+    tint: category.color,
     child: ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Stack(
         children: [
-          if (designState.getListTileBlur())
+          if (designState.getListTileBlur() && !useGlassCard)
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(
@@ -235,7 +241,7 @@ Widget listTile({required context, required bool allSpent, required bool unassig
                             ? category.category
                             : I18n.translate("unassigned"),
                         style: TextStyle(
-                          color: textColor.withValues(alpha: .65),
+                          color: textColor,
                           fontSize: 12,
                         ),
                       ),

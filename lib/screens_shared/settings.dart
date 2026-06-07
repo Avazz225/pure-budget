@@ -2,95 +2,35 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jne_household_app/helper/btn_styles.dart';
-import 'package:jne_household_app/keys.dart';
-import 'package:jne_household_app/logger.dart';
-import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
-import 'package:jne_household_app/screens_shared/remote_database.dart';
-import 'package:jne_household_app/services/notification_service.dart';
-import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
-import 'package:jne_household_app/widgets_shared/dialogs/debug_import_file_dialog.dart';
-import 'package:jne_household_app/widgets_shared/dialogs/report_issue_dialog.dart';
-import 'package:jne_household_app/widgets_shared/settings/bank_account.dart';
-import 'package:jne_household_app/widgets_shared/settings/export_import.dart';
-import 'package:jne_household_app/widgets_shared/settings/language.dart';
-import 'package:jne_household_app/widgets_shared/settings/reminder.dart';
-import 'package:local_auth/local_auth.dart';
-import 'package:mail_sender/mail_sender.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:jne_household_app/models/budget_state.dart';
+import 'package:jne_household_app/screens_shared/customization_screen.dart';
+import 'package:jne_household_app/screens_shared/settings/settings_about.dart';
+import 'package:jne_household_app/screens_shared/settings/settings_accounts.dart';
+import 'package:jne_household_app/screens_shared/settings/settings_general.dart';
+import 'package:jne_household_app/screens_shared/settings/settings_notifications.dart';
+import 'package:jne_household_app/screens_shared/settings/settings_sync.dart';
+import 'package:jne_household_app/screens_shared/settings/settings_support.dart';
+import 'package:jne_household_app/widgets_shared/settings/settings_category_tile.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  @override
-  SettingsScreenState createState() => SettingsScreenState();
-}
-
-final List<Color> availableColors = [
-  Colors.red[400]!,
-  Colors.deepOrange[400]!,
-  Colors.lime[800]!,
-  Colors.green[600]!,
-  Colors.blue[600]!,
-  Colors.cyan[700]!,
-  Colors.indigo[400]!,
-  Colors.purple[400]!,
-  Colors.pink[400]!
-];
-
-class SettingsScreenState extends State<SettingsScreen> {
-  SettingsScreenState();
-  
-  final LocalAuthentication auth = LocalAuthentication();
-
-  void _editCurrency(String currency){
-    showDialog(
-      context: context,
-      builder: (context) {
-        final TextEditingController currencyController = TextEditingController(text: currency);
-
-        return AdaptiveAlertDialog(
-          title: Text(I18n.translate("editCurrency")),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SingleChildScrollView(
-                child: TextField(
-                  controller: currencyController,
-                  decoration: InputDecoration(labelText: I18n.translate("currency")),
-                )
-              )
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(I18n.translate("cancel")),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final navigator = Navigator.of(context);
-                final settingsState = Provider.of<BudgetState>(context, listen: false);
-                await settingsState.updateCurrency(currencyController.text);
-                navigator.pop();
-              },
-              child: Text(I18n.translate("save")),
-            ),
-          ],
-        );
-      },
+  void _push(BuildContext context, Widget screen) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => screen),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final budgetState = Provider.of<BudgetState>(context);
-    final currency = budgetState.settings.currency;
+    final showAccountsCategory = budgetState.bankAccounts.length > 1 || Platform.isAndroid || Platform.isIOS;
+    final showNotificationsCategory = !Platform.isWindows;
+    final showAppearanceCategory = (Platform.isAndroid || Platform.isIOS)
+        ? budgetState.proStatusIsSet()
+        : (budgetState.settings.isDesktopPro || kDebugMode);
 
     return Scaffold(
       appBar: AppBar(
@@ -99,269 +39,48 @@ class SettingsScreenState extends State<SettingsScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
         child: Column(
-          children: [ 
-            Card(
-              child: Padding (
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      I18n.translate("currencyWithVal", placeholders: {"currency": currency.toString()}),
-                      style: Theme.of(context).textTheme.bodyLarge
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit_rounded),
-                      onPressed: () => _editCurrency(currency),
-                    ),
-                  ],
-                ),
-              )
+          children: [
+            SettingsCategoryTile(
+              icon: Icons.tune_rounded,
+              title: I18n.translate("settingsCategoryGeneral"),
+              onTap: () => _push(context, const SettingsGeneralScreen()),
             ),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        I18n.translate("includePlannedSpendings"),
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      )
-                    ),
-                    Switch(
-                      value: budgetState.settings.includePlanned,
-                      onChanged: (value) {
-                        setState(() {
-                          budgetState.updateInclude(value);
-                        });
-                      },
-                      activeThumbColor: Colors.green,
-                    )
-                  ],
-                )
-              )
+            if (showAccountsCategory)
+            SettingsCategoryTile(
+              icon: Icons.account_balance_rounded,
+              title: I18n.translate("settingsCategoryAccounts"),
+              onTap: () => _push(context, const SettingsAccountsScreen()),
             ),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        I18n.translate("showAvailableBudget"),
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      )
-                    ),
-                    Switch(
-                      value: budgetState.settings.showAvailableBudget,
-                      onChanged: (value) {
-                        setState(() {
-                          budgetState.updateAvailableBudget(value);
-                        });
-                      },
-                      activeThumbColor: Colors.green,
-                    )
-                  ],
-                )
-              )
+            if (showAppearanceCategory)
+            SettingsCategoryTile(
+              icon: Icons.palette_rounded,
+              title: I18n.translate("settingsCategoryAppearance"),
+              onTap: () => _push(context, const CustomizationScreen()),
             ),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        I18n.translate("considerBalance"),
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      )
-                    ),
-                    Switch(
-                      value: budgetState.settings.useBalance,
-                      onChanged: (value) {
-                        setState(() {
-                          budgetState.updateUseBalance(value);
-                        });
-                      },
-                      activeThumbColor: Colors.green,
-                    )
-                  ],
-                )
-              )
+            if (showNotificationsCategory)
+            SettingsCategoryTile(
+              icon: Icons.notifications_rounded,
+              title: I18n.translate("settingsCategoryNotifications"),
+              onTap: () => _push(context, const SettingsNotificationsScreen()),
             ),
-            if (Platform.isAndroid || Platform.isIOS)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        I18n.translate("lockApp"),
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      )
-                    ),
-                    Switch(
-                      value: budgetState.settings.lockApp,
-                      onChanged: (value) async {
-                        try {
-                          bool supported = await auth.isDeviceSupported();
-                          bool biometricAvailable = await auth.canCheckBiometrics;
-                          final isBiometricAvailable = biometricAvailable || supported;
-                          if (isBiometricAvailable) {
-                            bool authenticated = await auth.authenticate(
-                              localizedReason: I18n.translate("authRequired"),
-                              options: const AuthenticationOptions(
-                                useErrorDialogs: true,
-                                stickyAuth: true,
-                              ),
-                            );
-                            if (authenticated) {
-                              setState(() {
-                                budgetState.updateLockApp(value);
-                              });
-                            }
-                          }
-                        } catch (e) {
-                          Logger().warning("User authentication failed: $e", tag: "auth");
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(I18n.translate("authFailed", placeholders: {'error': e.toString()}))),
-                          );
-                        }
-                      },
-                      activeThumbColor: Colors.green,
-                    )
-                  ],
-                )
-              )
+            SettingsCategoryTile(
+              icon: Icons.sync_rounded,
+              title: I18n.translate("settingsCategorySync"),
+              onTap: () => _push(context, const SettingsSyncScreen()),
             ),
-            if (budgetState.bankAccounts.length > 1)
-            Card(
-              child: BankAccount(budgetState: budgetState)
+            SettingsCategoryTile(
+              icon: Icons.help_rounded,
+              title: I18n.translate("settingsCategorySupport"),
+              onTap: () => _push(context, const SettingsSupportScreen()),
             ),
-            Card(
-              child: Language(budgetState: budgetState)
+            SettingsCategoryTile(
+              icon: Icons.info_rounded,
+              title: I18n.translate("settingsCategoryAbout"),
+              onTap: () => _push(context, const SettingsAboutScreen()),
             ),
-            if (!Platform.isWindows)
-            ...[
-              const ReminderSettingsWidget(),
-              if (kDebugMode)
-              ...[
-                ElevatedButton(onPressed: () => NotificationService().showTestNotification(), child: const Text("DEBUG: Show test notification")),
-                ElevatedButton(onPressed: () => NotificationService().listScheduledNotification(), child: const Text("DEBUG: List scheduled notifications")),
-              ]
-            ],
-            const SizedBox(height: 8,),
-            ElevatedButton(
-              style: btnNeutralStyle,
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => RemoteDatabase(budgetState: budgetState,),
-                ),
-              ), 
-              child: Text(I18n.translate("sharedDB"))
-            ),
-            if (budgetState.settings.sharedDbUrl == "none")
-            const ExportImport(),
-            if (Platform.isAndroid || Platform.isIOS)
-            ...[
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.tour_rounded),
-                label: Text(I18n.translate("replayTour")),
-                onPressed: () async {
-                  await budgetState.updateTourCompleted(false);
-                  if (context.mounted) Navigator.of(context).pop();
-                },
-              ),
-            ],
-            if (!Platform.isIOS && !Platform.isAndroid)
-            const SizedBox(height: 8,),
-            if (!Platform.isIOS && !Platform.isAndroid)
-            ElevatedButton(
-              style: btnNeutralStyle,
-              onPressed: () async {
-                final dir = await getApplicationDocumentsDirectory();
-                final path = p.join(dir.path, 'PureBudget');
-                if (Platform.isWindows) {
-                  Process.run('explorer', [path]);
-                } else if (Platform.isMacOS) {
-                  Process.run('open', [path]);
-                } else if (Platform.isLinux) {
-                  Process.run('xdg-open', [path]);
-                }
-              },
-              child: Text(I18n.translate("showLogs"))
-            ),
-            const SizedBox(height: 8,),
-            ElevatedButton(
-              style: btnNeutralStyle,
-              onPressed: () async {
-                List<String> data = await showReportIssueDialog(context, budgetState);
-                if (data.length == 2) {
-                  if (Platform.isAndroid || Platform.isIOS) {
-                    final mailSenderPlugin = MailSender();
-                    mailSenderPlugin.sendMail(
-                      recipient: [reportEmail],
-                      subject: data[0],
-                      body: data[1]
-                    );
-                  }
-                }
-              },
-              child: Text(I18n.translate("report")),
-            ),
-            if (kDebugMode)
-            ...[
-              ElevatedButton(onPressed: () => budgetState.updateIsPro(!budgetState.settings.isPro), child: Text("DEBUG: Toggle pro\nCurrent: ${budgetState.settings.isPro}")),
-              ElevatedButton(onPressed: () => {showDummyImportDialog(context, budgetState)}, child: const Text("DEBUG: Fast import pbstate lang file"))
-            ]
           ]
         )
       ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            spacing: 8,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(I18n.translate("appVersion", placeholders: {"version": appVersion})),
-              GestureDetector(
-                onTap: () async {
-                  const url = privacyNoticeUrl;
-                  if (await canLaunchUrl(Uri.parse(url))) {
-                    await launchUrl(Uri.parse(url));
-                  }
-                },
-                child: Row(
-                  children: [
-                    Text(
-                      I18n.translate("privacyPolicy"),
-                      style: const TextStyle(
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                    const Icon(Icons.open_in_new_rounded, size: 12, color: Colors.blue,)
-                  ]
-                ),
-              )
-            ]
-          ),
-          if (Platform.isIOS)
-          const SizedBox(
-            width: 1,
-            height: 12,
-          )
-        ]
-      )
     );
   }
-} 
+}

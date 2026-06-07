@@ -40,8 +40,8 @@ class _BudgetSummaryState extends State<BudgetSummary> {
         if (designState.arcStyle == 2 || !designState.layoutMainVertical)
         Container(
             decoration: BoxDecoration(
-              color: (designState.customBackgroundPath != "none") ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
-              borderRadius: const BorderRadius.all(Radius.circular(8))
+              color: (designState.customBackgroundPath != "none") ? Theme.of(context).cardColor.withValues(alpha: .4) : null,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8))
             ),
             child: Text(
             I18n.translate("totalSpent", placeholders: {"actual": totalSpent.toStringAsFixed(2), "planned": budgetState.totalBudget.toStringAsFixed(2), "currency": currency.toString()}),

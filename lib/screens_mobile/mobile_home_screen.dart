@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
 import 'package:jne_household_app/screens_mobile/mobile_receipt_scanner.dart';
-import 'package:jne_household_app/screens_shared/customization_screen.dart';
-import 'package:jne_household_app/screens_shared/help_screen.dart';
 import 'package:jne_household_app/screens_mobile/mobile_in_app_purchase.dart';
 import 'package:jne_household_app/services/app_tour.dart';
 import 'package:jne_household_app/widgets_mobile/home/statistics.dart';
 import 'package:jne_household_app/widgets_shared/app_rating.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/interval_picker.dart';
+import 'package:jne_household_app/widgets_shared/glass_surface.dart';
+import 'package:jne_household_app/widgets_shared/pill_nav_bar.dart';
 import 'package:jne_household_app/widgets_shared/home/budget_summary.dart';
 import 'package:jne_household_app/widgets_shared/main/autoexpenses.dart';
 import 'package:jne_household_app/widgets_mobile/banner_ad.dart';
@@ -57,7 +57,8 @@ class HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
         appBar: AppBar(
-          backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
+          backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .4),
+          flexibleSpace: glassAppBarFlexibleSpace(context),
           title: Row(
             mainAxisSize: MainAxisSize.min,
             children: (budgetState.settings.filterBudget != "*") ? 
@@ -126,31 +127,15 @@ class HomeScreenState extends State<HomeScreen> {
                       builder: (context) => const SettingsScreen(),
                     ),
                   );
-                } else if (value == 'help') {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const HelpScreen(),
-                    ),
-                  );
                 } else if (value == 'inAppPurchase') {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => const InAppPurchaseScreen(),
                     ),
                   );
-                } else if (value == "customization") {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const CustomizationScreen(),
-                    ),
-                  );
                 }
               },
               itemBuilder: (BuildContext context) => [
-                PopupMenuItem(
-                  value: 'help',
-                  child: Text(I18n.translate("help")),
-                ),
                 if (budgetState.proStatusIsSet(inverted: true))
                 PopupMenuItem(
                   value: 'inAppPurchase',
@@ -159,19 +144,14 @@ class HomeScreenState extends State<HomeScreen> {
                     children: [
                       TriRhombusIcon(
                         gap: -2.5,
-                        size: 20, 
-                        rotation: 90, 
+                        size: 20,
+                        rotation: 90,
                         colors: (Theme.brightnessOf(context) == Brightness.dark) ? [Colors.lightGreen, Colors.lightBlue, Colors.yellowAccent] : [Colors.pink, Colors.purple, Colors.deepOrange]
                       ),
                       const SizedBox(width: 4,),
                       Text(I18n.translate("upgradeToPro"))
                     ],
                   )
-                ),
-                if (budgetState.proStatusIsSet())
-                PopupMenuItem(
-                  value: 'customization',
-                  child: Text(I18n.translate("customization")),
                 ),
                 PopupMenuItem(
                   value: 'settings',
@@ -197,8 +177,8 @@ class HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: (!designState.appBackgroundSolid) ? Theme.of(context).cardColor.withValues(alpha: .5) : null,
-                      borderRadius: BorderRadius.circular(8),
+                      color: (!designState.appBackgroundSolid) ? Theme.of(context).cardColor.withValues(alpha: .4) : null,
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
                     ),
                     child: Text(
                       style: Theme.of(context).textTheme.headlineSmall,
@@ -219,7 +199,59 @@ class HomeScreenState extends State<HomeScreen> {
         bottomNavigationBar: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            BottomNavigationBar(
+            (designState.navBarStyle == 0)
+            ? pillNavBar(
+                context,
+                destinations: [
+                  NavigationDestination(
+                    icon: const Icon(Icons.wallet_rounded),
+                    label: I18n.translate("bankaccount"),
+                  ),
+                  NavigationDestination(
+                    icon: Showcase(
+                      key: AppTour().keyBottomNavStats,
+                      title: I18n.translate("tourStatsTitle"),
+                      description: I18n.translate("tourStatsDesc"),
+                      tooltipPosition: TooltipPosition.top,
+                      child: const Icon(Icons.line_axis_rounded),
+                    ),
+                    label: I18n.translate("statistics"),
+                  ),
+                  NavigationDestination(
+                    icon: Showcase(
+                      key: AppTour().keyBottomNavHome,
+                      title: I18n.translate("tourHomeTitle"),
+                      description: I18n.translate("tourHomeDesc"),
+                      tooltipPosition: TooltipPosition.top,
+                      child: const Icon(Icons.home_rounded),
+                    ),
+                    label: I18n.translate("start"),
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.category_rounded),
+                    label: I18n.translate("categories"),
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.autorenew_rounded),
+                    label: I18n.translate("fixedCost"),
+                  ),
+                ],
+                selectedIndex: tabindex,
+                onDestinationSelected: (index) {
+                  if (index != tabindex) {
+                    setState(() {
+                      tabindex = index;
+                    });
+                  } else if (index == 2 && budgetState.proStatusIsSet()) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ReceiptPage(baseCurrency: budgetState.settings.currency, budgetState: budgetState, designState: designState,),
+                      ),
+                    );
+                  }
+                },
+              )
+            : glassBlurWrap(context, BottomNavigationBar(
               selectedItemColor: Theme.of(context).colorScheme.primary,
               unselectedItemColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: .55),
               backgroundColor: Colors.transparent,
@@ -276,7 +308,7 @@ class HomeScreenState extends State<HomeScreen> {
                   );
                 }
               },
-            ),
+            )),
             if (budgetState.proStatusIsSet(inverted: true, ignoreDebugMode: true))
             const MainBanner()
           ],

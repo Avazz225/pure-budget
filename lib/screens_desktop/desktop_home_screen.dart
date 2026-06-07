@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:jne_household_app/services/desktop_pro_upgrade_manager.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
-import 'package:jne_household_app/screens_shared/customization_screen.dart';
-import 'package:jne_household_app/screens_shared/help_screen.dart';
 import 'package:jne_household_app/widgets_desktop/go_mobile_banner.dart';
 import 'package:jne_household_app/widgets_desktop/home/statistics.dart';
 import 'package:jne_household_app/widgets_shared/background_painter.dart';
 import 'package:jne_household_app/widgets_shared/buttons.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/interval_picker.dart';
+import 'package:jne_household_app/widgets_shared/glass_surface.dart';
 import 'package:jne_household_app/widgets_shared/main/autoexpenses.dart';
 import 'package:jne_household_app/widgets_shared/home/budget_summary.dart';
 import 'package:jne_household_app/screens_shared/settings.dart';
@@ -64,6 +63,7 @@ class HomeScreenState extends State<DesktopHomeScreen> {
       backgroundColor: (designState.appBackgroundSolid) ? null : Colors.transparent,
       appBar: AppBar(
         backgroundColor: (designState.appBackgroundSolid) ? null : Theme.of(context).cardColor.withValues(alpha: .5),
+        flexibleSpace: glassAppBarFlexibleSpace(context),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: (budgetState.settings.filterBudget != "*") ?
@@ -171,29 +171,6 @@ class HomeScreenState extends State<DesktopHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     spacing: 4,
                     children: [
-                      buildActionButton(
-                        context,
-                        label: I18n.translate("help"),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const HelpScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      if (budgetState.settings.isDesktopPro || kDebugMode)
-                      buildActionButton(
-                        context,
-                        label: I18n.translate("customization"),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const CustomizationScreen(),
-                            ),
-                          );
-                        },
-                      ),
                       if (!budgetState.settings.isDesktopPro || kDebugMode)
                       buildActionButton(
                         context, 

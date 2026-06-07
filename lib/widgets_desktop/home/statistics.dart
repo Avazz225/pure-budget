@@ -7,6 +7,7 @@ import 'package:jne_household_app/services/statistics.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/design_state.dart';
+import 'package:jne_household_app/widgets_shared/pill_nav_bar.dart';
 import 'package:jne_household_app/widgets_shared/stacked_icons.dart';
 import 'package:jne_household_app/widgets_shared/statistics/statistics_graph.dart';
 import 'package:jne_household_app/widgets_shared/statistics/statistics_legend.dart';
@@ -108,7 +109,38 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           statisticsTable(tableData, context)
           :
           statisticsGraph(chartData, width, context, updateWidth),
-          BottomNavigationBar(
+          (designState.navBarStyle == 0)
+          ? pillNavBar(
+              context,
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.calendar_month_rounded),
+                  label: I18n.translate(chartModes[0]),
+                ),
+                NavigationDestination(
+                  icon: stackedIcons(24, 0.8, Icons.table_chart_rounded, Icons.show_chart_rounded, table, (state.selectedStatisticIndex == 1) ? selectedItemColor : unselectedItemColor),
+                  label: I18n.translate(chartModes[1]),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.category_rounded),
+                  label: I18n.translate(chartModes[2]),
+                ),
+                NavigationDestination(
+                  icon: stackedIcons(24, 0.8, Icons.table_view_rounded, Icons.stacked_line_chart_rounded, table, (state.selectedStatisticIndex == 3) ? selectedItemColor : unselectedItemColor),
+                  label: I18n.translate(chartModes[3]),
+                ),
+              ],
+              selectedIndex: state.selectedStatisticIndex,
+              onDestinationSelected: (index) async {
+                await state.getStatistics(chartModes[index]);
+                setState(() {
+                  state.selectedStatisticIndex = index;
+                  filter = "";
+                  init = true;
+                });
+              },
+            )
+          : BottomNavigationBar(
             backgroundColor: Colors.transparent,
             selectedItemColor: selectedItemColor,
             unselectedItemColor: unselectedItemColor,

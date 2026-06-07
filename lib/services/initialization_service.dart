@@ -121,6 +121,8 @@ class InitializationService {
       customGradient: designData["customGradient"] as String,
       intervalStyle: designData["intervalStyle"] as int,
       goMobileBannerDismissed: designData["goMobileBannerDismissed"] == 1,
+      liquidGlassMode: designData["liquidGlassMode"] == 1,
+      navBarStyle: designData["navBarStyle"] as int,
     );
 
     // Initialize date formatting

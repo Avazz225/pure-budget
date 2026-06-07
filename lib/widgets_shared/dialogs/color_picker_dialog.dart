@@ -4,6 +4,18 @@ import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 
+final List<Color> availableColors = [
+  Colors.red[400]!,
+  Colors.deepOrange[400]!,
+  Colors.lime[800]!,
+  Colors.green[600]!,
+  Colors.blue[600]!,
+  Colors.cyan[700]!,
+  Colors.indigo[400]!,
+  Colors.purple[400]!,
+  Colors.pink[400]!
+];
+
 Future <Color> openColorPickerDialog(BuildContext context, Color selectedColor) async {
   Color returnColor = selectedColor;
 

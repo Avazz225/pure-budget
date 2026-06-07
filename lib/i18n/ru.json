@@ -463,5 +463,16 @@
   "remaining": "Остаток",
   "expenses": "Расходы",
   "labelSpent": "Потрачено",
-  "pdfSaveDialogTitle": "Сохранить PDF-отчёт"
+  "pdfSaveDialogTitle": "Сохранить PDF-отчёт",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "Общие",
+  "settingsCategoryAccounts": "Счета и безопасность",
+  "settingsCategoryAppearance": "Внешний вид",
+  "settingsCategoryNotifications": "Уведомления",
+  "settingsCategorySync": "Синхронизация и данные",
+  "settingsCategorySupport": "Помощь и поддержка",
+  "settingsCategoryAbout": "О приложении",
+  "navBarStyle": "Стиль панели навигации",
+  "navBarStyle_variant_1": "Таблетка",
+  "navBarStyle_variant_2": "Классический"
 }

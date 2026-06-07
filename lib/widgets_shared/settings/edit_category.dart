@@ -5,7 +5,6 @@ import 'package:jne_household_app/services/brightness.dart';
 import 'package:jne_household_app/i18n/i18n.dart';
 import 'package:jne_household_app/models/budget_state.dart';
 import 'package:jne_household_app/models/category.dart';
-import 'package:jne_household_app/screens_shared/settings.dart';
 import 'package:jne_household_app/widgets_shared/decimal_amount_field.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/adaptive_alert_dialog.dart';
 import 'package:jne_household_app/widgets_shared/dialogs/color_picker_dialog.dart';

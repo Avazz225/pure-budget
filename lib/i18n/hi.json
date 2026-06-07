@@ -463,5 +463,16 @@
   "remaining": "शेष",
   "expenses": "खर्च",
   "labelSpent": "खर्च किया",
-  "pdfSaveDialogTitle": "PDF रिपोर्ट सहेजें"
+  "pdfSaveDialogTitle": "PDF रिपोर्ट सहेजें",
+  "liquidGlassMode": "लिक्विड ग्लास",
+  "settingsCategoryGeneral": "सामान्य",
+  "settingsCategoryAccounts": "खाते और सुरक्षा",
+  "settingsCategoryAppearance": "दिखावट",
+  "settingsCategoryNotifications": "सूचनाएं",
+  "settingsCategorySync": "सिंक और डेटा",
+  "settingsCategorySupport": "सहायता और समर्थन",
+  "settingsCategoryAbout": "ऐप के बारे में",
+  "navBarStyle": "नेविगेशन बार शैली",
+  "navBarStyle_variant_1": "पिल",
+  "navBarStyle_variant_2": "क्लासिक"
 }

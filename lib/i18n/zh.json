@@ -463,5 +463,16 @@
   "remaining": "剩余",
   "expenses": "支出",
   "labelSpent": "已花费",
-  "pdfSaveDialogTitle": "保存 PDF 报告"
+  "pdfSaveDialogTitle": "保存 PDF 报告",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "通用",
+  "settingsCategoryAccounts": "账户与安全",
+  "settingsCategoryAppearance": "外观",
+  "settingsCategoryNotifications": "通知",
+  "settingsCategorySync": "同步与数据",
+  "settingsCategorySupport": "帮助与支持",
+  "settingsCategoryAbout": "关于",
+  "navBarStyle": "导航栏样式",
+  "navBarStyle_variant_1": "胶囊形",
+  "navBarStyle_variant_2": "经典"
 }

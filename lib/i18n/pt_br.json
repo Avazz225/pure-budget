@@ -463,5 +463,16 @@
   "remaining": "Restante",
   "expenses": "Despesas",
   "labelSpent": "Gasto",
-  "pdfSaveDialogTitle": "Salvar relatório PDF"
+  "pdfSaveDialogTitle": "Salvar relatório PDF",
+  "liquidGlassMode": "Liquid Glass",
+  "settingsCategoryGeneral": "Geral",
+  "settingsCategoryAccounts": "Contas e segurança",
+  "settingsCategoryAppearance": "Aparência",
+  "settingsCategoryNotifications": "Notificações",
+  "settingsCategorySync": "Sincronização e dados",
+  "settingsCategorySupport": "Ajuda e suporte",
+  "settingsCategoryAbout": "Sobre",
+  "navBarStyle": "Estilo da barra de navegação",
+  "navBarStyle_variant_1": "Pílula",
+  "navBarStyle_variant_2": "Clássico"
 }
